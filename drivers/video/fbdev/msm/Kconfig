@@ -126,13 +126,7 @@ config FB_MSM_MDSS_KCAL_CTRL
 	depends on FB_MSM_MDSS
 	bool "MDSS color control"
 	---help---
-	Enable sysfs for rgb/lut control for mdss-mdp display controllers
-	in the MDSS sub-system.
-
-config FB_LCD_BACKLIGHT_MIN_LIMIT
-	depends on FB_MSM_MDSS
-	bool "Enable LCD backlight minimum limit"
-	---help---
-	Enables support for setting a lower limit for the LCD panel backlight.
+	  Enable sysfs for post-processing control of mdss-mdp5 display
+	  controllers in MDSS.
 
 endif
