@@ -999,4 +999,7 @@ source "sound/soc/codecs/msm_sdw/Kconfig"
 source "sound/soc/codecs/tfa98xx/Kconfig"
 source "sound/soc/codecs/tfa9892/Kconfig"
 
+config SOUND_CONTROL
+	bool "Sound control for wcd9335"
+
 endmenu
