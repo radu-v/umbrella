@@ -11,7 +11,7 @@
 #define __noretpoline
 #endif
 
-/* These macros are used to mark some functions or 
+/* These macros are used to mark some functions or
  * initialized data (doesn't apply to uninitialized data)
  * as `initialization' functions. The kernel can take this
  * as hint that the function is used only during the initialization
@@ -19,7 +19,7 @@
  *
  * Usage:
  * For functions:
- * 
+ *
  * You should add __init immediately before the function name, like:
  *
  * static void __init initme(int x, int y)
@@ -158,42 +158,30 @@ extern void (*late_time_init)(void);
 extern bool initcall_debug;
 
 #endif
-  
+
 #ifndef MODULE
 
 #ifndef __ASSEMBLY__
 
-#ifdef CONFIG_LTO
-/* Work around a LTO gcc problem: when there is no reference to a variable
- * in a module it will be moved to the end of the program. This causes
- * reordering of initcalls which the kernel does not like.
- * Add a dummy reference function to avoid this. The function is
- * deleted by the linker.
- */
-#define LTO_REFERENCE_INITCALL(x) \
-	; /* yes this is needed */			\
-	static __used __exit void *reference_##x(void)	\
-	{						\
-		return &x;				\
-	}
-#else
-#define LTO_REFERENCE_INITCALL(x)
-#endif
-
-/* initcalls are now grouped by functionality into separate 
+/*
+ * initcalls are now grouped by functionality into separate
  * subsections. Ordering inside the subsections is determined
- * by link order. 
- * For backwards compatibility, initcall() puts the call in 
+ * by link order.
+ * For backwards compatibility, initcall() puts the call in
  * the device init subsection.
  *
  * The `id' arg to __define_initcall() is needed so that multiple initcalls
  * can point at the same handler without causing duplicate-symbol build errors.
+ *
+ * Initcalls are run by placing pointers in initcall sections that the
+ * kernel iterates at runtime. The linker can do dead code / data elimination
+ * and remove that completely, so the initcall sections have to be marked
+ * as KEEP() in the linker script.
  */
 
 #define __define_initcall(fn, id) \
 	static initcall_t __initcall_##fn##id __used __noreorder \
-	__attribute__((__section__(".initcall" #id ".init"))) = fn; \
-	LTO_REFERENCE_INITCALL(__initcall_##fn##id)
+	__attribute__((__section__(".initcall" #id ".init"))) = fn;
 
 /*
  * Early initcalls run before initializing SMP.
@@ -229,15 +217,15 @@ extern bool initcall_debug;
 
 #define __initcall(fn) device_initcall(fn)
 
-#define __exitcall(fn) \
+#define __exitcall(fn)						\
 	static exitcall_t __exitcall_##fn __exit_call = fn
 
-#define console_initcall(fn) \
-	static initcall_t __initcall_##fn \
+#define console_initcall(fn)					\
+	static initcall_t __initcall_##fn			\
 	__used __section(.con_initcall.init) = fn
 
-#define security_initcall(fn) \
-	static initcall_t __initcall_##fn \
+#define security_initcall(fn)					\
+	static initcall_t __initcall_##fn			\
 	__used __section(.security_initcall.init) = fn
 
 struct obs_kernel_param {
