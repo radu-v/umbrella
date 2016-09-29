@@ -120,6 +120,10 @@ static int devfreq_update_status(struct devfreq *devfreq, unsigned long freq)
 
 	cur_time = jiffies;
 
+	/* Immediately exit if previous_freq is not initialized yet. */
+	if (!devfreq->previous_freq)
+		goto out;
+
 	prev_lev = devfreq_get_freq_level(devfreq, devfreq->previous_freq);
 	if (prev_lev < 0) {
 		ret = prev_lev;
@@ -226,10 +230,12 @@ int update_devfreq(struct devfreq *devfreq)
 	if (err)
 		return err;
 
-	if (devfreq->profile->freq_table)
-		if (devfreq_update_status(devfreq, freq))
+	if (devfreq->profile->freq_table) {
+		int rc = devfreq_update_status(devfreq, freq);
+		if (rc < 0)
 			dev_err(&devfreq->dev,
-				"Couldn't update frequency transition information.\n");
+				"Couldn't update frequency transition information, freq = %d, rc = %d", freq, rc);
+	}
 
 	devfreq->previous_freq = freq;
 	return err;
