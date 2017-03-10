@@ -352,6 +352,7 @@ static int smb138x_batt_get_prop(struct power_supply *psy,
 	struct smb138x *chip = power_supply_get_drvdata(psy);
 	struct smb_charger *chg = &chip->chg;
 	int rc = 0;
+	union power_supply_propval pval = {0, };
 
 	switch (prop) {
 	case POWER_SUPPLY_PROP_STATUS:
@@ -373,7 +374,14 @@ static int smb138x_batt_get_prop(struct power_supply *psy,
 		rc = smblib_get_prop_batt_capacity(chg, val);
 		break;
 	case POWER_SUPPLY_PROP_CHARGER_TEMP:
-		rc = smb138x_get_prop_charger_temp(chip, val);
+		/* do not query RRADC if charger is not present */
+		rc = smblib_get_prop_usb_present(chg, &pval);
+		if (rc < 0)
+			pr_err("Couldn't get usb present rc=%d\n", rc);
+
+		rc = -ENODATA;
+		if (pval.intval)
+			rc = smb138x_get_prop_charger_temp(chip, val);
 		break;
 	case POWER_SUPPLY_PROP_CHARGER_TEMP_MAX:
 		rc = smblib_get_prop_charger_temp_max(chg, val);
@@ -548,6 +556,7 @@ static int smb138x_parallel_get_prop(struct power_supply *psy,
 	struct smb_charger *chg = &chip->chg;
 	int rc = 0;
 	u8 temp;
+	union power_supply_propval pval = {0, };
 
 	switch (prop) {
 	case POWER_SUPPLY_PROP_CHARGE_TYPE:
@@ -594,7 +603,14 @@ static int smb138x_parallel_get_prop(struct power_supply *psy,
 		rc = smblib_get_prop_slave_current_now(chg, val);
 		break;
 	case POWER_SUPPLY_PROP_CHARGER_TEMP:
-		rc = smb138x_get_prop_charger_temp(chip, val);
+		/* do not query RRADC if charger is not present */
+		rc = smblib_get_prop_usb_present(chg, &pval);
+		if (rc < 0)
+			pr_err("Couldn't get usb present rc=%d\n", rc);
+
+		rc = -ENODATA;
+		if (pval.intval)
+			rc = smb138x_get_prop_charger_temp(chip, val);
 		break;
 	case POWER_SUPPLY_PROP_CHARGER_TEMP_MAX:
 		rc = smblib_get_prop_charger_temp_max(chg, val);
