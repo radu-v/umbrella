@@ -172,6 +172,9 @@ static void pwrgov_update_commit(struct pwrgov_policy *sg_policy, u64 time,
  * The lowest driver-supported frequency which is equal or greater than the raw
  * next_freq (as calculated above) is returned, subject to policy min/max and
  * cpufreq driver limitations.
+ *
+ * During screen off, the big cluster will be capped to a lower frequency to
+ * help with idle drain.
  */
 static unsigned int get_next_freq(struct pwrgov_cpu *sg_cpu, unsigned long util,
 				  unsigned long max)
@@ -180,6 +183,10 @@ static unsigned int get_next_freq(struct pwrgov_cpu *sg_cpu, unsigned long util,
 	struct cpufreq_policy *policy = sg_policy->policy;
 	unsigned int freq = arch_scale_freq_invariant() ?
 				policy->max : policy->cur;
+	const bool display_on = is_display_on();
+
+	if(!display_on && policy->cpu > 1)
+		freq = freq >> 2;
 
 	freq = freq * util / max;
 
