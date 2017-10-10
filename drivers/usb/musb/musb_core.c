@@ -553,7 +553,7 @@ static irqreturn_t musb_stage0_irq(struct musb *musb, u8 int_usb,
 		dev_dbg(musb->controller, "RESUME (%s)\n",
 				usb_otg_state_string(musb->xceiv->otg->state));
 
-		if (devctl & MUSB_DEVCTL_HM) {
+		if (is_host_active(musb)) {
 			switch (musb->xceiv->otg->state) {
 			case OTG_STATE_A_SUSPEND:
 				/* remote wakeup?  later, GetPortStatus
