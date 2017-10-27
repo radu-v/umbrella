@@ -22,7 +22,6 @@
 #include <linux/spmi.h>
 #include <linux/platform_device.h>
 #include <linux/spinlock.h>
-#include <linux/alarmtimer.h>
 
 /* RTC/ALARM Register offsets */
 #define REG_OFFSET_ALARM_RW	0x40

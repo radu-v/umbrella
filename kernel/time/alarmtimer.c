@@ -29,7 +29,6 @@
 #ifdef CONFIG_MSM_PM
 #include "lpm-levels.h"
 #endif
-#include <linux/workqueue.h>
 
 /**
  * struct alarm_base - Alarm timer bases
