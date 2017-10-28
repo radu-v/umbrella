@@ -129,7 +129,7 @@ typedef struct epping_adapter_s {
 	enum tQDF_ADAPTER_MODE device_mode;
 	/** Handle to the network device */
 	struct net_device *dev;
-	struct qdf_mac_addr macAddressCurrent;
+	struct qdf_mac_addr mac_addr;
 	uint8_t sessionId;
 	/* for mboxping */
 	qdf_spinlock_t data_lock;

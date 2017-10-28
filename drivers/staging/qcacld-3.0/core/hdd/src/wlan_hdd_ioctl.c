@@ -1148,7 +1148,7 @@ hdd_sendactionframe(hdd_adapter_t *adapter, const uint8_t *bssid,
 	hdr->frame_control =
 		cpu_to_le16(IEEE80211_FTYPE_MGMT | IEEE80211_STYPE_ACTION);
 	qdf_mem_copy(hdr->addr1, bssid, QDF_MAC_ADDR_SIZE);
-	qdf_mem_copy(hdr->addr2, adapter->macAddressCurrent.bytes,
+	qdf_mem_copy(hdr->addr2, adapter->mac_addr.bytes,
 		     QDF_MAC_ADDR_SIZE);
 	qdf_mem_copy(hdr->addr3, bssid, QDF_MAC_ADDR_SIZE);
 	qdf_mem_copy(hdr + 1, payload, payload_len);
@@ -2092,7 +2092,7 @@ static int hdd_set_app_type1_parser(hdd_adapter_t *adapter,
 
 	memset(&params, 0, sizeof(tSirAppType1Params));
 	params.vdev_id = adapter->sessionId;
-	qdf_copy_macaddr(&params.wakee_mac_addr, &adapter->macAddressCurrent);
+	qdf_copy_macaddr(&params.wakee_mac_addr, &adapter->mac_addr);
 
 	params.id_length = strlen(id);
 	qdf_mem_copy(params.identification_id, id, params.id_length);
@@ -3029,7 +3029,7 @@ int wlan_hdd_set_mc_rate(hdd_adapter_t *pAdapter, int targetRate)
 	rateUpdate.mcastDataRate24GHzTxFlag = 1;
 	rateUpdate.mcastDataRate5GHz = targetRate;
 	rateUpdate.bcastDataRate = -1;
-	qdf_copy_macaddr(&rateUpdate.bssid, &pAdapter->macAddressCurrent);
+	qdf_copy_macaddr(&rateUpdate.bssid, &pAdapter->mac_addr);
 	hdd_debug("MC Target rate %d, mac = %pM, dev_mode %s(%d)",
 		  rateUpdate.mcastDataRate24GHz, rateUpdate.bssid.bytes,
 		  hdd_device_mode_to_string(pAdapter->device_mode),
@@ -5488,7 +5488,7 @@ static int drv_cmd_set_rmc_tx_rate(hdd_adapter_t *adapter,
 	rateUpdateParams.dev_mode = adapter->device_mode;
 	rateUpdateParams.bcastDataRate = -1;
 	memcpy(rateUpdateParams.bssid.bytes,
-	       adapter->macAddressCurrent.bytes,
+	       adapter->mac_addr.bytes,
 	       sizeof(rateUpdateParams.bssid));
 	status = sme_send_rate_update_ind((tHalHandle) (hdd_ctx->hHal),
 							 &rateUpdateParams);
@@ -5970,9 +5970,9 @@ static int drv_cmd_max_tx_power(hdd_adapter_t *adapter,
 		adapter = pAdapterNode->pAdapter;
 		/* Assign correct self MAC address */
 		qdf_copy_macaddr(&bssid,
-				 &adapter->macAddressCurrent);
+				 &adapter->mac_addr);
 		qdf_copy_macaddr(&selfMac,
-				 &adapter->macAddressCurrent);
+				 &adapter->mac_addr);
 
 		hdd_debug("Device mode %d max tx power %d selfMac: "
 			 MAC_ADDRESS_STR " bssId: " MAC_ADDRESS_STR " ",

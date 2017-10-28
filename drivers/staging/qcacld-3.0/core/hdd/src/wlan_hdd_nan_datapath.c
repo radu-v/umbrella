@@ -264,7 +264,7 @@ static int hdd_ndi_start_bss(hdd_adapter_t *adapter,
 	roam_profile->BSSType = eCSR_BSS_TYPE_NDI;
 	roam_profile->BSSIDs.numOfBSSIDs = 1;
 	qdf_mem_copy((void *)(roam_profile->BSSIDs.bssid),
-		&adapter->macAddressCurrent.bytes[0],
+		&adapter->mac_addr.bytes[0],
 		QDF_MAC_ADDR_SIZE);
 
 	roam_profile->AuthType.numEntries = 1;
@@ -313,7 +313,7 @@ static int hdd_get_random_nan_mac_addr(hdd_context_t *hdd_ctx,
 		adapter = hdd_get_adapter(hdd_ctx, QDF_NDI_MODE);
 		if (adapter) {
 			hdd_debug("NDI already exists, deriving next NDI's mac");
-			qdf_mem_copy(mac_addr, &adapter->macAddressCurrent,
+			qdf_mem_copy(mac_addr, &adapter->mac_addr,
 				     sizeof(*mac_addr));
 			cds_rand_get_bytes(0, &pos, sizeof(pos));
 			/* skipping byte 0, 5 leaves 8*4=32 positions */
@@ -713,7 +713,7 @@ static int hdd_ndp_initiator_req_handler(hdd_context_t *hdd_ctx,
 		nla_get_u32(tb[QCA_WLAN_VENDOR_ATTR_NDP_SERVICE_INSTANCE_ID]);
 
 	qdf_mem_copy(req.self_ndi_mac_addr.bytes,
-		     adapter->macAddressCurrent.bytes, QDF_MAC_ADDR_SIZE);
+		     adapter->mac_addr.bytes, QDF_MAC_ADDR_SIZE);
 
 	if (!tb[QCA_WLAN_VENDOR_ATTR_NDP_PEER_DISCOVERY_MAC_ADDR]) {
 		hdd_err("NDI peer discovery mac addr is unavailable");
@@ -2343,7 +2343,7 @@ int hdd_init_nan_data_mode(struct hdd_adapter_s *adapter)
 
 	/* open sme session for future use */
 	status = sme_open_session(hdd_ctx->hHal, hdd_sme_roam_callback,
-			adapter, (uint8_t *)&adapter->macAddressCurrent,
+			adapter, (uint8_t *)&adapter->mac_addr,
 			&adapter->sessionId, type, sub_type);
 	if (QDF_STATUS_SUCCESS != status) {
 		hdd_err("sme_open_session() failed with status code %d",

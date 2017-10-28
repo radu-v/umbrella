@@ -2410,7 +2410,7 @@ send_frame:
 		}
 
 		if (qdf_mem_cmp((uint8_t *)(&buf[WLAN_HDD_80211_FRM_SA_OFFSET]),
-		    &pAdapter->macAddressCurrent, QDF_MAC_ADDR_SIZE)) {
+		    &pAdapter->mac_addr, QDF_MAC_ADDR_SIZE)) {
 			hdd_info("%s: action frame sa is randomized with mac: "
 				 MAC_ADDRESS_STR, __func__,
 				 MAC_ADDR_ARRAY((uint8_t *)
@@ -3198,7 +3198,7 @@ int __wlan_hdd_del_virtual_intf(struct wiphy *wiphy, struct wireless_dev *wdev)
 		hdd_reset_mon_mode_cb();
 	} else {
 		wlan_hdd_release_intf_addr(pHddCtx,
-					 pVirtAdapter->macAddressCurrent.bytes);
+					 pVirtAdapter->mac_addr.bytes);
 		hdd_stop_adapter(pHddCtx, pVirtAdapter, true);
 		hdd_close_adapter(pHddCtx, pVirtAdapter, true);
 	}

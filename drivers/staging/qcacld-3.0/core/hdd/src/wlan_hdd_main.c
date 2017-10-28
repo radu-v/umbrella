@@ -2941,7 +2941,7 @@ static int __hdd_set_mac_address(struct net_device *dev, void *addr)
 	hdd_info("Changing MAC to " MAC_ADDRESS_STR " of the interface %s ",
 		 MAC_ADDR_ARRAY(mac_addr.bytes), dev->name);
 
-	memcpy(&adapter->macAddressCurrent, psta_mac_addr->sa_data, ETH_ALEN);
+	memcpy(&adapter->mac_addr, psta_mac_addr->sa_data, ETH_ALEN);
 	memcpy(dev->dev_addr, psta_mac_addr->sa_data, ETH_ALEN);
 
 	EXIT();
@@ -3338,7 +3338,7 @@ static hdd_adapter_t *hdd_alloc_station_adapter(hdd_context_t *hdd_ctx,
 
 		qdf_mem_copy(pWlanDev->dev_addr, (void *)macAddr,
 			     sizeof(tSirMacAddr));
-		qdf_mem_copy(adapter->macAddressCurrent.bytes, macAddr,
+		qdf_mem_copy(adapter->mac_addr.bytes, macAddr,
 			     sizeof(tSirMacAddr));
 		pWlanDev->watchdog_timeo = HDD_TX_TIMEOUT;
 
@@ -3542,7 +3542,7 @@ QDF_STATUS hdd_init_station_mode(hdd_adapter_t *adapter)
 	/* Open a SME session for future operation */
 	qdf_ret_status =
 		sme_open_session(hdd_ctx->hHal, hdd_sme_roam_callback, adapter,
-				 (uint8_t *) &adapter->macAddressCurrent,
+				 (uint8_t *) &adapter->mac_addr,
 				 &adapter->sessionId, type, subType);
 	if (!QDF_IS_STATUS_SUCCESS(qdf_ret_status)) {
 		hdd_alert("sme_open_session() failed, status code %08d [x%08x]",
@@ -3995,7 +3995,7 @@ static QDF_STATUS hdd_check_for_existing_macaddr(hdd_context_t *hdd_ctx,
 	while (NULL != adapterNode && QDF_STATUS_SUCCESS == status) {
 		adapter = adapterNode->pAdapter;
 		if (adapter
-		    && !qdf_mem_cmp(adapter->macAddressCurrent.bytes,
+		    && !qdf_mem_cmp(adapter->mac_addr.bytes,
 				       macAddr, sizeof(tSirMacAddr))) {
 			return QDF_STATUS_E_FAILURE;
 		}
@@ -4706,7 +4706,7 @@ hdd_adapter_t *hdd_open_adapter(hdd_context_t *hdd_ctx, uint8_t session_type,
 	return adapter;
 
 err_free_netdev:
-	wlan_hdd_release_intf_addr(hdd_ctx, adapter->macAddressCurrent.bytes);
+	wlan_hdd_release_intf_addr(hdd_ctx, adapter->mac_addr.bytes);
 	free_netdev(adapter->dev);
 
 	return NULL;
@@ -4780,7 +4780,7 @@ QDF_STATUS hdd_close_all_adapters(hdd_context_t *hdd_ctx, bool rtnl_held)
 		status = hdd_remove_front_adapter(hdd_ctx, &pHddAdapterNode);
 		if (pHddAdapterNode && QDF_STATUS_SUCCESS == status) {
 			wlan_hdd_release_intf_addr(hdd_ctx,
-			pHddAdapterNode->pAdapter->macAddressCurrent.bytes);
+			pHddAdapterNode->pAdapter->mac_addr.bytes);
 			cds_clear_concurrency_mode(
 				pHddAdapterNode->pAdapter->device_mode);
 			hdd_cleanup_adapter(hdd_ctx, pHddAdapterNode->pAdapter,
@@ -4817,7 +4817,7 @@ void wlan_hdd_reset_prob_rspies(hdd_adapter_t *pHostapdAdapter)
 	case QDF_P2P_GO_MODE:
 	case QDF_IBSS_MODE:
 	{
-		bssid = &pHostapdAdapter->macAddressCurrent;
+		bssid = &pHostapdAdapter->mac_addr;
 		break;
 	}
 	case QDF_FTM_MODE:
@@ -5149,7 +5149,7 @@ QDF_STATUS hdd_stop_adapter(hdd_context_t *hdd_ctx, hdd_adapter_t *adapter,
 							adapter->sessionId);
 
 			qdf_copy_macaddr(&updateIE.bssid,
-					 &adapter->macAddressCurrent);
+					 &adapter->mac_addr);
 			updateIE.smeSessionId = adapter->sessionId;
 			updateIE.ieBufferlength = 0;
 			updateIE.pAdditionIEBuffer = NULL;
@@ -6160,7 +6160,7 @@ hdd_adapter_t *hdd_get_adapter_by_macaddr(hdd_context_t *hdd_ctx,
 		adapter = adapterNode->pAdapter;
 
 		if (adapter
-		    && !qdf_mem_cmp(adapter->macAddressCurrent.bytes,
+		    && !qdf_mem_cmp(adapter->mac_addr.bytes,
 				       macAddr, sizeof(tSirMacAddr)))
 			return adapter;
 
@@ -9309,7 +9309,7 @@ void wlan_hdd_del_monitor(hdd_context_t *hdd_ctx,
 			  hdd_adapter_t *adapter, bool rtnl_held)
 {
 	wlan_hdd_release_intf_addr(hdd_ctx,
-				   adapter->macAddressCurrent.bytes);
+				   adapter->mac_addr.bytes);
 	hdd_stop_adapter(hdd_ctx, adapter, true);
 	hdd_deinit_adapter(hdd_ctx, adapter, true);
 	hdd_close_adapter(hdd_ctx, adapter, true);
@@ -9385,7 +9385,7 @@ wlan_hdd_add_monitor_check(hdd_context_t *hdd_ctx, hdd_adapter_t **adapter,
 		if (adapter) {
 			wlan_hdd_release_intf_addr(
 					hdd_ctx,
-					adapter->macAddressCurrent.bytes);
+					adapter->mac_addr.bytes);
 			hdd_stop_adapter(hdd_ctx, adapter, true);
 			hdd_close_adapter(hdd_ctx, adapter, rtnl_held);
 		}

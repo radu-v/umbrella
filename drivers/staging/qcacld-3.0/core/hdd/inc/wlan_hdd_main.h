@@ -1423,7 +1423,7 @@ struct hdd_adapter_s {
 	uint32_t ctw;
 
 	/** Current MAC Address for the adapter  */
-	struct qdf_mac_addr macAddressCurrent;
+	struct qdf_mac_addr mac_addr;
 
 	/**Event Flags*/
 	unsigned long event_flags;

@@ -213,7 +213,7 @@ static int epping_set_mac_address(struct net_device *dev, void *addr)
 	epping_adapter_t *pAdapter = netdev_priv(dev);
 	struct sockaddr *psta_mac_addr = addr;
 
-	qdf_mem_copy(&pAdapter->macAddressCurrent,
+	qdf_mem_copy(&pAdapter->mac_addr,
 		     psta_mac_addr->sa_data, ETH_ALEN);
 	qdf_mem_copy(dev->dev_addr, psta_mac_addr->sa_data, ETH_ALEN);
 	return 0;
@@ -372,7 +372,7 @@ epping_adapter_t *epping_add_adapter(epping_context_t *pEpping_ctx,
 	pAdapter->pEpping_ctx = pEpping_ctx;
 	pAdapter->device_mode = device_mode;    /* station, SAP, etc */
 	qdf_mem_copy(dev->dev_addr, (void *)macAddr, sizeof(tSirMacAddr));
-	qdf_mem_copy(pAdapter->macAddressCurrent.bytes,
+	qdf_mem_copy(pAdapter->mac_addr.bytes,
 		     macAddr, sizeof(tSirMacAddr));
 	qdf_spinlock_create(&pAdapter->data_lock);
 	qdf_nbuf_queue_init(&pAdapter->nodrop_queue);

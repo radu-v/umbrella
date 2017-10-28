@@ -3003,7 +3003,7 @@ bool cds_is_connection_in_progress(uint8_t *session_id,
 			    && sme_is_sta_key_exchange_in_progress(
 			    hdd_ctx->hHal, adapter->sessionId)) {
 				sta_mac = (uint8_t *)
-					&(adapter->macAddressCurrent.bytes[0]);
+					&(adapter->mac_addr.bytes[0]);
 				cds_debug("client " MAC_ADDRESS_STR
 					" is in middle of WPS/EAPOL exchange.",
 					MAC_ADDR_ARRAY(sta_mac));
@@ -3455,7 +3455,7 @@ void cds_dump_concurrency_info(void)
 			    QDF_STATUS_SUCCESS) {
 				p2pChannel = hdd_ap_ctx->operatingChannel;
 				qdf_copy_macaddr(&p2pBssid,
-						 &adapter->macAddressCurrent);
+						 &adapter->mac_addr);
 #ifdef QCA_LL_LEGACY_TX_FLOW_CONTROL
 				targetChannel = p2pChannel;
 #endif /* QCA_LL_LEGACY_TX_FLOW_CONTROL */
@@ -3470,7 +3470,7 @@ void cds_dump_concurrency_info(void)
 			    QDF_STATUS_SUCCESS) {
 				apChannel = hdd_ap_ctx->operatingChannel;
 				qdf_copy_macaddr(&apBssid,
-						&adapter->macAddressCurrent);
+						&adapter->mac_addr);
 #ifdef QCA_LL_LEGACY_TX_FLOW_CONTROL
 				targetChannel = apChannel;
 #endif /* QCA_LL_LEGACY_TX_FLOW_CONTROL */

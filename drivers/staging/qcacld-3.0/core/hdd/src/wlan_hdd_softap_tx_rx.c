@@ -276,7 +276,7 @@ QDF_STATUS hdd_post_dhcp_ind(hdd_adapter_t *adapter,
 
 	status = wma_send_dhcp_ind(type,
 				   adapter->device_mode,
-				   adapter->macAddressCurrent.bytes,
+				   adapter->mac_addr.bytes,
 				   adapter->aStaInfo[sta_id].macAddrSTA.bytes);
 	if (!QDF_IS_STATUS_SUCCESS(status))
 		QDF_TRACE(QDF_MODULE_ID_HDD_SAP_DATA, QDF_TRACE_LEVEL_ERROR,

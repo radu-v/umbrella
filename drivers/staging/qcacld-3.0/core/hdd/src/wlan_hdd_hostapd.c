@@ -596,7 +596,7 @@ static int __hdd_hostapd_set_mac_address(struct net_device *dev, void *addr)
 	hdd_info("Changing MAC to " MAC_ADDRESS_STR " of interface %s ",
 		 MAC_ADDR_ARRAY(mac_addr.bytes),
 		 dev->name);
-	memcpy(&adapter->macAddressCurrent, psta_mac_addr->sa_data, ETH_ALEN);
+	memcpy(&adapter->mac_addr, psta_mac_addr->sa_data, ETH_ALEN);
 	memcpy(dev->dev_addr, psta_mac_addr->sa_data, ETH_ALEN);
 	EXIT();
 	return 0;
@@ -1056,7 +1056,7 @@ static void __wlan_hdd_sap_pre_cac_failure(void *data)
 	}
 
 	wlan_hdd_release_intf_addr(hdd_ctx,
-				   adapter->macAddressCurrent.bytes);
+				   adapter->mac_addr.bytes);
 	hdd_stop_adapter(hdd_ctx, adapter, true);
 	hdd_close_adapter(hdd_ctx, adapter, false);
 }
@@ -1107,7 +1107,7 @@ static void wlan_hdd_sap_pre_cac_success(void *data)
 
 	cds_ssr_protect(__func__);
 	wlan_hdd_release_intf_addr(hdd_ctx,
-				   pHostapdAdapter->macAddressCurrent.bytes);
+				   pHostapdAdapter->mac_addr.bytes);
 	hdd_stop_adapter(hdd_ctx, pHostapdAdapter, true);
 	hdd_close_adapter(hdd_ctx, pHostapdAdapter, false);
 	cds_ssr_unprotect(__func__);
@@ -3392,7 +3392,7 @@ static __iw_softap_setparam(struct net_device *dev,
 
 		hdd_debug("MC Target rate %d", set_value);
 		qdf_copy_macaddr(&rateUpdate.bssid,
-				 &pHostapdAdapter->macAddressCurrent);
+				 &pHostapdAdapter->mac_addr);
 		rateUpdate.nss = (pConfig->enable2x2 == 0) ? 0 : 1;
 		rateUpdate.dev_mode = pHostapdAdapter->device_mode;
 		rateUpdate.mcastDataRate24GHz = set_value;
@@ -4361,8 +4361,8 @@ static __iw_softap_set_max_tx_power(struct net_device *dev,
 		return ret;
 
 	/* Assign correct slef MAC address */
-	qdf_copy_macaddr(&bssid, &pHostapdAdapter->macAddressCurrent);
-	qdf_copy_macaddr(&selfMac, &pHostapdAdapter->macAddressCurrent);
+	qdf_copy_macaddr(&bssid, &pHostapdAdapter->mac_addr);
+	qdf_copy_macaddr(&selfMac, &pHostapdAdapter->mac_addr);
 
 	set_value = value[0];
 	if (QDF_STATUS_SUCCESS !=
@@ -4449,7 +4449,7 @@ static __iw_softap_set_tx_power(struct net_device *dev,
 	if (NULL == value)
 		return -ENOMEM;
 
-	qdf_copy_macaddr(&bssid, &pHostapdAdapter->macAddressCurrent);
+	qdf_copy_macaddr(&bssid, &pHostapdAdapter->mac_addr);
 
 	set_value = value[0];
 	if (QDF_STATUS_SUCCESS !=
@@ -6513,7 +6513,7 @@ QDF_STATUS hdd_init_ap_mode(hdd_adapter_t *pAdapter, bool reinit)
 	}
 
 	status = wlansap_start(sapContext, hdd_hostapd_sap_event_cb, mode,
-			pAdapter->macAddressCurrent.bytes,
+			pAdapter->mac_addr.bytes,
 			&session_id, pAdapter->dev);
 	if (!QDF_IS_STATUS_SUCCESS(status)) {
 		hdd_err("wlansap_start failed!!");
@@ -6680,7 +6680,7 @@ hdd_adapter_t *hdd_wlan_create_ap_dev(hdd_context_t *pHddCtx,
 
 		qdf_mem_copy(pWlanHostapdDev->dev_addr, (void *)macAddr,
 			     sizeof(tSirMacAddr));
-		qdf_mem_copy(pHostapdAdapter->macAddressCurrent.bytes,
+		qdf_mem_copy(pHostapdAdapter->mac_addr.bytes,
 			     (void *)macAddr, sizeof(tSirMacAddr));
 
 		pHostapdAdapter->offloads_configured = false;
@@ -7341,7 +7341,7 @@ int wlan_hdd_cfg80211_update_apies(hdd_adapter_t *adapter)
 
 	wlan_hdd_add_sap_obss_scan_ie(adapter, genie, &total_ielen);
 
-	qdf_copy_macaddr(&updateIE.bssid, &adapter->macAddressCurrent);
+	qdf_copy_macaddr(&updateIE.bssid, &adapter->mac_addr);
 	updateIE.smeSessionId = adapter->sessionId;
 
 	if (test_bit(SOFTAP_BSS_STARTED, &adapter->event_flags)) {
@@ -8402,7 +8402,7 @@ int wlan_hdd_cfg80211_start_bss(hdd_adapter_t *pHostapdAdapter,
 	}
 
 	qdf_mem_copy(pConfig->self_macaddr.bytes,
-		     pHostapdAdapter->macAddressCurrent.bytes,
+		     pHostapdAdapter->mac_addr.bytes,
 		     QDF_MAC_ADDR_SIZE);
 
 	/* default value */
@@ -8557,7 +8557,7 @@ int wlan_hdd_cfg80211_start_bss(hdd_adapter_t *pHostapdAdapter,
 #endif
 
 	hdd_debug("SOftAP macaddress : " MAC_ADDRESS_STR,
-	       MAC_ADDR_ARRAY(pHostapdAdapter->macAddressCurrent.bytes));
+	       MAC_ADDR_ARRAY(pHostapdAdapter->mac_addr.bytes));
 	hdd_debug("ssid =%s, beaconint=%d, channel=%d",
 	       pConfig->SSIDinfo.ssid.ssId, (int)pConfig->beacon_int,
 	       (int)pConfig->channel);
@@ -8893,7 +8893,7 @@ static int __wlan_hdd_cfg80211_stop_ap(struct wiphy *wiphy,
 		return -EINVAL;
 	}
 
-	qdf_copy_macaddr(&updateIE.bssid, &pAdapter->macAddressCurrent);
+	qdf_copy_macaddr(&updateIE.bssid, &pAdapter->mac_addr);
 	updateIE.smeSessionId = pAdapter->sessionId;
 	updateIE.ieBufferlength = 0;
 	updateIE.pAdditionIEBuffer = NULL;
