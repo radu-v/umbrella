@@ -13,10 +13,6 @@ config QCACLD_WLAN_LFR3
 	bool "Enable the WLAN Legacy Fast Roaming feature Version 3"
 	default n
 
-config PRIMA_WLAN_11AC_HIGH_TP
-	bool "Enable the Prima WLAN 802.11ac High Throughput option (depends upon kernel support)"
-	default n
-
 config WLAN_FEATURE_FILS
 	bool "Enable FILS Feature (11ai)"
 	default n
