@@ -1678,10 +1678,13 @@ static void csr_scan_add_result(tpAniSirGlobal pMac, struct tag_csrscan_result
 	tpCsrNeighborRoamControlInfo pNeighborRoamInfo = NULL;
 	struct qdf_mac_addr bssid;
 	uint8_t channel_id = pResult->Result.BssDescriptor.channelId;
-	bool is_session_valid = CSR_IS_SESSION_VALID(pMac, sessionId);
 
-	if (is_session_valid)
-		pNeighborRoamInfo = &pMac->roam.neighborRoamInfo[sessionId];
+	if (!CSR_IS_SESSION_VALID(pMac, sessionId)) {
+		sme_err("Invalid session id: %d", sessionId);
+		return;
+	}
+
+	pNeighborRoamInfo = &pMac->roam.neighborRoamInfo[sessionId];
 	qdf_mem_zero(&bssid.bytes, QDF_MAC_ADDR_SIZE);
 	qdf_mem_copy(bssid.bytes, &pResult->Result.BssDescriptor.bssId,
 			QDF_MAC_ADDR_SIZE);
