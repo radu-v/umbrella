@@ -19,9 +19,7 @@
 #if !defined(__I_HOST_DIAG_CORE_LOG_H)
 #define __I_HOST_DIAG_CORE_LOG_H
 
-#ifdef FEATURE_WLAN_DIAG_SUPPORT
 #include <log_codes.h>
-#endif
 
 /**=========================================================================
 
@@ -103,6 +101,17 @@ void host_diag_log_submit(void *plog_hdr_ptr);
 	} while (0)
 
 #else                           /* FEATURE_WLAN_DIAG_SUPPORT */
+static inline void host_diag_log_set_code(void *ptr, uint16_t code)
+{}
+
+static inline void host_diag_log_set_length(void *ptr, uint16_t length)
+{}
+
+static inline void host_diag_log_set_timestamp(void *plog_hdr_ptr)
+{}
+
+static inline void host_diag_log_submit(void *plog_hdr_ptr)
+{}
 
 #define WLAN_HOST_DIAG_LOG_ALLOC(payload_ptr, payload_type, log_code)
 #define WLAN_HOST_DIAG_LOG_REPORT(payload_ptr)
