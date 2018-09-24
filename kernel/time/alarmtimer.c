@@ -24,6 +24,7 @@
 #include <linux/platform_device.h>
 #include <linux/posix-timers.h>
 #include <linux/freezer.h>
+#include <linux/delay.h>
 
 #ifdef CONFIG_MSM_PM
 #include "lpm-levels.h"
@@ -502,6 +503,7 @@ int alarm_cancel(struct alarm *alarm)
 		if (ret >= 0)
 			return ret;
 		cpu_relax();
+		ndelay(TIMER_LOCK_TIGHT_LOOP_DELAY_NS);
 	}
 }
 EXPORT_SYMBOL_GPL(alarm_cancel);
