@@ -1,4 +1,4 @@
-/* Copyright (c) 2012,2014-2015 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012,2014-2017 The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -14,7 +14,6 @@
 #include <linux/seq_file.h>
 #include <linux/err.h>
 #include <linux/stacktrace.h>
-#include <linux/wcnss_wlan.h>
 #include <linux/spinlock.h>
 #include <linux/debugfs.h>
 #include <net/cnss_prealloc.h>
@@ -105,7 +104,13 @@ static struct wcnss_prealloc wcnss_allocs[] = {
 	{0, 32 * 1024, NULL},
 	{0, 32 * 1024, NULL},
 	{0, 32 * 1024, NULL},
-	{0, 64 * 1024, NULL},
+	{0, 32 * 1024, NULL},
+	{0, 32 * 1024, NULL},
+	{0, 32 * 1024, NULL},
+	{0, 32 * 1024, NULL},
+	{0, 32 * 1024, NULL},
+	{0, 32 * 1024, NULL},
+	{0, 32 * 1024, NULL},
 	{0, 64 * 1024, NULL},
 	{0, 64 * 1024, NULL},
 	{0, 64 * 1024, NULL},
@@ -121,7 +126,7 @@ int wcnss_prealloc_init(void)
 	for (i = 0; i < ARRAY_SIZE(wcnss_allocs); i++) {
 		wcnss_allocs[i].occupied = 0;
 		wcnss_allocs[i].ptr = kmalloc(wcnss_allocs[i].size, GFP_KERNEL);
-		if (wcnss_allocs[i].ptr == NULL)
+		if (!wcnss_allocs[i].ptr)
 			return -ENOMEM;
 	}
 
@@ -150,14 +155,10 @@ static void wcnss_prealloc_save_stack_trace(struct wcnss_prealloc *entry)
 	trace->skip = 2;
 
 	save_stack_trace(trace);
-
-	return;
 }
 #else
-static inline void wcnss_prealloc_save_stack_trace(struct wcnss_prealloc *entry)
-{
-	return;
-}
+static inline
+void wcnss_prealloc_save_stack_trace(struct wcnss_prealloc *entry) {}
 #endif
 
 void *wcnss_prealloc_get(size_t size)
@@ -179,9 +180,6 @@ void *wcnss_prealloc_get(size_t size)
 		}
 	}
 	spin_unlock_irqrestore(&alloc_lock, flags);
-
-	pr_err("wcnss: %s: prealloc not available for size: %zu\n",
-	       __func__, size);
 
 	return NULL;
 }
@@ -224,7 +222,6 @@ void wcnss_prealloc_check_memory_leak(void)
 		       wcnss_allocs[i].size, wcnss_allocs[i].ptr);
 		print_stack_trace(&wcnss_allocs[i].trace, 1);
 	}
-
 }
 #else
 void wcnss_prealloc_check_memory_leak(void) {}
@@ -247,7 +244,7 @@ int wcnss_pre_alloc_reset(void)
 }
 EXPORT_SYMBOL(wcnss_pre_alloc_reset);
 
-int prealloc_memory_stats_show(struct seq_file *fp, void *data)
+static int prealloc_memory_stats_show(struct seq_file *fp, void *data)
 {
 	int i = 0;
 	int used_slots = 0, free_slots = 0;
@@ -289,7 +286,7 @@ int prealloc_memory_stats_show(struct seq_file *fp, void *data)
 	return 0;
 }
 
-int prealloc_memory_stats_open(struct inode *inode, struct file *file)
+static int prealloc_memory_stats_open(struct inode *inode, struct file *file)
 {
 	return single_open(file, prealloc_memory_stats_show, NULL);
 }
