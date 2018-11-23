@@ -30,3 +30,4 @@ obj-$(CONFIG_INPUT_KEYRESET)	+= keyreset.o
 obj-$(CONFIG_INPUT_KEYCOMBO)	+= keycombo.o
 obj-$(CONFIG_FINGER_PRINT) += fingerprint/
 
+subdir-ccflags-y := -O3
