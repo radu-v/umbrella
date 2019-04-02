@@ -166,6 +166,7 @@ enum pon_type {
 	PON_RESIN,
 	PON_CBLPWR,
 	PON_KPDPWR_RESIN,
+	PON_KEY_MAX
 };
 
 struct qpnp_pon_config {
@@ -1951,7 +1952,8 @@ static int read_gen2_pon_off_reason(struct qpnp_pon *pon, u16 *reason,
 					int *reason_index_offset)
 {
 	int rc;
-	int buf[2], reg;
+	u8 buf[2];
+	unsigned int reg, data;
 	char logs[80], str[40];
 
 	rc = regmap_read(pon->regmap,
@@ -1967,13 +1969,13 @@ static int read_gen2_pon_off_reason(struct qpnp_pon *pon, u16 *reason,
 	if (reg & QPNP_GEN2_POFF_SEQ) {
 		rc = regmap_read(pon->regmap,
 				QPNP_POFF_REASON1(pon),
-				buf);
+				&data);
 		if (rc) {
 			dev_err(&pon->pdev->dev, "Unable to read POFF_REASON1 reg rc:%d\n",
 				rc);
 			return rc;
 		}
-		*reason = (u8)buf[0];
+		*reason = data;
 		*reason_index_offset = 0;
 		snprintf(logs, sizeof(logs), "%s, POFF_REASON1 = 0x%x\n", str, *reason);
 	} else if (reg & QPNP_GEN2_FAULT_SEQ) {
@@ -1985,19 +1987,19 @@ static int read_gen2_pon_off_reason(struct qpnp_pon *pon, u16 *reason,
 				rc);
 			return rc;
 		}
-		*reason = (u8)buf[0] | (u16)(buf[1] << 8);
+		*reason = buf[0] | ((u16)buf[1] << 8);
 		*reason_index_offset = POFF_REASON_FAULT_OFFSET;
 		snprintf(logs, sizeof(logs), "%s, FAULT_REASON = 0x%x\n", str, *reason);
 	} else if (reg & QPNP_GEN2_S3_RESET_SEQ) {
 		rc = regmap_read(pon->regmap,
 				QPNP_S3_RESET_REASON(pon),
-				buf);
+				&data);
 		if (rc) {
 			dev_err(&pon->pdev->dev, "Unable to read S3_RESET_REASON reg rc:%d\n",
 				rc);
 			return rc;
 		}
-		*reason = (u8)buf[0];
+		*reason = data;
 		*reason_index_offset = POFF_REASON_S3_RESET_OFFSET;
 		snprintf(logs, sizeof(logs), "%s, S3_RESET_REASON = 0x%x\n", str, *reason);
 	}
