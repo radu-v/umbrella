@@ -953,6 +953,11 @@
  *	user space through the connect result as the user space would have
  *	initiated the connection through the connect request.
  *
+ * @NL80211_CMD_UPDATE_OWE_INFO: This interface allows the host driver to
+ *	offload OWE processing to user space. This intends to support
+ *	OWE AKM by the host drivers that implement SME but rely
+ *	on the user space for the cryptographic/DH IE processing in AP mode.
+ *
  * @NL80211_CMD_MAX: highest used command number
  * @__NL80211_CMD_AFTER_LAST: internal use
  */
@@ -1160,6 +1165,8 @@ enum nl80211_commands {
 	NL80211_CMD_RELOAD_REGDB,
 
 	NL80211_CMD_EXTERNAL_AUTH,
+
+	NL80211_CMD_UPDATE_OWE_INFO,
 
 	/* add new commands above here */
 
