@@ -7715,7 +7715,6 @@ static uint8_t *convert_level_to_string(uint32_t level)
 	}
 }
 
-
 /**
  * wlan_hdd_display_tx_rx_histogram() - display tx rx histogram
  * @hdd_ctx: hdd context
@@ -9059,8 +9058,10 @@ static hdd_context_t *hdd_context_create(struct device *dev)
 	if (ret)
 		goto err_deinit_hdd_context;
 
+#ifdef WLAN_LOGGING_SOCK_SVC_ENABLE
 	wlan_logging_set_log_to_console(hdd_ctx->config->wlanLoggingToConsole);
 	wlan_logging_set_active(hdd_ctx->config->wlanLoggingEnable);
+#endif
 
 	hdd_ctx->is_ssr_in_progress = false;
 
