@@ -2,7 +2,7 @@
 #define _KLAPSE_H
 
 /* KLAPSE_MDSS : Use 1 if using with MDSS */
-#define KLAPSE_MDSS 1
+#define KLAPSE_MDSS 0
 
 /* set_rgb_slider : Interface function for brightness-mode */
 typedef u32 bl_type_t;
@@ -40,8 +40,6 @@ typedef unsigned short col_type_t;
 #define UPPER_BL_LVL 400 /* Upper target for brightness-dependent mode */
 
 #define LOWER_BL_LVL 2 /* Lower target for brightness-dependent mode */
-
-#define DEFAULT_FLOW_FREQ 360 /* Flow delays for rapid pushes in mode 2 */
 
 #endif  /* _KLAPSE_H */
 
