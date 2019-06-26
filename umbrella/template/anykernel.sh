@@ -9,7 +9,7 @@ do.devicecheck=1
 do.modules=0
 do.cleanup=1
 do.cleanuponabort=0
-device.name1={DEVICE}
+device.name1={DEVICE}_Treble
 '; } # end properties
 
 # shell variables
