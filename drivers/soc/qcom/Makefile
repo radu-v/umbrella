@@ -112,6 +112,11 @@ obj-$(CONFIG_MSM_HAB) += hab/
 obj-$(CONFIG_QCOM_QDSS_BRIDGE) += qdss_bridge.o
 obj-$(CONFIG_MFSE_QMI) += mfse_qmi_v01.o mfse_qmi.o
 
+CFLAGS_rpm_stats.o += -DCONFIG_DEBUG_FS
+CFLAGS_rpm_master_stat.o += -DCONFIG_DEBUG_FS
+CFLAGS_rpm_rail_stats.o += -DCONFIG_DEBUG_FS
+CFLAGS_system_stats.o += -DCONFIG_DEBUG_FS
+
 # TODO: remove me b/62058353
 subdir-ccflags-y += \
 	-Wno-ignored-attributes \
