@@ -963,4 +963,4 @@ static int __init sugov_register(void)
 {
 	return cpufreq_register_governor(&cpufreq_gov_schedutil);
 }
-fs_initcall(sugov_register);
+core_initcall(sugov_register);
