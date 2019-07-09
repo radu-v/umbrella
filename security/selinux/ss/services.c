@@ -1867,7 +1867,7 @@ static inline int convert_context_handle_invalid_context(struct context *context
 		return -EINVAL;
 
 #ifdef CONFIG_AUDIT
-	if (!context_struct_to_string(context, &s, &len, false)) {
+	if (!context_struct_to_string(context, &s, &len)) {
 		printk(KERN_WARNING "SELinux:  Context %s would be invalid if enforcing\n", s);
 		kfree(s);
 	}
@@ -2823,7 +2823,7 @@ int security_sid_mls_copy(u32 sid, u32 mls_sid, u32 *new_sid)
 		rc = convert_context_handle_invalid_context(&newcon);
 		if (rc) {
 #ifdef CONFIG_AUDIT
-			if (!context_struct_to_string(&newcon, &s, &len, false)) {
+			if (!context_struct_to_string(&newcon, &s, &len)) {
 				audit_log(current->audit_context,
 					  GFP_ATOMIC, AUDIT_SELINUX_ERR,
 					  "op=security_sid_mls_copy "
