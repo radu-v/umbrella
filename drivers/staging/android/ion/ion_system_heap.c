@@ -359,13 +359,6 @@ static int ion_system_heap_allocate(struct ion_heap *heap,
 	struct device *dev = heap->priv;
 	struct page_info info_onstack[SZ_4K / sizeof(struct page_info)];
 
-	if (ion_heap_is_system_heap_type(buffer->heap->type) &&
-	    is_secure_vmid_valid(vmid)) {
-		pr_info("%s: System heap doesn't support secure allocations\n",
-			__func__);
-		return -EINVAL;
-	}
-
 	if (align > PAGE_SIZE)
 		return -EINVAL;
 
