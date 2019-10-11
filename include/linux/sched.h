@@ -77,6 +77,13 @@ static inline int reset_schedtune_prefer_idle(char *st_name, int prefer_idle)
 {
 	return 0;
 }
+
+#endif
+
+#if defined(CONFIG_SCHED_TUNE) && defined(CONFIG_CGROUP_SCHEDTUNE)
+void disable_schedtune_boost(int disable);
+#else
+static inline void disable_schedtune_boost(int disable) { }
 #endif
 
 #define SCHED_ATTR_SIZE_VER0	48	/* sizeof first published struct */
