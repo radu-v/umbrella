@@ -765,9 +765,11 @@ static int ipc_router_glink_config_init(
 			    __func__, glink_xprt_config->ch_name,
 			    glink_xprt_config->edge,
 			    glink_xprt_config->transport);
+
 		kfree(glink_xprtp);
 		return -EFAULT;
 	}
+
 	scnprintf(glink_xprtp->notify_rx_ws_name, IPC_RTR_WS_NAME_LEN,
 			"%s_%s_rx", glink_xprtp->ch_name, glink_xprtp->edge);
 	wakeup_source_init(&glink_xprtp->notify_rxv_ws,
