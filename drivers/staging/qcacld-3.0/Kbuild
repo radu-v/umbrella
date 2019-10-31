@@ -38,7 +38,7 @@ ifeq ($(KERNEL_BUILD), y)
 endif
 
 # Make WLAN as open-source driver by default
-WLAN_OPEN_SOURCE := y
+WLAN_OPEN_SOURCE := n
 
 # These are configurable via Kconfig for kernel-based builds
 # Need to explicitly configure for Android-based builds
