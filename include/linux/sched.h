@@ -63,6 +63,8 @@ struct sched_param {
 
 #include <asm/processor.h>
 
+extern bool energy_aware_enable;
+
 #ifdef CONFIG_SCHED_TUNE
 int reset_schedtune_boost(char *st_name, int boost);
 int reset_schedtune_prefer_idle(char *st_name, int prefer_idle);
