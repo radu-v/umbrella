@@ -684,7 +684,6 @@ void mdss_aod_resume_config(struct mdss_panel_data *pdata)
 void mdss_cleaup_aod_flag(struct mdss_panel_data *pdata)
 {
 	struct mdss_dsi_ctrl_pdata *ctrl = NULL;
-	struct mdss_panel_data *adata=NULL;
 	struct mdss_panel_info *pinfo;
 
 	if (pdata == NULL) {
