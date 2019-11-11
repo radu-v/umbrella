@@ -91,7 +91,7 @@
 #define MDP_TIME_PERIOD_CALC_FPS_US	1000000
 
 int backlight_min = 0;
-module_param(backlight_min, int 0644);
+module_param(backlight_min, int, 0644);
 
 static struct fb_info *fbi_list[MAX_FBI_LIST];
 static int fbi_list_index;
