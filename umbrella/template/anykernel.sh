@@ -10,7 +10,7 @@ do.modules=0
 do.systemless=0
 do.cleanup=1
 do.cleanuponabort=0
-device.name1={DEVICE}
+device.name1={DEVICE}_Treble
 supported.versions=
 supported.patchlevels=
 '; } # end properties
