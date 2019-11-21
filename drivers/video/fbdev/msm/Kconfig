@@ -129,4 +129,10 @@ config FB_MSM_MDSS_KCAL_CTRL
 	  Enable sysfs for post-processing control of mdss-mdp5 display
 	  controllers in MDSS.
 
+config FB_LCD_BACKLIGHT_MIN_LIMIT
+	depends on FB_MSM_MDSS
+	bool "Enable LCD backlight minimum limit"
+	---help---
+	Enables support for setting a lower limit for the LCD panel backlight.
+
 endif
