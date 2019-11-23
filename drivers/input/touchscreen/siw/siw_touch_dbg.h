@@ -70,13 +70,13 @@ extern u32 t_dev_dbg_mask;
 #define t_pr_dbg(condition, fmt, args...)			\
 		do {							\
 			if (unlikely(t_pr_dbg_mask & (condition)))	\
-				pr_info(fmt, ##args);	\
+				pr_debug(fmt, ##args);	\
 		} while (0)
 
 
 #define __t_dev_none()		do{ } while (0)
 
-#define __t_dev_info(_dev, fmt, args...)	dev_info(_dev, fmt,	##args)
+#define __t_dev_info(_dev, fmt, args...)	dev_dbg(_dev, fmt,	##args)
 #define __t_dev_warn(_dev, fmt, args...)	dev_warn(_dev, fmt, ##args)
 #define __t_dev_err(_dev, fmt, args...)		dev_err(_dev, fmt, ##args)
 
