@@ -394,19 +394,7 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
 		   -std=gnu89 $(call cc-option,-fno-PIE) \
-		   -ftree-vectorize \
-		   -Ofast -g0 -DNDEBUG \
-		   -fgraphite \
-		   -fgraphite-identity \
-		   -fivopts \
-		   -floop-block \
-		   -floop-interchange \
-		   -floop-strip-mine \
-		   -fmodulo-sched \
-		   -fmodulo-sched-allow-regmoves \
-		   -fomit-frame-pointer \
-		   -ftree-loop-distribution \
-		   -ftree-loop-linear
+		   -ftree-vectorize
 
 ifeq ($(TARGET_BOARD_TYPE),auto)
 KBUILD_CFLAGS    += -DCONFIG_PLATFORM_AUTO
