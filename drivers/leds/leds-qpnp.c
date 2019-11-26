@@ -1887,26 +1887,16 @@ static void qpnp_led_work(struct work_struct *work)
 	{
 		if((g_green_led != NULL) && (g_blue_led != NULL))
 		{
-			if (led->cdev.brightness)
-			{
-				rgb_led_stop_blink(g_green_led);
-				rgb_led_stop_blink(g_blue_led);
-			}
-			
 			g_green_led->cdev.brightness = led->cdev.brightness;
 			g_blue_led->cdev.brightness = led->cdev.brightness;
 			__qpnp_led_work(g_green_led, g_green_led->cdev.brightness);
 			__qpnp_led_work(g_blue_led, g_blue_led->cdev.brightness);
-			
-			softkey_glowing = led->cdev.brightness != 0;
 		}
 	}
-#if defined(CONFIG_LEDS_FIH_SOFT_KEY) && defined(CONFIG_LEDS_FIH_SOFT_KEY_INDIVIDUAL)
-	else if (!softkey_glowing)
+	else
 	{
 		__qpnp_led_work(led, led->cdev.brightness);
 	}
-#endif
 #else
 	__qpnp_led_work(led, led->cdev.brightness);
 #endif
