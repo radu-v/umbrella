@@ -1877,17 +1877,21 @@ static void qpnp_led_work(struct work_struct *work)
 	struct qpnp_led_data *led = container_of(work,
 					struct qpnp_led_data, work);
 #ifdef CONFIG_FIH_NB1
-		//This is NB1 button-backlight
-		if(QPNP_ID_RGB_RED == led->id)
+	//This is NB1 button-backlight
+	if(QPNP_ID_RGB_RED == led->id)
+	{
+		if((g_green_led != NULL) && (g_blue_led != NULL))
 		{
-			if((g_green_led != NULL) && (g_blue_led != NULL))
-			{
-				g_green_led->cdev.brightness = led->cdev.brightness;
-				g_blue_led->cdev.brightness = led->cdev.brightness;
-				__qpnp_led_work(g_green_led, g_green_led->cdev.brightness);
-				__qpnp_led_work(g_blue_led, g_blue_led->cdev.brightness);
-			}
+			g_green_led->cdev.brightness = led->cdev.brightness;
+			g_blue_led->cdev.brightness = led->cdev.brightness;
+			__qpnp_led_work(g_green_led, g_green_led->cdev.brightness);
+			__qpnp_led_work(g_blue_led, g_blue_led->cdev.brightness);
 		}
+	}
+	else
+	{
+		__qpnp_led_work(led, led->cdev.brightness);
+	}
 #else
 	__qpnp_led_work(led, led->cdev.brightness);
 #endif
