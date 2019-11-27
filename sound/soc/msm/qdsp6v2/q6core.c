@@ -9,7 +9,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-
+#define DEBUG
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/string.h>
@@ -342,6 +342,7 @@ struct cal_block_data *cal_utils_get_cal_block_by_key(
 	return NULL;
 }
 
+#ifndef CONFIG_FIH_NB1
 static int q6core_send_get_avcs_fwk_ver_cmd(void)
 {
 	struct apr_hdr avcs_ver_cmd;
@@ -501,6 +502,13 @@ done:
 	return ret;
 }
 EXPORT_SYMBOL(q6core_get_fwk_version_size);
+#else
+int q6core_get_service_version(uint32_t service_id,
+			       struct avcs_fwk_ver_info *ver_info,
+			       size_t size) { return -1; }
+size_t q6core_get_fwk_version_size(uint32_t service_id)
+	{ return -1; }
+#endif // CONFIG_FIH_NB1
 
 int32_t core_set_license(uint32_t key, uint32_t module_id)
 {
