@@ -654,6 +654,14 @@ config LEDS_FIH_SOFT_KEY
 	help
 	  This option enables FIH LED SOFT_KEY
 
+config LEDS_FIH_SOFT_KEY_INDIVIDUAL
+	bool "Soft Key LEDs can be controlled individually"
+	depends on LEDS_FIH_SOFT_KEY
+	default n
+	help
+	  NB1 has separate LEDs for the back and recents buttons.
+	  This option enables controlling these LEDs separately.
+
 config CHECK_FTM
 	bool "CHECK FTM"
 	depends on LEDS_QPNP
