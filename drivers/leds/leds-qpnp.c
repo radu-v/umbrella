@@ -1893,10 +1893,12 @@ static void qpnp_led_work(struct work_struct *work)
 			__qpnp_led_work(g_blue_led, g_blue_led->cdev.brightness);
 		}
 	}
+#ifdef CONFIG_FIH_SOFT_KEY && CONFIG_FIH_SOFT_KEY_INDIVIDUAL
 	else
 	{
 		__qpnp_led_work(led, led->cdev.brightness);
 	}
+#endif
 #else
 	__qpnp_led_work(led, led->cdev.brightness);
 #endif
