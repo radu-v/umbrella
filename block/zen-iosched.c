@@ -162,21 +162,20 @@ static int zen_dispatch_requests(struct request_queue *q, int force)
 static int zen_init_queue(struct request_queue *q, struct elevator_type *e)
 {
 	struct zen_data *zdata;
-    struct elevator_queue *eq;
-    
-    eq = elevator_alloc(q, e);
-    if (!eq)
-        return -ENOMEM;
+	struct elevator_queue *eq;
+
+	eq = elevator_alloc(q, e);
+	if (!eq)
+	    return -ENOMEM;
 
 	zdata = kmalloc_node(sizeof(*zdata), GFP_KERNEL, q->node);
-    if (!zdata) {
-        kobject_put(&eq->kobj);
-        return -ENOMEM;
-    }
-    eq->elevator_data = zdata;
-	
- 
-    spin_lock_irq(q->queue_lock);
+	if (!zdata) {
+	    kobject_put(&eq->kobj);
+	    return -ENOMEM;
+	}
+	eq->elevator_data = zdata;
+
+	spin_lock_irq(q->queue_lock);
 	q->elevator = eq;
 	spin_unlock_irq(q->queue_lock);
 	
@@ -218,7 +217,7 @@ static ssize_t __FUNC(struct elevator_queue *e, char *page) \
 	int __data = __VAR; \
 	if (__CONV) \
 		__data = jiffies_to_msecs(__data); \
-		return zen_var_show(__data, (page)); \
+	return zen_var_show(__data, (page)); \
 }
 SHOW_FUNCTION(zen_sync_expire_show, zdata->fifo_expire[SYNC], 1);
 SHOW_FUNCTION(zen_async_expire_show, zdata->fifo_expire[ASYNC], 1);
