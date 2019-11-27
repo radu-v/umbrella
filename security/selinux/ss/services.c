@@ -496,11 +496,11 @@ static void security_dump_masked_av(struct context *scontext,
 
 	/* get scontext/tcontext in text form */
 	if (context_struct_to_string(scontext,
-				     &scontext_name, &length) < 0)
+				     &scontext_name, &length, false) < 0)
 		goto out;
 
 	if (context_struct_to_string(tcontext,
-				     &tcontext_name, &length) < 0)
+				     &tcontext_name, &length, false) < 0)
 		goto out;
 
 	/* audit a message */
@@ -763,11 +763,11 @@ static inline int security_validtrans_handle_fail(struct context *ocontext,
 	char *o = NULL, *n = NULL, *t = NULL;
 	u32 olen, nlen, tlen;
 
-	if (context_struct_to_string(ocontext, &o, &olen))
+	if (context_struct_to_string(ocontext, &o, &olen, false))
 		goto out;
-	if (context_struct_to_string(ncontext, &n, &nlen))
+	if (context_struct_to_string(ncontext, &n, &nlen, false))
 		goto out;
-	if (context_struct_to_string(tcontext, &t, &tlen))
+	if (context_struct_to_string(tcontext, &t, &tlen, false))
 		goto out;
 	audit_log(current->audit_context, GFP_ATOMIC, AUDIT_SELINUX_ERR,
 		  "op=security_validate_transition seresult=denied"
@@ -918,9 +918,9 @@ int security_bounded_transition(u32 old_sid, u32 new_sid)
 		u32 length;
 
 		if (!context_struct_to_string(old_context,
-					      &old_name, &length) &&
+					      &old_name, &length, false) &&
 		    !context_struct_to_string(new_context,
-					      &new_name, &length)) {
+					      &new_name, &length, false)) {
 			audit_log(current->audit_context,
 				  GFP_ATOMIC, AUDIT_SELINUX_ERR,
 				  "op=security_bounded_transition "
@@ -1552,11 +1552,11 @@ static inline int compute_sid_handle_invalid_context(
 	char *s = NULL, *t = NULL, *n = NULL;
 	u32 slen, tlen, nlen;
 
-	if (context_struct_to_string(scontext, &s, &slen))
+	if (context_struct_to_string(scontext, &s, &slen, false))
 		goto out;
-	if (context_struct_to_string(tcontext, &t, &tlen))
+	if (context_struct_to_string(tcontext, &t, &tlen, false))
 		goto out;
-	if (context_struct_to_string(newcontext, &n, &nlen))
+	if (context_struct_to_string(newcontext, &n, &nlen, false))
 		goto out;
 	audit_log(current->audit_context, GFP_ATOMIC, AUDIT_SELINUX_ERR,
 		  "op=security_compute_sid invalid_context=%s"
@@ -1867,7 +1867,7 @@ static inline int convert_context_handle_invalid_context(struct context *context
 		return -EINVAL;
 
 #ifdef CONFIG_AUDIT
-	if (!context_struct_to_string(context, &s, &len)) {
+	if (!context_struct_to_string(context, &s, &len, false)) {
 		printk(KERN_WARNING "SELinux:  Context %s would be invalid if enforcing\n", s);
 		kfree(s);
 	}
@@ -2017,7 +2017,7 @@ out:
 bad:
 #ifdef CONFIG_AUDIT
 	/* Map old representation to string and save it. */
-	rc = context_struct_to_string(&oldc, &s, &len);
+	rc = context_struct_to_string(&oldc, &s, &len, false);
 	if (rc)
 		return rc;
 	context_destroy(&oldc);
@@ -2823,7 +2823,7 @@ int security_sid_mls_copy(u32 sid, u32 mls_sid, u32 *new_sid)
 		rc = convert_context_handle_invalid_context(&newcon);
 		if (rc) {
 #ifdef CONFIG_AUDIT
-			if (!context_struct_to_string(&newcon, &s, &len)) {
+			if (!context_struct_to_string(&newcon, &s, &len, false)) {
 				audit_log(current->audit_context,
 					  GFP_ATOMIC, AUDIT_SELINUX_ERR,
 					  "op=security_sid_mls_copy "
