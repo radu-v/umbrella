@@ -17,7 +17,7 @@
 			green_led: qcom,rgb_1 {
 				qcom,default-state = "off";
 				linux,name = "green";
-				linux,default-trigger = "none";
+				linux,default-trigger = "battery-charging-blink-full-solid";
 			};
 
 			blue_led: qcom,rgb_2 {
