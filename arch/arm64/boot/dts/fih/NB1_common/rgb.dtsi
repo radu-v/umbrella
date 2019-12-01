@@ -18,15 +18,7 @@
 				/delete-property/ qcom,use-blink;
 				qcom,default-state = "off";
 				linux,name = "green";
-				linux,default-trigger = "none";
-				qcom,duty-pcts = [64 5a 50 46 3c 32 28 1e 14 0a 00];
-				qcom,idx-len = <10>;
-				qcom,start-idx = <0>;
-				qcom,pause-hi = <500>;
-				qcom,pause-lo = <500>;
-				qcom,ramp-step-ms = <50>;
-				qcom,lut-flags = <31>; /* loop, ramp up, reverse, pause hi, pause lo */
-				qcom,use-blink;
+				linux,default-trigger = "battery-charging-blink-full-solid";
 			};
 
 			blue_led: qcom,rgb_2 {
