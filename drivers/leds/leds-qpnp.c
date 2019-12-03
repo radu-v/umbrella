@@ -331,13 +331,22 @@ u32 convert_pwm_us (u32 pwm_us)
 
 int check_for_notification_led(struct led_classdev *led_cdev)
 {
-	if ((strcmp(led_cdev->name, "button-backlight") == 0) ||
-		(strcmp(led_cdev->name, "green") == 0) ||
+	if ((strcmp(led_cdev->name, "green") == 0) ||
 		(strcmp(led_cdev->name, "blue") == 0))
 		return 1;
 
 	return 0;
 }
+
+#ifdef CONFIG_FIH_NB1
+int check_for_buttonbacklight_led(struct led_classdev *led_cdev)
+{
+	if ((strcmp(led_cdev->name, "button-backlight") == 0))
+		return 1;
+
+	return 0;
+}
+#endif
 
 int convert_brightness (int brightness)
 {
@@ -2871,6 +2880,16 @@ static ssize_t blink_store(struct device *dev,
 	case QPNP_ID_RGB_RED:
 	case QPNP_ID_RGB_GREEN:
 	case QPNP_ID_RGB_BLUE:
+#ifdef CONFIG_FIH_NB1
+		if (check_for_buttonbacklight_led(led))
+		{
+			if (led->in_order_command_processing)
+				queue_work(led->workqueue, &led->work);
+			else
+				schedule_work(&led->work);
+		}
+		else
+#endif
 		if (check_for_notification_led(led_cdev))
 		{
 			if (led_speed != LED_SPEED_CONT_MODE)
