@@ -2881,7 +2881,7 @@ static ssize_t blink_store(struct device *dev,
 	case QPNP_ID_RGB_GREEN:
 	case QPNP_ID_RGB_BLUE:
 #ifdef CONFIG_FIH_NB1
-		if (check_for_buttonbacklight_led(led))
+		if (check_for_buttonbacklight_led(led_cdev))
 		{
 			if (led->in_order_command_processing)
 				queue_work(led->workqueue, &led->work);
