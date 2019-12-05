@@ -345,6 +345,7 @@ static u8 gpio_debug_regs[] = {
 
 #ifdef CONFIG_FIH_NB1
 struct qpnp_led_data *g_green_led, *g_blue_led;
+bool softkey_glowing = false;
 #endif
 
 /**
@@ -567,6 +568,10 @@ static struct pwm_device *kpdbl_master;
 static u32 kpdbl_master_period_us;
 DECLARE_BITMAP(kpdbl_leds_in_use, NUM_KPDBL_LEDS);
 static bool is_kpdbl_master_turn_on;
+
+#ifdef CONFIG_FIH_NB1
+static void rgb_led_stop_blink(struct qpnp_led_data *led);
+#endif
 
 static int
 qpnp_led_masked_write(struct qpnp_led_data *led, u16 addr, u8 mask, u8 val)
@@ -1722,7 +1727,7 @@ static int qpnp_rgb_set(struct qpnp_led_data *led)
 			led->rgb_cfg->pwm_cfg->mode =
 				led->rgb_cfg->pwm_cfg->default_mode;
 		if (led->rgb_cfg->pwm_cfg->mode == PWM_MODE) {
-			#ifndef CONFIG_FIH_NB1
+			//#ifndef CONFIG_FIH_NB1
 			rc = pwm_change_mode(led->rgb_cfg->pwm_cfg->pwm_dev,
 					PM_PWM_MODE_PWM);
 			if (rc < 0) {
@@ -1731,7 +1736,7 @@ static int qpnp_rgb_set(struct qpnp_led_data *led)
 					rc);
 				return rc;
 			}
-			#endif
+			//#endif
 			period_us = led->rgb_cfg->pwm_cfg->pwm_period_us;
 			if (period_us > INT_MAX / NSEC_PER_USEC) {
 				duty_us = (period_us * led->cdev.brightness) /
@@ -1869,8 +1874,8 @@ static void __qpnp_led_work(struct qpnp_led_data *led,
 		mutex_unlock(&flash_lock);
 	else
 		mutex_unlock(&led->lock);
-
 }
+
 
 static void qpnp_led_work(struct work_struct *work)
 {
@@ -1882,14 +1887,22 @@ static void qpnp_led_work(struct work_struct *work)
 	{
 		if((g_green_led != NULL) && (g_blue_led != NULL))
 		{
+			if (led->cdev.brightness)
+			{
+				rgb_led_stop_blink(g_green_led);
+				rgb_led_stop_blink(g_blue_led);
+			}
+			
 			g_green_led->cdev.brightness = led->cdev.brightness;
 			g_blue_led->cdev.brightness = led->cdev.brightness;
 			__qpnp_led_work(g_green_led, g_green_led->cdev.brightness);
 			__qpnp_led_work(g_blue_led, g_blue_led->cdev.brightness);
+			
+			softkey_glowing = led->cdev.brightness != 0;
 		}
 	}
 #if defined(CONFIG_LEDS_FIH_SOFT_KEY) && defined(CONFIG_LEDS_FIH_SOFT_KEY_INDIVIDUAL)
-	else
+	else if (!softkey_glowing)
 	{
 		__qpnp_led_work(led, led->cdev.brightness);
 	}
@@ -2663,10 +2676,42 @@ restore:
 	return ret;
 }
 
+#ifdef CONFIG_FIH_NB1
+static void rgb_led_stop_blink(struct qpnp_led_data *led)
+{
+	int rc;
+	struct pwm_config_data *pwm_cfg;
+
+	flush_work(&led->work);
+	mutex_lock(&led->lock);
+	pwm_cfg = led->rgb_cfg->pwm_cfg;
+	
+	if (pwm_cfg->use_blink) {
+		pwm_cfg->blinking = false;
+		pwm_cfg->mode = pwm_cfg->default_mode;
+		if (pwm_cfg->pwm_enabled) {
+			pwm_disable(pwm_cfg->pwm_dev);
+			pwm_cfg->pwm_enabled = 0;
+		}
+		qpnp_pwm_init(pwm_cfg, led->pdev, led->cdev.name);
+		if (led->id == QPNP_ID_RGB_RED || led->id == QPNP_ID_RGB_GREEN
+				|| led->id == QPNP_ID_RGB_BLUE) {
+			rc = qpnp_rgb_set(led);
+			if (rc < 0)
+				dev_err(&led->pdev->dev,
+				"RGB set brightness failed (%d)\n", rc);
+		}
+	}
+	mutex_unlock(&led->lock);
+}
+#endif
+
 static void led_blink(struct qpnp_led_data *led,
 			struct pwm_config_data *pwm_cfg)
 {
 	int rc;
+
+	pr_info("%s: led %d:%s: initial pwm_mode = %d\n", __func__, led->id, led->cdev.name, pwm_cfg->mode);
 
 	flush_work(&led->work);
 	mutex_lock(&led->lock);
@@ -2711,6 +2756,7 @@ static void led_blink(struct qpnp_led_data *led,
 		}
 	}
 	mutex_unlock(&led->lock);
+	pr_info("%s: led %d:%s: new pwm_mode = %d\n", __func__, led->id, led->cdev.name, pwm_cfg->mode);
 }
 
 static ssize_t blink_store(struct device *dev,
