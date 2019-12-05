@@ -1727,7 +1727,7 @@ static int qpnp_rgb_set(struct qpnp_led_data *led)
 			led->rgb_cfg->pwm_cfg->mode =
 				led->rgb_cfg->pwm_cfg->default_mode;
 		if (led->rgb_cfg->pwm_cfg->mode == PWM_MODE) {
-#if !defined(CONFIG_FIH_NB1) || defined(CONFIG_LEDS_FIH_SOFT_KEY_INDIVIDUAL)
+			//#ifndef CONFIG_FIH_NB1
 			rc = pwm_change_mode(led->rgb_cfg->pwm_cfg->pwm_dev,
 					PM_PWM_MODE_PWM);
 			if (rc < 0) {
@@ -1736,7 +1736,7 @@ static int qpnp_rgb_set(struct qpnp_led_data *led)
 					rc);
 				return rc;
 			}
-#endif
+			//#endif
 			period_us = led->rgb_cfg->pwm_cfg->pwm_period_us;
 			if (period_us > INT_MAX / NSEC_PER_USEC) {
 				duty_us = (period_us * led->cdev.brightness) /
@@ -1887,14 +1887,22 @@ static void qpnp_led_work(struct work_struct *work)
 	{
 		if((g_green_led != NULL) && (g_blue_led != NULL))
 		{
+			if (led->cdev.brightness)
+			{
+				rgb_led_stop_blink(g_green_led);
+				rgb_led_stop_blink(g_blue_led);
+			}
+			
 			g_green_led->cdev.brightness = led->cdev.brightness;
 			g_blue_led->cdev.brightness = led->cdev.brightness;
 			__qpnp_led_work(g_green_led, g_green_led->cdev.brightness);
 			__qpnp_led_work(g_blue_led, g_blue_led->cdev.brightness);
+			
+			softkey_glowing = led->cdev.brightness != 0;
 		}
 	}
 #if defined(CONFIG_LEDS_FIH_SOFT_KEY) && defined(CONFIG_LEDS_FIH_SOFT_KEY_INDIVIDUAL)
-	else
+	else if (!softkey_glowing)
 	{
 		__qpnp_led_work(led, led->cdev.brightness);
 	}
@@ -2703,6 +2711,8 @@ static void led_blink(struct qpnp_led_data *led,
 {
 	int rc;
 
+	pr_info("%s: led %d:%s: initial pwm_mode = %d\n", __func__, led->id, led->cdev.name, pwm_cfg->mode);
+
 	flush_work(&led->work);
 	mutex_lock(&led->lock);
 	if (pwm_cfg->use_blink) {
@@ -2746,6 +2756,7 @@ static void led_blink(struct qpnp_led_data *led,
 		}
 	}
 	mutex_unlock(&led->lock);
+	pr_info("%s: led %d:%s: new pwm_mode = %d\n", __func__, led->id, led->cdev.name, pwm_cfg->mode);
 }
 
 static ssize_t blink_store(struct device *dev,
