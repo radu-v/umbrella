@@ -74,6 +74,14 @@ config SECURITY_SELINUX_AVC_STATS
 	  /selinux/avc/cache_stats, which may be monitored via
 	  tools such as avcstat.
 
+config SECURITY_SELINUX_NO_AUDIT
+	bool "Disable SELinux AVC log spam"
+	depends on SECURITY_SELINUX
+	default n
+	help
+	  This option disables logging entries like "avc: denied"
+	  Useful when SELinux is set to Permissive.
+
 config SECURITY_SELINUX_CHECKREQPROT_VALUE
 	int "NSA SELinux checkreqprot default value"
 	depends on SECURITY_SELINUX
