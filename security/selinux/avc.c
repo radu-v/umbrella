@@ -101,6 +101,7 @@ static inline int avc_hash(u32 ssid, u32 tsid, u16 tclass)
 	return (ssid ^ (tsid<<2) ^ (tclass<<4)) & (AVC_CACHE_SLOTS - 1);
 }
 
+#ifndef CONFIG_SECURITY_SELINUX_NO_AUDIT
 /**
  * avc_dump_av - Display an access vector in human-readable form.
  * @tclass: target security class
@@ -167,6 +168,7 @@ static void avc_dump_query(struct audit_buffer *ab, u32 ssid, u32 tsid, u16 tcla
 	BUG_ON(!tclass || tclass >= ARRAY_SIZE(secclass_map));
 	audit_log_format(ab, " tclass=%s", secclass_map[tclass-1].name);
 }
+#endif
 
 /**
  * avc_init - Initialize the AVC.
@@ -699,6 +701,15 @@ out:
 	return node;
 }
 
+#ifdef CONFIG_SECURITY_SELINUX_NO_AUDIT
+noinline int slow_avc_audit(u32 ssid, u32 tsid, u16 tclass,
+		u32 requested, u32 audited, u32 denied, int result,
+		struct common_audit_data *a,
+		unsigned flags)
+{
+	return 0;
+}
+#else
 /**
  * avc_audit_pre_callback - SELinux specific information
  * will be called by generic audit code
@@ -772,6 +783,7 @@ noinline int slow_avc_audit(u32 ssid, u32 tsid, u16 tclass,
 	common_lsm_audit(a, avc_audit_pre_callback, avc_audit_post_callback);
 	return 0;
 }
+#endif
 
 /**
  * avc_add_callback - Register a callback for security events.
