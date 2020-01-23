@@ -17,7 +17,17 @@ jobs:
         apt-get -y install build-essential fakeroot rsync git wget python3-debian dpkg-sig lz4 sbsigntool libssl-dev
 
     - name: setup
-      run: . umbrella/setup.sh
+      run: |
+        export ARCH="arm64"
+        export SUBARCH="arm64"
+        pwd
+        git submodule update --recursive --init
+        TRIPLET=$(basename $(pwd)/toolchain/bin/*gcc | sed 's|gcc$||g')
+        export CROSS_COMPILE="$(pwd)/toolchain/bin/$TRIPLET"
+        export KBUILD_OUTPUT="$(pwd)/out"
+        export KBUILD_BUILD_USER="user"
+        export KBUILD_BUILD_HOST="build"
+        $(pwd)/toolchain/bin/${TRIPLET}gcc --version
 
     - name: make clean
       run: make clean
