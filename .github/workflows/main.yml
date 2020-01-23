@@ -1,35 +1,41 @@
-name: Android Kernel CI
+name: Umbrella NB1 Android Kernel CI
 
 on: [push]
 
 jobs:
   build:
-
+    name: Build Kernel
     runs-on: ubuntu-latest
-
+    container: debian:sid
     steps:
-    - uses: actions/checkout@v1
-    - name: checkout submodule
-      run: git submodule sync --recursive && git submodule update --init --recursive
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-    - name: before build
-      uses: radu-v/docker-android-build-tools@master
-      with:
-        args: '"
-        source umbrella/setup.sh;
-        "'
+    - name: Install build dependencies
+      run: |
+        apt-get -y update
+        apt-get -y install build-essential fakeroot rsync git wget python3-debian dpkg-sig lz4 sbsigntool libssl-dev
 
-    - name: build
-      uses: radu-v/docker-android-build-tools@master
-      with:
-        args: '"
-        source umbrella/setup.sh;
-        make LOCALVERSION=-$(date +''%Y-%m-%d'')
-        "'
+    - name: setup
+      run: source umbrella/setup.sh
 
-    - name: after build
-      uses: radu-v/docker-android-build-tools@master
+    - name: make clean
+      run: make clean
+
+    - name: make mrproper
+      run: make mrproper
+
+    - name: make defconfig
+      run: make nb1_defconfig
+
+    - name: make
+      run: make -j4 LOCALVERSION=-$(date +'%Y-%m-%d')
+
+    - name: Package kernel image
+      run: umbrella/package.sh
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v1
       with:
-        args: '"
-        umbrella/package.sh
-        "'
+        name: umbrella-latest
+        path: release
