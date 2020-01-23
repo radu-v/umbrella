@@ -15,7 +15,7 @@ jobs:
       run: |
         sed 's/^deb /deb-src /' /etc/apt/sources.list >> /etc/apt/sources.list
         apt-get -y update
-        apt-get -y install build-essential fakeroot rsync git wget python3-debian dpkg-sig lz4 sbsigntool curl
+        apt-get -y install build-essential fakeroot rsync git wget python3-debian dpkg-sig lz4 sbsigntool curl libssl-dev bc device-tree-compiler unzip ccache
 
     - uses: actions/checkout@v2
     - name: Checkout submodules
