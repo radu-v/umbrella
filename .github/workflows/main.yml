@@ -11,7 +11,7 @@ jobs:
     - uses: actions/checkout@v1
     - name: checkout submodule
       run: git submodule sync --recursive && git submodule update --init --recursive
-      
+
     - name: before build
       uses: radu-v/docker-android-build-tools@master
       with:
@@ -21,12 +21,12 @@ jobs:
 
     - name: build
       uses: radu-v/docker-android-build-tools@master
-      with: 
+      with:
         args: '"
         source umbrella/setup.sh;
-        make LOCALVERSION=-$(date +'%Y-%m-%d')
+        make LOCALVERSION=-$(date +''%Y-%m-%d'')
         "'
-        
+
     - name: after build
       uses: radu-v/docker-android-build-tools@master
       with:
