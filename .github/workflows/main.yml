@@ -13,14 +13,16 @@ jobs:
 
     - name: Install build dependencies
       run: |
+        sed 's/^deb /deb-src /' /etc/apt/sources.list >> /etc/apt/sources.list
         apt-get -y update
-        apt-get -y install build-essential fakeroot rsync git wget python3-debian dpkg-sig lz4 sbsigntool libssl-dev
+        apt-get -y install build-essential fakeroot rsync git wget python3-debian dpkg-sig lz4 sbsigntool
 
     - name: setup
       run: |
         export ARCH="arm64"
         export SUBARCH="arm64"
         pwd
+        ls -la $(pwd)
         git submodule update --recursive --init
         TRIPLET=$(basename $(pwd)/toolchain/bin/*gcc | sed 's|gcc$||g')
         export CROSS_COMPILE="$(pwd)/toolchain/bin/$TRIPLET"
