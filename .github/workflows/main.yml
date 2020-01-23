@@ -24,29 +24,22 @@ jobs:
         auth_header="$(git config --local --get http.https://github.com/.extraheader)"
         git submodule sync --recursive
         git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
-    
-    - name: Setup Environment Variables
+
+    - name: Build Kernel
+      env:
+        ARCH: arm64
+        SUBARCH: arm64
+        KBUILD_BUILD_USER: user
+        KBUILD_BUILD_HOST: build
       run: |
-        export ARCH="arm64"
-        export SUBARCH="arm64"
         TRIPLET=$(basename $(pwd)/toolchain/bin/*gcc | sed 's|gcc$||g')
         export CROSS_COMPILE="$(pwd)/toolchain/bin/$TRIPLET"
         export KBUILD_OUTPUT="$(pwd)/out"
-        export KBUILD_BUILD_USER="user"
-        export KBUILD_BUILD_HOST="build"
         $(pwd)/toolchain/bin/${TRIPLET}gcc --version
-
-    - name: make clean
-      run: make clean
-
-    - name: make mrproper
-      run: make mrproper
-
-    - name: make defconfig
-      run: make nb1_defconfig
-
-    - name: make
-      run: make -j4 LOCALVERSION=-$(date +'%Y-%m-%d')
+        make clean
+        make mrproper
+        make nb1_defconfig
+        make -j4 LOCALVERSION=-$(date +'%Y-%m-%d')
 
     - name: Package kernel image
       run: umbrella/package.sh
