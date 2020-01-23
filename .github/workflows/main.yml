@@ -17,13 +17,13 @@ jobs:
         apt-get -y update
         apt-get -y install build-essential fakeroot rsync git wget python3-debian dpkg-sig lz4 sbsigntool
 
+    - name: Checkout submodules
+      uses: textbook/git-checkout-submodule-action@2.0.0
+
     - name: setup
       run: |
         export ARCH="arm64"
         export SUBARCH="arm64"
-        pwd
-        ls -la $(pwd)
-        git submodule update --recursive --init
         TRIPLET=$(basename $(pwd)/toolchain/bin/*gcc | sed 's|gcc$||g')
         export CROSS_COMPILE="$(pwd)/toolchain/bin/$TRIPLET"
         export KBUILD_OUTPUT="$(pwd)/out"
