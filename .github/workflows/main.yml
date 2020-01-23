@@ -1,0 +1,35 @@
+name: Android Kernel CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: checkout submodule
+      run: git submodule sync --recursive && git submodule update --init --recursive
+      
+    - name: before build
+      uses: radu-v/docker-android-build-tools@master
+      with:
+        args: '"
+        source umbrella/setup.sh;
+        "'
+
+    - name: build
+      uses: radu-v/docker-android-build-tools@master
+      with: 
+        args: '"
+        source umbrella/setup.sh;
+        make LOCALVERSION=-$(date +'%Y-%m-%d')
+        "'
+        
+    - name: after build
+      uses: radu-v/docker-android-build-tools@master
+      with:
+        args: '"
+        umbrella/package.sh
+        "'
