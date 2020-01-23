@@ -17,7 +17,7 @@ jobs:
         apt-get -y install build-essential fakeroot rsync git wget python3-debian dpkg-sig lz4 sbsigntool libssl-dev
 
     - name: setup
-      run: source umbrella/setup.sh
+      run: . umbrella/setup.sh
 
     - name: make clean
       run: make clean
