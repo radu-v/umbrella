@@ -1,0 +1,65 @@
+name: master
+
+on:
+  push:
+    branches:
+      - feature/*
+
+env:
+  ARCH: arm64
+  SUBARCH: arm64
+  KBUILD_BUILD_USER: user
+  KBUILD_BUILD_HOST: build
+
+jobs:
+  build:
+    name: Build Kernel
+    runs-on: ubuntu-latest
+    container: debian:sid
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install build dependencies
+      run: |
+        sed 's/^deb /deb-src /' /etc/apt/sources.list >> /etc/apt/sources.list
+        apt-get -y update
+        apt-get -y install build-essential fakeroot rsync git wget python3-debian dpkg-sig lz4 sbsigntool curl libssl-dev bc device-tree-compiler zip unzip ccache
+
+    - uses: actions/checkout@v2
+    - name: Checkout submodules
+      shell: bash
+      run: |
+        auth_header="$(git config --local --get http.https://github.com/.extraheader)"
+        git submodule sync --recursive
+        git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+
+    - name: Setup Environment Variables
+      run: |
+        TRIPLET=$(basename $(pwd)/toolchain/bin/*gcc | sed 's|gcc$||g')
+        echo "::set-env name=CROSS_COMPILE::$(pwd)/toolchain/bin/$TRIPLET"
+        echo "::set-env name=KBUILD_OUTPUT::$(pwd)/out"
+        echo "::set-env name=LOCALVERSION::-$(date +'%Y-%m-%d')"
+        echo "::set-env name=KERNEL_VERSION::$(make kernelversion)"
+
+    - name: Cleanup before build
+      run: |
+        set
+        make clean
+        make mrproper
+
+    - name: Make defconfig
+      run: make -j2 nb1_defconfig
+
+    - name: Build kernel
+      run: |
+        make -j2
+
+    - name: Package kernel image
+      run: umbrella/package.sh
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: umbrella-mod-latest
+        path: umbrella/out

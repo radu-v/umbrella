@@ -1,6 +1,15 @@
 name: master
 
-on: [push]
+on:
+  push:
+    tags:
+      - v*
+
+env:
+  ARCH: arm64
+  SUBARCH: arm64
+  KBUILD_BUILD_USER: user
+  KBUILD_BUILD_HOST: build
 
 jobs:
   build:
@@ -28,10 +37,6 @@ jobs:
     - name: Setup Environment Variables
       run: |
         TRIPLET=$(basename $(pwd)/toolchain/bin/*gcc | sed 's|gcc$||g')
-        echo "::set-env name=ARCH::arm64"
-        echo "::set-env name=SUBARCH::arm64"
-        echo "::set-env name=KBUILD_BUILD_USER::user"
-        echo "::set-env name=KBUILD_BUILD_HOST::build"
         echo "::set-env name=CROSS_COMPILE::$(pwd)/toolchain/bin/$TRIPLET"
         echo "::set-env name=KBUILD_OUTPUT::$(pwd)/out"
         echo "::set-env name=LOCALVERSION::-$(date +'%Y-%m-%d')"
@@ -56,5 +61,24 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v1
       with:
-        name: umbrella-latest
+        name: umbrella-mod-latest
         path: umbrella/out
+
+  release:
+    name: Publish release
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v1
+      with:
+        name: umbrella-mod-latest
+
+    - name: Upload assets
+      uses: svenstaro/upload-release-action@v1-release
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ./umbrella-mod-latest/*
+        tag: ${{ github.ref }}
+        overwrite: true
+        file_glob: true
