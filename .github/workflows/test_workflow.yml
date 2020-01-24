@@ -1,0 +1,22 @@
+name: For fun
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: step 1
+      run: |
+        echo "::set-env name=ARCH::arm64"
+        echo "::set-env name=PWD::$(pwd)"
+    - name: step 2
+      run: |
+        echo $ARCH
+        echo $PWD
+    - name: step 3
+      run: |
+        echo $ARCH
+        echo $PWD
