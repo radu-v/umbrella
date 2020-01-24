@@ -10,13 +10,9 @@ jobs:
     steps:
     - name: step 1
       run: |
-        echo "::set-env name=ARCH::arm64"
-        echo "::set-env name=PWD::$(pwd)"
+        echo "::set-env name=VAR1::theValue1"
     - name: step 2
+      env:
+        VAR2: $($(pwd)/$VAR1)
       run: |
-        echo $ARCH
-        echo $PWD
-    - name: step 3
-      run: |
-        echo $ARCH
-        echo $PWD
+        set
