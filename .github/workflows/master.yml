@@ -78,4 +78,5 @@ jobs:
         file: umbrella/out/*.zip
         tag: ${{ github.ref }}
         overwrite: true
+        file_glob: true
   
