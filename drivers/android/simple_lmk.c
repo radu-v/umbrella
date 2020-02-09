@@ -200,7 +200,7 @@ static void scan_and_kill(unsigned long pages_needed)
 	for (i = 0; i < nr_to_kill; i++) {
 		static const struct sched_param sched_zero_prio;
 		struct victim_info *victim = &victims[i];
-		struct task_struct *vtsk = victim->tsk;
+		struct task_struct *t, *vtsk = victim->tsk;
 
 		pr_info("Killing %s with adj %d to free %lu KiB\n", vtsk->comm,
 			vtsk->signal->oom_score_adj,
@@ -208,6 +208,12 @@ static void scan_and_kill(unsigned long pages_needed)
 
 		/* Accelerate the victim's death by forcing the kill signal */
 		do_send_sig_info(SIGKILL, SEND_SIG_FORCED, vtsk, true);
+
+		/* Mark the thread group dead so that other kernel code knows */
+		rcu_read_lock();
+		for_each_thread(vtsk, t)
+			set_tsk_thread_flag(t, TIF_MEMDIE);
+		rcu_read_unlock();
 
 		/* Elevate the victim to SCHED_RR with zero RT priority */
 		sched_setscheduler_nocheck(vtsk, SCHED_RR, &sched_zero_prio);
