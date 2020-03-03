@@ -1876,7 +1876,6 @@ static void __qpnp_led_work(struct qpnp_led_data *led,
 		mutex_unlock(&led->lock);
 }
 
-
 static void qpnp_led_work(struct work_struct *work)
 {
 	struct qpnp_led_data *led = container_of(work,
@@ -1892,12 +1891,12 @@ static void qpnp_led_work(struct work_struct *work)
 				rgb_led_stop_blink(g_green_led);
 				rgb_led_stop_blink(g_blue_led);
 			}
-			
+
 			g_green_led->cdev.brightness = led->cdev.brightness;
 			g_blue_led->cdev.brightness = led->cdev.brightness;
 			__qpnp_led_work(g_green_led, g_green_led->cdev.brightness);
 			__qpnp_led_work(g_blue_led, g_blue_led->cdev.brightness);
-			
+
 			softkey_glowing = led->cdev.brightness != 0;
 		}
 	}
@@ -2685,7 +2684,7 @@ static void rgb_led_stop_blink(struct qpnp_led_data *led)
 	flush_work(&led->work);
 	mutex_lock(&led->lock);
 	pwm_cfg = led->rgb_cfg->pwm_cfg;
-	
+
 	if (pwm_cfg->use_blink) {
 		pwm_cfg->blinking = false;
 		pwm_cfg->mode = pwm_cfg->default_mode;
@@ -3183,8 +3182,9 @@ static int qpnp_get_common_configs(struct qpnp_led_data *led,
 			return rc;
 #ifdef CONFIG_CHECK_FTM
 	}
-#endif
 	dev_info(&led->pdev->dev, "linux,default-trigger=%s\n", led->cdev.default_trigger);
+#endif
+
 	led->default_on = false;
 	rc = of_property_read_string(node, "qcom,default-state",
 		&temp_string);
@@ -4352,4 +4352,3 @@ module_exit(qpnp_led_exit);
 MODULE_DESCRIPTION("QPNP LEDs driver");
 MODULE_LICENSE("GPL v2");
 MODULE_ALIAS("leds:leds-qpnp");
-
