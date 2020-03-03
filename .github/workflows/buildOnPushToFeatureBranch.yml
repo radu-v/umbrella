@@ -39,7 +39,7 @@ jobs:
         TRIPLET=$(basename $(pwd)/toolchain/bin/*gcc | sed 's|gcc$||g')
         echo "::set-env name=CROSS_COMPILE::$(pwd)/toolchain/bin/$TRIPLET"
         echo "::set-env name=KBUILD_OUTPUT::$(pwd)/out"
-        echo "::set-env name=LOCALVERSION::-$(date +'%Y-%m-%d')"
+        echo "::set-env name=LOCALVERSION::-feature-$(date +'%Y-%m-%d')"
         echo "::set-env name=KERNEL_VERSION::$(make kernelversion)"
 
     - name: Cleanup before build
@@ -63,3 +63,22 @@ jobs:
       with:
         name: umbrella-mod-feature
         path: umbrella/out
+
+  release:
+    name: Publish release
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v1
+      with:
+        name: umbrella-mod-feature
+
+    - name: Upload assets
+      uses: svenstaro/upload-release-action@v1-release
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ./umbrella-mod-feature/*
+        tag: ${{ github.ref }}
+        overwrite: true
+        file_glob: true
