@@ -65,6 +65,9 @@ endif
 
 ifeq ($(cc-name),clang)
 KBUILD_CFLAGS	+= $(call clang-ifversion, -ge, 0600, -mgeneral-regs-only, -mno-implicit-float)
+ifeq ($(CONFIG_ARCH_MSM8998), y)
+KBUILD_CFLAGS	+= -mcpu=cortex-a53
+endif
 else
 KBUILD_CFLAGS	+= -mgeneral-regs-only
 ifeq ($(CONFIG_ARCH_MSM8998), y)
