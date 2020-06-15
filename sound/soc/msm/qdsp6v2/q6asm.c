@@ -4455,6 +4455,13 @@ int q6asm_enc_cfg_blk_aac(struct audio_client *ac,
 	struct asm_aac_enc_cfg_v2 enc_cfg;
 	int rc = 0;
 
+	if (channels > MAX_CHAN_MAP_CHANNELS) {
+		pr_err("%s: Invalid channel count %d\n", __func__,
+			channels);
+		return -EINVAL;
+	}
+
+
 	pr_debug("%s: session[%d]frames[%d]SR[%d]ch[%d]bitrate[%d]mode[%d] format[%d]\n",
 		 __func__, ac->session, frames_per_buf,
 		sample_rate, channels, bit_rate, mode, format);
