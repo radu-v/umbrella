@@ -688,7 +688,11 @@ ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os
 else
 ifeq ($(cc-name),clang)
+ifeq ($(ld-name),lld)
+KBUILD_LDFLAGS += -O2
+else
 KBUILD_CFLAGS	+= -O3
+endif
 ifdef CONFIG_POLLY_CLANG
 # Enable Clang Polly optimizations
 KBUILD_CFLAGS	+= -mllvm -polly \
