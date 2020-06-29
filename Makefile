@@ -303,8 +303,8 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 
 HOSTCC       = gcc
 HOSTCXX      = g++
-HOSTCFLAGS   := -Wall -Wmissing-prototypes -Wstrict-prototypes -O3 -fomit-frame-pointer -std=gnu89
-HOSTCXXFLAGS = -O3 -march=native
+HOSTCFLAGS   := -Wall -Wmissing-prototypes -Wstrict-prototypes -O3 -fomit-frame-pointer -std=gnu89 -march=native -mtune=native
+HOSTCXXFLAGS = -O3 -march=native -mtune=native
 
 # Decide whether to build built-in, modular, or both.
 # Normally, just do built-in.
@@ -685,14 +685,15 @@ KBUILD_CFLAGS	+= $(call cc-disable-warning, attribute-alias)
 KBUILD_CFLAGS   += $(call cc-option,-fno-store-merging,)
 
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
-KBUILD_CFLAGS	+= -Os
+KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,)
 else
 ifeq ($(cc-name),clang)
 ifeq ($(ld-name),lld)
 KBUILD_LDFLAGS += -O2
 else
-KBUILD_CFLAGS	+= -O3
+KBUILD_CFLAGS += -O3
 endif
+KBUILD_CFLAGS += -march=armv8-a+crypto+crc -mtune=cortex-a53 -mcpu=cortex-a53+crypto+crc
 ifdef CONFIG_POLLY_CLANG
 # Enable Clang Polly optimizations
 KBUILD_CFLAGS	+= -mllvm -polly \
