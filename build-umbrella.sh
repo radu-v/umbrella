@@ -29,7 +29,7 @@ export STRIP=llvm-strip
 make O=out ARCH=arm64 nb1_defconfig
 
 #Build kernel
-make -j$(nproc --all) O=out \
+make -s -j$(nproc --all) O=out CONFIG_DEBUG_SECTION_MISMATCH=y \
     ARCH=arm64 \
     CC="ccache clang" \
     CROSS_COMPILE=aarch64-linux-gnu- \
