@@ -103,13 +103,13 @@ struct ext_watch_font_header {
 	u32 size;
 };
 
-__packed struct ext_watch_query_font_data {
+struct ext_watch_query_font_data {
 	bool Font_supported;	/* 0:not supported, 1:supported */
 	u8 max_font_x_size;		/* 1~9 number X max size. */
 	u8 max_font_y_size;		/* 1~9 number Y max size. */
 	u8 max_cln_x_size;		/* ":" X max size. (ex. 23:47) */
 	u8 max_cln_y_size;		/* ":" Y max size. (ex. 23:47) */
-};
+} __packed;
 
 struct ext_watch_query_font_position {	/* 0:not supported, 1:supported */
 	bool vertical_position_supported;
@@ -121,17 +121,17 @@ struct ext_watch_query_font_time {	/* 0:not supported, 1:supported */
 	bool ampm_supported;
 };
 
-__packed struct ext_watch_query_font_color {	/* 0:not supported, 1:supported */
+struct ext_watch_query_font_color {	/* 0:not supported, 1:supported */
 	u8 max_num;		/* The number of LUT */
 	bool lut_supported;
 	bool alpha_supported;
 	bool gradation_supported;
-};
+} __packed;
 
-__packed struct ext_watch_query_font_effect {
+struct ext_watch_query_font_effect {
 	bool zero_supported;	/* 0:display off, 1:display on */
 	u8 blink_type;			/* 0:blink disable, 1:500ms, 2:1sec, 3:2sec. */
-};
+} __packed;
 
 struct ext_watch_config_font_effect_blink {
 	u32	blink_type; /* 0:off, 1:125ms, 2:250ms, 3:500ms, 4:1s, 5:2sec. 6:4s, 7:8s */
@@ -184,47 +184,47 @@ struct ext_watch_config_time_sync {	/* to sync with AP's current time */
 	u32	rtc_cwmilli;	/* for millisecond */
 };
 
-__packed struct ext_watch_bits_ctrl {	/* 0x2D2 */
+struct ext_watch_bits_ctrl {	/* 0x2D2 */
 	u32	reserved0:1;
 	u32	dispmode:1;	/* 0:U2, 1:AnyMode */
 	u32	reserved1:5;
 	u32	alpha:9;
-};
+} __packed;
 
-__packed struct ext_watch_bits_area { 	/* 0x2D3, 0x2D4 */
+struct ext_watch_bits_area { 	/* 0x2D3, 0x2D4 */
 	u32	watstart:12;
 	u32	watend:12;
-};
+} __packed;
 
-__packed struct ext_watch_bits_blink_area { /* 0x2D5 */
+struct ext_watch_bits_blink_area { /* 0x2D5 */
 	u32 bstartx:12;
 	u32 bendx:12;
-};
+} __packed;
 
-__packed struct ext_watch_bits_lut {	/* 0x2D6 */
+struct ext_watch_bits_lut {	/* 0x2D6 */
 	u8 b;
 	u8 g;
 	u8 r;
 	u8 rssvd0;
-};
+} __packed;
 
-__packed struct ext_watch_bits_time {
+struct ext_watch_bits_time {
 	u32 hour:5;
 	u32 min:6;
 	u32 sec:6;
 	u32 rsvd0:15;
-};
+} __packed;
 
-__packed struct ext_watch_cfg_mode {	/* 36 bytes */
+struct ext_watch_cfg_mode {	/* 36 bytes */
 	struct ext_watch_bits_ctrl watch_ctrl;				/* 2 bytes */
 	struct ext_watch_bits_area watch_area_x;			/* 3 bytes */
 	struct ext_watch_bits_area watch_area_y;			/* 3 bytes */
 	struct ext_watch_bits_blink_area blink_area;		/* 3 bytes */
 	struct ext_watch_bits_lut __lut[EXT_WATCH_LUT_NUM];	/* 21 bytes */
 	struct ext_watch_bits_lut *lut;
-};
+} __packed;
 
-__packed struct ext_watch_cfg_time {	/* 36 bytes */
+struct ext_watch_cfg_time {	/* 36 bytes */
 	u32 disp_waton;						/* 0xC10 watch display off:0, on:1*/
 	struct ext_watch_bits_time rtc_sct;	/* 0x081 */
 	u32 rtc_sctcnt;						/* 0x082 */
@@ -232,7 +232,7 @@ __packed struct ext_watch_cfg_time {	/* 36 bytes */
 	u32 rtc_capture;					/* 0x084 */
 	struct ext_watch_bits_time rtc_ctst;	/* 0x087 */
 	u32 rtc_ecnt;						/* 0x088 */
-};
+} __packed;
 
 enum {
 	POS_MAX_H10X	= (1<<9),
@@ -243,7 +243,7 @@ enum {
 };
 
 /* relative position in watch area */
-__packed struct ext_watch_cfg_position {	/* 0xC11 */
+struct ext_watch_cfg_position {	/* 0xC11 */
 	u32 h10x_pos:9;
 	u32 h1x_pos:9;
 	u32 reserved0:14;
@@ -268,14 +268,14 @@ __packed struct ext_watch_cfg_position {	/* 0xC11 */
 	u32 colon_width:8;
 	u32 height:8;
 	u32 font_id:8;
-};
+} __packed;
 
 static inline int __check_pos_not_set(struct ext_watch_cfg_position *position)
 {
 	return !(position->m1x_pos);
 }
 
-__packed struct ext_watch_cfg_status {	/* 0x270*/
+struct ext_watch_cfg_status {	/* 0x270*/
 	u32 step:3;
 	u32 en:1;
 	u32 en_24:1;
@@ -287,7 +287,7 @@ __packed struct ext_watch_cfg_status {	/* 0x270*/
 	u32 cur_sec:6;
 	u32 midnight_hour_zero_en:1;
 	u32 reserved0:4;
-};
+} __packed;
 
 #if defined(__SUPPORT_WATCH_CTRL_ACCESS)
 struct ext_watch_cfg {

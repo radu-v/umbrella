@@ -123,27 +123,17 @@ static int fih_info_proc_open_hwmodel_show(struct seq_file *m, void *v)
 
 static int fih_info_proc_open_hwcfg_show(struct seq_file *m, void *v)
 {
-	char msg[256];
-	int len;
 	struct st_hwid_table tb;
 
 	fih_hwid_read(&tb);
-	/* mpp */
-	len = snprintf(msg, PAGE_SIZE, "r1=%d\n", tb.r1);
-	len += snprintf((msg+len), PAGE_SIZE, "r2=%d\n", tb.r2);
-	len += snprintf((msg+len), PAGE_SIZE, "r3=%d\n", tb.r3);
-	/* info */
-	len += snprintf((msg+len), PAGE_SIZE, "prj=%d\n", tb.prj);
-	len += snprintf((msg+len), PAGE_SIZE, "rev=%d\n", tb.rev);
-	len += snprintf((msg+len), PAGE_SIZE, "rf=%d\n", tb.rf);
-	/* device tree */
-	len += snprintf((msg+len), PAGE_SIZE, "dtm=%d\n", tb.dtm);
-	len += snprintf((msg+len), PAGE_SIZE, "dtn=%d\n", tb.dtn);
-	/* driver */
-	len += snprintf((msg+len), PAGE_SIZE, "btn=%d\n", tb.btn);
-	len += snprintf((msg+len), PAGE_SIZE, "uart=%d\n", tb.uart);
-
-	seq_printf(m, "%s\n", msg);
+	/*
+		mpp: r1, r2, r3
+		info: prj, rev, rf
+		device tree: dtm, dtn
+		driver: btn, uart
+	*/
+	seq_printf(m, "r1=%d\nr2=%d\nr3=%d\nprj=%d\nrev=%d\nrf=%d\ndtm=%d\ndtn=%d\nbtn=%d\nuart=%d\n\n",
+		tb.r1, tb.r2, tb.r3, tb.prj, tb.rev, tb.rf, tb.dtm, tb.dtn, tb.btn, tb.uart);
 
 	return 0;
 }
