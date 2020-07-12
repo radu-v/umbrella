@@ -2,6 +2,7 @@
 
 # this uses the Proton-CLang toolchain
 # https://github.com/kdrag0n/proton-clang.git
+# when building under WSL make sure the distro uses WSL 2
 
 echo
 echo "Cleanup output dir"
@@ -29,9 +30,9 @@ export STRIP=llvm-strip
 make O=out ARCH=arm64 nb1_defconfig
 
 #Build kernel
-make -s -j$(nproc --all) O=out CONFIG_DEBUG_SECTION_MISMATCH=y \
+make -j$(nproc --all) O=out CONFIG_DEBUG_SECTION_MISMATCH=y \
     ARCH=arm64 \
-    CC="ccache clang" \
+    CC="ccache clang -Wno-enum-conversion -Wno-literal-conversion -Wno-section -Wno-strlcpy-strlcat-size -Wno-pointer-bool-conversion -Wno-self-assign" \
     CROSS_COMPILE=aarch64-linux-gnu- \
     CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
     LOCALVERSION=-clang-$(date +'%Y-%m-%d')
