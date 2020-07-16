@@ -1,0 +1,33 @@
+version: 2.1
+jobs:
+  build:
+    docker:
+    - image: dereference23/kernel_arm64:clang
+    steps:
+    - run:
+        name: Checkout
+        command: |
+          git clone https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git . --depth=1 --branch=$CIRCLE_BRANCH --recurse-submodules -j$(nproc --all)
+    - run:
+        name: Here we go!
+        command: |
+          export KBUILD_BUILD_USER=$CIRCLE_USERNAME
+          make nb1_defconfig O=out
+          make -j$(nproc --all) O=out CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip \
+            ARCH=arm64 \
+            CROSS_COMPILE=aarch64-linux-gnu- \
+            CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+            LOCALVERSION=-clang-$(date +'%Y-%m-%d')
+    - run:
+        name: Pack & Upload
+        command: |
+          export ZIPNAME=positron-P-$(date +%Y%m%d)-marmite.zip
+          git clone https://github.com/radu-v/umbrella-mod.git --branch=master --depth=1
+          cp out/arch/arm64/boot/Image.gz-dtb AnyKernel3
+          cd AnyKernel3
+          zip -r9 $ZIPNAME * -x .git README.md *placeholder
+workflows:
+  version: 2
+  workflow:
+    jobs:
+    - build
