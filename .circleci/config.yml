@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   build:
     docker:
-    - image: dereference23/kernel_arm64:clang
+    - image: glx135/kernel_arm64:latest
     steps:
     - run:
         name: Checkout
@@ -13,7 +13,7 @@ jobs:
         command: |
           export KBUILD_BUILD_USER=$CIRCLE_USERNAME
           make nb1_defconfig O=out
-          make -j$(nproc --all) O=out CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip \
+          make -j$(nproc --all) O=out CC="ccache clang" AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip \
             ARCH=arm64 \
             CROSS_COMPILE=aarch64-linux-gnu- \
             CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
