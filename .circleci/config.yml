@@ -21,11 +21,9 @@ jobs:
     - run:
         name: Pack & Upload
         command: |
-          export ZIPNAME=positron-P-$(date +%Y%m%d)-marmite.zip
-          git clone https://github.com/radu-v/umbrella-mod.git --branch=master --depth=1
-          cp out/arch/arm64/boot/Image.gz-dtb AnyKernel3
-          cd AnyKernel3
-          zip -r9 $ZIPNAME * -x .git README.md *placeholder
+          umbrella/package.sh
+          export ZIPNAME=$(ls umbrella/out/*.zip | head -n 1)
+          curl -F chat_id=$CHAT_ID -F document=@$ZIPNAME -F parse_mode=markdown https://api.telegram.org/bot$BOT_API_TOKEN/sendDocument
 workflows:
   version: 2
   workflow:
