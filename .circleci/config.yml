@@ -24,6 +24,8 @@ jobs:
           umbrella/package.sh
           export ZIPNAME=$(ls umbrella/out/*.zip | head -n 1)
           curl -F chat_id=$CHAT_ID -F document=@$ZIPNAME -F parse_mode=markdown https://api.telegram.org/bot$BOT_API_TOKEN/sendDocument
+    - store_artifacts:
+        path: $ZIPNAME
 workflows:
   version: 2
   workflow:
