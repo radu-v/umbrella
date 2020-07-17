@@ -30,7 +30,7 @@ echo
 make O=out ARCH=arm64 nb1_defconfig
 
 #Build kernel
-make -j$(nproc --all) O=out \
+make -j$(nproc --all) O=out CONFIG_DEBUG_INFO=y \
     ARCH=arm64 \
     CC="ccache clang" \
     CROSS_COMPILE=aarch64-linux-gnu- \
