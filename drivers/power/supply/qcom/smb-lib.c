@@ -5488,7 +5488,7 @@ static void fih_update_batt_info_work(struct work_struct *work)
 	smblib_get_prop_die_health(chg, &val);
 	misc_temp_status = val.intval;
 
-	if(pmiFail == false) {// if the pmic is unstable, we will not show the log to get rid of flooding info.
+	if(pmiFail) {// if the pmic is unstable, we will not show the log to get rid of flooding info.
 		pr_err("input_suspend = %s, usb_online = %s, typec_mode = %s, usb_iSettled = %d, cap = %d, vbat = %d, ibat = %d, FCC(%s) = %d, ICL(override = %s)(%s) = %d, bat_status = %d, bat_temp = %d, apsd_result = 0x%x, resistance(esr = %d, rslow = %d) = %d, cable_v = %d, cable_i = %d, pmi_temp = %d, parallel_temp = %d, misc_temp_status = %s, system_temp_level = %d\n",
 			input_suspend == true ? "true" : "false",
 			usb_online == true ? "true" : "false",
