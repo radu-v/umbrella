@@ -4,6 +4,12 @@
 # https://github.com/kdrag0n/proton-clang.git
 # when building under WSL make sure the distro uses WSL 2
 
+# Update submodules
+git submodule update --recursive --init
+
+
+export KBUILD_BUILD_USER="user"
+export KBUILD_BUILD_HOST="build"
 export PATH="$HOME/proton-clang/bin:$PATH"
 export LD_LIBRARY_PATH="$HOME/proton-clang/lib:$LD_LIBRARY_PATH"
 export ARCH=arm64
