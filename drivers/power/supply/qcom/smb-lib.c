@@ -2468,7 +2468,7 @@ int smblib_dump_typec_sts(struct smb_charger *chg,
 		}
 	}
 
-	smblib_err(chg, "TypeC sts1:0x%02x, sts2:0x%02x, sts3:0x%02x, sts4:0x%02x, sts5:0x%02x\n",
+	smblib_dbg(chg, PR_MISC, "TypeC sts1:0x%02x, sts2:0x%02x, sts3:0x%02x, sts4:0x%02x, sts5:0x%02x\n",
 					stat[0], stat[1], stat[2], stat[3], stat[4]);
 
 	return rc;
