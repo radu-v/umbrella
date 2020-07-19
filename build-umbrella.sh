@@ -35,4 +35,4 @@ make -j$(nproc --all) O=out \
     CC="ccache clang" \
     CROSS_COMPILE=aarch64-linux-gnu- \
     CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
-    LOCALVERSION=-clang-$(date +'%Y-%m-%d')
+    LOCALVERSION=-clang $*
