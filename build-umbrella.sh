@@ -39,6 +39,9 @@ make O=out ARCH=arm64 nb1_defconfig
 make -j$(nproc --all) O=out \
     ARCH=arm64 \
     CC="ccache clang" \
+    LD=ld.lld AR=llvm-ar NM=llvm-nm STRIP=llvm-strip \
+    OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump OBJSIZE=llvm-size \
+    READELF=llvm-readelf HOSTCC=clang HOSTCXX=clang++ HOSTAR=llvm-ar \
     CROSS_COMPILE=aarch64-linux-gnu- \
     CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
     LOCALVERSION=-clang $*
