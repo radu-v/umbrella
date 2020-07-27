@@ -7,6 +7,3 @@
 [submodule "drivers/staging/qca-wifi-host-cmn"]
 	path = drivers/staging/qca-wifi-host-cmn
 	url = https://github.com/resident-nokia/qca-wifi-host-cmn
-[submodule "toolchain"]
-	path = toolchain
-	url = https://github.com/kdrag0n/aarch64-elf-gcc

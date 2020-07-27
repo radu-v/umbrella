@@ -4,6 +4,11 @@
 # https://github.com/kdrag0n/proton-clang.git
 # when building under WSL make sure the distro uses WSL 2
 
+# Update submodules
+git submodule update --recursive --init
+
+export KBUILD_BUILD_USER="user"
+export KBUILD_BUILD_HOST="build"
 export PATH="$HOME/proton-clang/bin:$PATH"
 export LD_LIBRARY_PATH="$HOME/proton-clang/lib:$LD_LIBRARY_PATH"
 export ARCH=arm64
@@ -29,10 +34,21 @@ echo
 #Make config
 make O=out ARCH=arm64 nb1_defconfig
 
+CURRENT_BRANCH=$(git branch --show-current)
+CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH//_/}
+CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN// /_}
+CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN////_}
+CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN//[^a-zA-Z0-9_]/}
+
+LAST_COMMIT=$(git rev-parse --verify --short HEAD)
+
 #Build kernel
 make -j$(nproc --all) O=out \
     ARCH=arm64 \
     CC="ccache clang" \
+    LD=ld.lld AR=llvm-ar NM=llvm-nm STRIP=llvm-strip \
+    OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump OBJSIZE=llvm-size \
+    READELF=llvm-readelf HOSTCC=clang HOSTCXX=clang++ HOSTAR=llvm-ar \
     CROSS_COMPILE=aarch64-linux-gnu- \
     CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
-    LOCALVERSION=-clang-$(date +'%Y-%m-%d')
+    LOCALVERSION=-$CURRENT_BRANCH_CLEAN-$LAST_COMMIT $*
