@@ -2582,12 +2582,10 @@ enum Tfa98xx_Error tfaRunSpeakerStartup(Tfa98xx_handle_t handle, int force, int 
 /*
  * Run calibration
  */
-enum Tfa98xx_Error tfaRunSpeakerCalibration(Tfa98xx_handle_t handle, int profile)
+enum Tfa98xx_Error tfaRunSpeakerCalibration(Tfa98xx_handle_t handle, int __attribute__ ((unused)) profile)
 {
 	enum Tfa98xx_Error err = Tfa98xx_Error_Ok;
 	int calibrateDone, spkr_count = 0;
-	/* Avoid warning in user-space */
-	profile=profile;
 
 #ifdef __KERNEL__ /* Necessary otherwise we are thrown out of operating mode in kernel (because of internal clock) */
 	if((strstr(tfaContProfileName(handle, profile), ".cal") == NULL) && (tfa98xx_dev_family(handle) == 2))
