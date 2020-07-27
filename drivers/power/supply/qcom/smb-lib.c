@@ -2468,7 +2468,7 @@ int smblib_dump_typec_sts(struct smb_charger *chg,
 		}
 	}
 
-	smblib_err(chg, "TypeC sts1:0x%02x, sts2:0x%02x, sts3:0x%02x, sts4:0x%02x, sts5:0x%02x\n",
+	smblib_dbg(chg, PR_MISC, "TypeC sts1:0x%02x, sts2:0x%02x, sts3:0x%02x, sts4:0x%02x, sts5:0x%02x\n",
 					stat[0], stat[1], stat[2], stat[3], stat[4]);
 
 	return rc;
@@ -3607,7 +3607,7 @@ irqreturn_t smblib_handle_chg_state_change(int irq, void *data)
 	u8 stat;
 	int rc;
 
-	pr_info("%s: %s: IRQ: %s\n", chg->name, __func__, irq_data->name);
+	pr_debug("%s: %s: IRQ: %s\n", chg->name, __func__, irq_data->name);
 	/* end FIH - NB1-680 */
 	forecast_charging = false;
 
@@ -3664,7 +3664,7 @@ irqreturn_t smblib_handle_batt_psy_changed(int irq, void *data)
 	struct smb_irq_data *irq_data = data;
 	struct smb_charger *chg = irq_data->parent_data;
 
-	pr_info("%s: %s: IRQ: %s\n", chg->name, __func__, irq_data->name);
+	pr_debug("%s: %s: IRQ: %s\n", chg->name, __func__, irq_data->name);
 	/* end FIH - NB1-680 */
 
 	#ifdef BBS_LOG
@@ -3681,7 +3681,7 @@ irqreturn_t smblib_handle_usb_psy_changed(int irq, void *data)
 	struct smb_irq_data *irq_data = data;
 	struct smb_charger *chg = irq_data->parent_data;
 
-	pr_info("%s: %s: IRQ: %s\n", chg->name, __func__, irq_data->name);
+	pr_debug("%s: %s: IRQ: %s\n", chg->name, __func__, irq_data->name);
 	/* end FIH - NB1-680 */
 	power_supply_changed(chg->usb_psy);
 	return IRQ_HANDLED;
@@ -3693,7 +3693,7 @@ irqreturn_t smblib_handle_usbin_uv(int irq, void *data)
 	struct smb_charger *chg = irq_data->parent_data;
 	struct storm_watch *wdata;
 
-	pr_info("%s: %s: IRQ: %s\n", chg->name, __func__, irq_data->name);
+	pr_debug("%s: %s: IRQ: %s\n", chg->name, __func__, irq_data->name);
 	/* end FIH - NB1-680 */
 	if (!chg->irq_info[SWITCH_POWER_OK_IRQ].irq_data)
 		return IRQ_HANDLED;
@@ -3843,7 +3843,7 @@ irqreturn_t smblib_handle_usb_plugin(int irq, void *data)
 	else
 		smblib_usb_plugin_locked(chg);
 
-	pr_info("%s: %s: IRQ: %s\n", chg->name, __func__, irq_data->name);
+	pr_debug("%s: %s: IRQ: %s\n", chg->name, __func__, irq_data->name);
 	/* end FIH - NB1-680 */
 	if (smblib_get_prop_usb_present(chg, &val) < 0 || !val.intval) {
 		forecast_charging = false;
@@ -4234,7 +4234,7 @@ irqreturn_t smblib_handle_usb_source_change(int irq, void *data)
 	const struct apsd_result *apsd_result;
 	#endif
 
-	pr_info("%s: %s: IRQ: %s\n", chg->name, __func__, irq_data->name);
+	pr_debug("%s: %s: IRQ: %s\n", chg->name, __func__, irq_data->name);
 	/* end FIH - NB1-680 */
 
 	rc = smblib_read(chg, APSD_STATUS_REG, &stat);
@@ -4797,7 +4797,7 @@ irqreturn_t smblib_handle_dc_plugin(int irq, void *data)
 	struct smb_charger *chg = irq_data->parent_data;
 	union power_supply_propval val = {0, };
 
-	pr_info("%s: %s: IRQ: %s\n", chg->name, __func__, irq_data->name);
+	pr_debug("%s: %s: IRQ: %s\n", chg->name, __func__, irq_data->name);
 	if (smblib_get_prop_dc_present(chg, &val) < 0 || !val.intval) {
 		forecast_charging = false;
 	} else {
