@@ -4,16 +4,16 @@
  *Licensed under the Apache License, Version 2.0 (the "License");
  *you may not use this file except in compliance with the License.
  *You may obtain a copy of the License at
- *            
+ *
  *http://www.apache.org/licenses/LICENSE-2.0
- *             
+ *
  *Unless required by applicable law or agreed to in writing, software
  *distributed under the License is distributed on an "AS IS" BASIS,
  *WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *See the License for the specific language governing permissions and
  *limitations under the License.
  */
- 
+
 
 #include "inc/tfa_dsp_fw.h"
 #include "inc/tfa_service.h"
@@ -102,12 +102,9 @@ enum Tfa98xx_Error tfa9897_dsp_write_cvfracdelay_table(Tfa98xx_handle_t handle)
         return error;
 }
 
-static enum Tfa98xx_Error tfa9897_tfa_dsp_write_tables(Tfa98xx_handle_t dev_idx, int sample_rate)
+static enum Tfa98xx_Error tfa9897_tfa_dsp_write_tables(Tfa98xx_handle_t dev_idx, int __attribute__ ((unused)) sample_rate)
 {
 	enum Tfa98xx_Error error;
-
-	/* Not used for max1! */
-	sample_rate=sample_rate;
 
 	error = tfa9897_dsp_write_vsfwdelay_table(dev_idx);
 	if (error == Tfa98xx_Error_Ok) {

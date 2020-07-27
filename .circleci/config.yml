@@ -13,11 +13,17 @@ jobs:
         command: |
           export KBUILD_BUILD_USER=$CIRCLE_USERNAME
           make nb1_defconfig O=out
+          CURRENT_BRANCH=$(git branch --show-current)
+          CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH//_/}
+          CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN// /_}
+          CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN////_}
+          CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN//[^a-zA-Z0-9_]/}
+          LAST_COMMIT=$(git rev-parse --verify --short HEAD)
           make -j$(nproc --all) O=out CC="ccache clang" AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip \
             ARCH=arm64 \
             CROSS_COMPILE=aarch64-linux-gnu- \
             CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
-            LOCALVERSION=-clang-$(date +'%Y-%m-%d')
+            LOCALVERSION=-$CURRENT_BRANCH_CLEAN-$LAST_COMMIT
     - run:
         name: Pack & Upload
         command: |
