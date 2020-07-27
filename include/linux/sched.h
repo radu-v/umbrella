@@ -348,6 +348,7 @@ extern int lockdep_tasklist_lock_is_held(void);
 extern void sched_init(void);
 extern void sched_init_smp(void);
 extern asmlinkage void schedule_tail(struct task_struct *prev);
+extern void init_idle(struct task_struct *idle, int cpu);
 extern void init_idle_bootup_task(struct task_struct *idle);
 
 extern cpumask_var_t cpu_isolated_map;
@@ -2498,6 +2499,9 @@ static inline bool cpupri_check_rt(void)
 	return false;
 }
 #endif
+
+extern u32 sched_get_wake_up_idle(struct task_struct *p);
+extern int sched_set_wake_up_idle(struct task_struct *p, int wake_up_idle);
 
 #ifdef CONFIG_NO_HZ_COMMON
 void calc_load_enter_idle(void);
