@@ -40,7 +40,7 @@ CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN// /_}
 CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN////_}
 CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN//[^a-zA-Z0-9_]/}
 
-LAST_COMMIT=$(git rev-parse --verify --short HEAD)
+LAST_COMMIT=$(git rev-parse --verify --short=8 HEAD)
 
 #Build kernel
 make -j$(nproc --all) O=out \
