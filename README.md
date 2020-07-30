@@ -1,4 +1,4 @@
-![Build status](https://github.com/radu-v/umbrella-mod/workflows/master/badge.svg)
+[![radu-v](https://circleci.com/gh/radu-v/umbrella-mod.svg?style=svg)](https://circleci.com/gh/radu-v/umbrella-mod)
 
 # Custom kernel for Nokia 8 (NB1)
 
