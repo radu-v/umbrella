@@ -33,7 +33,8 @@ jobs:
         command: |
           umbrella/package.sh
           export ZIPNAME=$(ls umbrella/out/*.zip | head -n 1)
-          curl -F chat_id=$CHAT_ID -F document=@$ZIPNAME -F parse_mode=markdown https://api.telegram.org/bot$BOT_API_TOKEN/sendDocument
+          export LAST_COMMIT_MSG=$(git log --oneline -1 --pretty=%B)
+          curl -F chat_id=$CHAT_ID -F document=@$ZIPNAME -F caption="$LAST_COMMIT_MSG" -F parse_mode=markdown https://api.telegram.org/bot$BOT_API_TOKEN/sendDocument
           zip -r9 umbrella-mod-artifact.zip umbrella/out/*.zip
     - store_artifacts:
         path: umbrella-mod-artifact.zip
