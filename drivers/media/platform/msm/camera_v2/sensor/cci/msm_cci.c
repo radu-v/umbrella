@@ -58,56 +58,6 @@
 
 static struct v4l2_subdev *g_cci_subdev;
 
-static void msm_cci_dump_registers(struct cci_device *cci_dev,
-	enum cci_i2c_master_t master, enum cci_i2c_queue_t queue)
-{
-	uint32_t read_val = 0;
-	uint32_t i = 0;
-	uint32_t reg_offset = 0;
-
-	/* CCI Top Registers */
-	CCI_DBG(" **** %s : %d CCI TOP Registers ****\n", __func__, __LINE__);
-	for (i = 0; i < DEBUG_TOP_REG_COUNT; i++) {
-		reg_offset = DEBUG_TOP_REG_START + i * 4;
-		read_val = msm_camera_io_r_mb(cci_dev->base + reg_offset);
-		CCI_DBG("%s : %d offset = 0x%X value = 0x%X\n",
-			__func__, __LINE__, reg_offset, read_val);
-	}
-
-	/* CCI Master registers */
-	CCI_DBG(" **** %s : %d CCI MASTER%d Registers ****\n",
-		__func__, __LINE__, master);
-	for (i = 0; i < DEBUG_MASTER_REG_COUNT; i++) {
-		if (i == 6)
-			continue;
-		reg_offset = DEBUG_MASTER_REG_START + master*0x100 + i * 4;
-		read_val = msm_camera_io_r_mb(cci_dev->base + reg_offset);
-		CCI_DBG("%s : %d offset = 0x%X value = 0x%X\n",
-			__func__, __LINE__, reg_offset, read_val);
-	}
-
-	/* CCI Master Queue registers */
-	CCI_DBG(" **** %s : %d CCI MASTER%d QUEUE%d Registers ****\n",
-		__func__, __LINE__, master, queue);
-	for (i = 0; i < DEBUG_MASTER_QUEUE_REG_COUNT; i++) {
-		reg_offset = DEBUG_MASTER_QUEUE_REG_START +  master*0x200 +
-			queue*0x100 + i * 4;
-		read_val = msm_camera_io_r_mb(cci_dev->base + reg_offset);
-		CCI_DBG("%s : %d offset = 0x%X value = 0x%X\n",
-			__func__, __LINE__, reg_offset, read_val);
-	}
-
-	/* CCI Interrupt registers */
-	CCI_DBG(" **** %s : %d CCI Interrupt Registers ****\n",
-		__func__, __LINE__);
-	for (i = 0; i < DEBUG_INTR_REG_COUNT; i++) {
-		reg_offset = DEBUG_INTR_REG_START + i * 4;
-		read_val = msm_camera_io_r_mb(cci_dev->base + reg_offset);
-		CCI_DBG("%s : %d offset = 0x%X value = 0x%X\n",
-			__func__, __LINE__, reg_offset, read_val);
-	}
-}
-
 static int32_t msm_cci_set_clk_param(struct cci_device *cci_dev,
 	struct msm_camera_cci_ctrl *c_ctrl)
 {
