@@ -89,16 +89,16 @@ static struct option const usage_long_opts[] = {
 };
 static const char * const usage_opts_help[] = {
 	"\n\tQuiet: -q suppress warnings, -qq errors, -qqq all",
-	"\n\tInput formats are:\n"
+	("\n\tInput formats are:\n"
 	 "\t\tdts - device tree source text\n"
 	 "\t\tdtb - device tree blob\n"
-	 "\t\tfs  - /proc/device-tree style directory",
+	 "\t\tfs  - /proc/device-tree style directory"),
 	"\n\tOutput file",
-	"\n\tOutput formats are:\n"
+	("\n\tOutput formats are:\n"
 	 "\t\tdts - device tree source text\n"
 	 "\t\tdtb - device tree blob\n"
-	 "\t\tasm - assembler source",
-	"\n\tBlob version to produce, defaults to "FDT_VERSION(DEFAULT_FDT_VERSION)" (for dtb and asm output)",
+	 "\t\tasm - assembler source"),
+	("\n\tBlob version to produce, defaults to "FDT_VERSION(DEFAULT_FDT_VERSION)" (for dtb and asm output)"),
 	"\n\tOutput dependency file",
 	"\n\tMake space for <number> reserve map entries (for dtb and asm output)",
 	"\n\tMake the blob at least <bytes> long (extra space)",
@@ -108,10 +108,10 @@ static const char * const usage_opts_help[] = {
 	"\n\tTry to produce output even if the input tree has errors",
 	"\n\tAdd a path to search for include files",
 	"\n\tSort nodes and properties before outputting (useful for comparing trees)",
-	"\n\tValid phandle formats are:\n"
+	("\n\tValid phandle formats are:\n"
 	 "\t\tlegacy - \"linux,phandle\" properties only\n"
 	 "\t\tepapr  - \"phandle\" properties only\n"
-	 "\t\tboth   - Both \"linux,phandle\" and \"phandle\" properties",
+	 "\t\tboth   - Both \"linux,phandle\" and \"phandle\" properties"),
 	"\n\tEnable/disable warnings (prefix with \"no-\")",
 	"\n\tEnable/disable errors (prefix with \"no-\")",
 	"\n\tEnable generation of symbols",
