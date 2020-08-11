@@ -203,7 +203,10 @@ static void do_dynamic_stune_boost_rem(struct work_struct *work)
 
 static void do_input_boost(struct work_struct *work)
 {
-	unsigned int i, ret;
+	unsigned int i;
+#ifdef CONFIG_DYNAMIC_STUNE_BOOST
+	unsigned int ret;
+#endif
 	struct cpu_sync *i_sync_info;
 
 #ifdef CONFIG_DYNAMIC_STUNE_BOOST
@@ -211,10 +214,12 @@ static void do_input_boost(struct work_struct *work)
 #endif /* CONFIG_DYNAMIC_STUNE_BOOST */
 	cancel_delayed_work_sync(&input_boost_rem);
 
+#ifdef CONFIG_DYNAMIC_STUNE_BOOST
 	if (stune_boost_active) {
 		reset_stune_boost("top-app", boost_slot);
 		stune_boost_active = false;
 	}
+#endif
 
 	/* Set the input_boost_min for all CPUs in the system */
 	pr_debug("Setting input boost min for all CPUs\n");
