@@ -657,6 +657,7 @@ KBUILD_AFLAGS += $(call cc-option, -no-integrated-as)
 ifeq ($(ld-name),lld)
 KBUILD_CFLAGS += -fuse-ld=lld
 endif
+CLANG_FLAGS	+= -fno-builtin-stpcpy
 KBUILD_CFLAGS += $(CLANG_FLAGS)
 KBUILD_AFLAGS += $(CLANG_FLAGS)
 else
