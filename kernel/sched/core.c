@@ -1254,6 +1254,8 @@ static int __set_cpus_allowed_ptr(struct task_struct *p,
 
 	new_mask = get_adjusted_cpumask(p, new_mask);
 
+	new_mask = get_adjusted_cpumask(p, new_mask);
+
 	rq = task_rq_lock(p, &flags);
 
 	/*
