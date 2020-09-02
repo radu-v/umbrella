@@ -10,7 +10,7 @@
  * GNU General Public License for more details.
  */
 
-#define DEBUG
+// #define DEBUG
 
 #include <linux/kernel.h>
 #include <linux/regmap.h>
@@ -4171,8 +4171,8 @@ err_config_gpio:
 }
 
 #ifdef CONFIG_FIH_NB1
-static void fih_create_button_backlight_symlink(void);
-static void fih_remove_button_backlight_symlink(void);
+extern int fih_register_button_backlight(struct device *parent, struct led_classdev *led_cdev);
+extern void fih_unregister_button_backlight(struct led_classdev *led_cdev);
 #endif
 
 static int qpnp_leds_probe(struct platform_device *pdev)
@@ -4342,6 +4342,18 @@ static int qpnp_leds_probe(struct platform_device *pdev)
 		if (rc < 0)
 			goto fail_id_check;
 
+#ifdef CONFIG_FIH_NB1
+		if(QPNP_ID_RGB_RED == led->id) {
+			rc = fih_register_button_backlight(&pdev->dev, &led->cdev);
+			if (rc) {
+				dev_err(&pdev->dev,
+					"unable to register button_backlight led %d,rc=%d\n",
+							led->id, rc);
+				rc = 0;
+			}
+		}
+#endif
+
 		rc = led_classdev_register(&pdev->dev, &led->cdev);
 		if (rc) {
 			dev_err(&pdev->dev,
@@ -4455,10 +4467,6 @@ static int qpnp_leds_probe(struct platform_device *pdev)
 #endif
 	}
 
-#ifdef CONFIG_FIH_NB1
-	fih_create_button_backlight_symlink();
-#endif
-
 	dev_set_drvdata(&pdev->dev, led_array);
 	return 0;
 
@@ -4470,6 +4478,11 @@ fail_id_check:
 		if (led_array[i].in_order_command_processing)
 			destroy_workqueue(led_array[i].workqueue);
 		led_classdev_unregister(&led_array[i].cdev);
+#ifdef CONFIG_FIH_NB1
+		if (led_array[i].id == QPNP_ID_RGB_RED) {
+			fih_unregister_button_backlight(&led_array[i].cdev);
+		}
+#endif
 	}
 
 	return rc;
@@ -4480,10 +4493,6 @@ static int qpnp_leds_remove(struct platform_device *pdev)
 	struct qpnp_led_data *led_array  = dev_get_drvdata(&pdev->dev);
 	int i, parsed_leds = led_array->num_leds;
 
-#ifdef CONFIG_FIH_NB1
-	fih_remove_button_backlight_symlink();
-#endif
-
 	for (i = 0; i < parsed_leds; i++) {
 		cancel_work_sync(&led_array[i].work);
 		if (led_array[i].id != QPNP_ID_FLASH1_LED0 &&
@@ -4493,6 +4502,11 @@ static int qpnp_leds_remove(struct platform_device *pdev)
 		if (led_array[i].in_order_command_processing)
 			destroy_workqueue(led_array[i].workqueue);
 		led_classdev_unregister(&led_array[i].cdev);
+#ifdef CONFIG_FIH_NB1
+		if (led_array[i].id == QPNP_ID_RGB_RED) {
+			fih_unregister_button_backlight(&led_array[i].cdev);
+		}
+#endif
 		switch (led_array[i].id) {
 		case QPNP_ID_WLED:
 			break;
@@ -4566,49 +4580,6 @@ static int qpnp_leds_remove(struct platform_device *pdev)
 
 	return 0;
 }
-
-#ifdef CONFIG_FIH_NB1
-static struct kernfs_node *button_backlight_symlink = NULL;
-
-static void fih_create_button_backlight_symlink()
-{
-	struct device *red_dev = g_red_led->cdev.dev;
-	struct kobject *red_kobj = &red_dev->kobj;
-	struct kernfs_node *leds_node, *red_node;
-
-#ifdef DEBUG
-	struct kernfs_node *temp;
-#endif
-
-	red_node = red_kobj->sd;
-	leds_node = red_node->parent;
-
-#ifdef DEBUG
-	for (temp = red_node; temp != NULL; temp = temp->parent) {
-		dev_warn(red_dev, "kernfs_node: %s", temp->name);
-	}
-#endif
-
-	if(strcmp(leds_node->name, "leds")) {
-		dev_warn(red_dev, "Parent leds folder not matched: %s", leds_node->name);
-		return;
-	}
-
-	kernfs_get(red_node);
-	button_backlight_symlink = kernfs_create_link(leds_node, "button_backlight", red_node);
-	kernfs_put(red_node);
-
-	if(IS_ERR(button_backlight_symlink)) {
-		dev_warn(red_dev, "Unable to create %s symlink", "button_backlight");
-	}
-}
-
-static void fih_remove_button_backlight_symlink()
-{
-	if(!IS_ERR(button_backlight_symlink))
-		kernfs_remove_by_name(button_backlight_symlink->parent, button_backlight_symlink->name);
-}
-#endif
 
 #ifdef CONFIG_OF
 static const struct of_device_id spmi_match_table[] = {
