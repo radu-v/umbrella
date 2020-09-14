@@ -96,6 +96,7 @@
 #include "fd.h"
 
 #include "../../lib/kstrtox.h"
+#include "bg_kill_list.h"
 
 struct task_kill_info {
 	struct task_struct *task;
@@ -1199,7 +1200,7 @@ static ssize_t oom_score_adj_read(struct file *file, char __user *buf,
 static ssize_t oom_score_adj_write(struct file *file, const char __user *buf,
 					size_t count, loff_t *ppos)
 {
-	char task_comm[TASK_COMM_LEN];
+	char task_comm[TASK_COMM_LEN + 2];
 	struct task_struct *task;
 	char buffer[PROC_NUMBUF];
 	unsigned long flags;
@@ -1250,8 +1251,6 @@ static ssize_t oom_score_adj_write(struct file *file, const char __user *buf,
 	if (has_capability_noaudit(current, CAP_SYS_RESOURCE))
 		task->signal->oom_score_adj_min = (short)oom_score_adj;
 	trace_oom_score_adj_update(task);
-	if (oom_score_adj >= 700)
-		strncpy(task_comm, task->comm, TASK_COMM_LEN);
 
 err_sighand:
 	unlock_task_sighand(task, &flags);
@@ -1261,9 +1260,11 @@ err_task_lock:
 out:
 	/* These apps burn through CPU in the background. Don't let them. */
 	if (!err && oom_score_adj >= 700) {
-		if (!strcmp(task_comm, "id.GoogleCamera") ||
-		    !strcmp(task_comm, "ndroid.settings")) {
+		snprintf(task_comm, TASK_COMM_LEN, ";%s;", task->comm);
+		if (strstr(LIST_BG_KILL, task_comm) != NULL) {
 			struct task_kill_info *kinfo;
+
+			pr_debug("bg_proc_kill: %s", task->comm);
 
 			kinfo = kmalloc(sizeof(*kinfo), GFP_KERNEL);
 			if (kinfo) {
