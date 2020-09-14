@@ -192,8 +192,7 @@ static int fb_notifier_cb(struct notifier_block *nb, unsigned long action,
 
 		if (*blank == FB_BLANK_UNBLANK) {
 			set_bit(SCREEN_ON, &b->state);
-			__devfreq_boost_kick_max(b,
-				CONFIG_DEVFREQ_WAKE_BOOST_DURATION_MS);
+			__devfreq_boost_kick_max(b, 500);
 			reset_schedtune_boost("top-app", 1);
 		} else if (*blank == FB_BLANK_POWERDOWN) {
 			clear_bit(SCREEN_ON, &b->state);
