@@ -134,10 +134,6 @@ static int one_hundred = 100;
 #ifdef CONFIG_PRINTK
 static int ten_thousand = 10000;
 #endif
-#ifdef CONFIG_SCHED_HMP
-static int one_thousand = 1000;
-static int max_freq_reporting_policy = FREQ_REPORT_INVALID_POLICY - 1;
-#endif
 
 /* this is needed for the proc_doulongvec_minmax of vm_dirty_bytes */
 static unsigned long dirty_bytes_min = 2 * PAGE_SIZE;
@@ -287,6 +283,15 @@ static int max_extfrag_threshold = 1000;
 
 static struct ctl_table kern_table[] = {
 	{
+		.procname	= "sched_boost",
+		.data		= &sysctl_sched_boost,
+		.maxlen		= sizeof(unsigned int),
+		.mode		= 0644,
+		.proc_handler	= sched_boost_handler,
+		.extra1         = &zero,
+		.extra2		= &three,
+	},
+	{
 		.procname	= "sched_child_runs_first",
 		.data		= &sysctl_sched_child_runs_first,
 		.maxlen		= sizeof(unsigned int),
@@ -309,217 +314,6 @@ static struct ctl_table kern_table[] = {
 		.proc_handler   = proc_dointvec,
 	},
 #endif
-#ifdef CONFIG_SCHED_HMP
-	{
-		.procname	= "sched_freq_reporting_policy",
-		.data		= &sysctl_sched_freq_reporting_policy,
-		.maxlen		= sizeof(unsigned int),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec_minmax,
-		.extra1		= &zero,
-		.extra2		= &max_freq_reporting_policy,
-	},
-	{
-		.procname	= "sched_freq_inc_notify",
-		.data		= &sysctl_sched_freq_inc_notify,
-		.maxlen		= sizeof(unsigned int),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec_minmax,
-		.extra1		= &zero,
-	},
-	{
-		.procname	= "sched_freq_dec_notify",
-		.data		= &sysctl_sched_freq_dec_notify,
-		.maxlen		= sizeof(unsigned int),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec_minmax,
-		.extra1		= &zero,
-	},
-	{
-		.procname       = "sched_cpu_high_irqload",
-		.data           = &sysctl_sched_cpu_high_irqload,
-		.maxlen         = sizeof(unsigned int),
-		.mode           = 0644,
-		.proc_handler   = proc_dointvec,
-	},
-	{
-		.procname       = "sched_ravg_hist_size",
-		.data           = &sysctl_sched_ravg_hist_size,
-		.maxlen         = sizeof(unsigned int),
-		.mode           = 0644,
-		.proc_handler   = sched_window_update_handler,
-	},
-	{
-		.procname       = "sched_window_stats_policy",
-		.data           = &sysctl_sched_window_stats_policy,
-		.maxlen         = sizeof(unsigned int),
-		.mode           = 0644,
-		.proc_handler   = sched_window_update_handler,
-	},
-	{
-		.procname	= "sched_spill_load",
-		.data		= &sysctl_sched_spill_load_pct,
-		.maxlen		= sizeof(unsigned int),
-		.mode		= 0644,
-		.proc_handler	= sched_hmp_proc_update_handler,
-		.extra1		= &zero,
-		.extra2		= &one_hundred,
-	},
-	{
-		.procname	= "sched_spill_nr_run",
-		.data		= &sysctl_sched_spill_nr_run,
-		.maxlen		= sizeof(unsigned int),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec_minmax,
-		.extra1		= &zero,
-	},
-	{
-		.procname	= "sched_upmigrate",
-		.data		= &sysctl_sched_upmigrate_pct,
-		.maxlen		= sizeof(unsigned int),
-		.mode		= 0644,
-		.proc_handler	= sched_hmp_proc_update_handler,
-		.extra1		= &zero,
-		.extra2		= &one_hundred,
-	},
-	{
-		.procname	= "sched_downmigrate",
-		.data		= &sysctl_sched_downmigrate_pct,
-		.maxlen		= sizeof(unsigned int),
-		.mode		= 0644,
-		.proc_handler	= sched_hmp_proc_update_handler,
-		.extra1		= &zero,
-		.extra2		= &one_hundred,
-	},
-	{
-		.procname	= "sched_group_upmigrate",
-		.data		= &sysctl_sched_group_upmigrate_pct,
-		.maxlen		= sizeof(unsigned int),
-		.mode		= 0644,
-		.proc_handler	= sched_hmp_proc_update_handler,
-		.extra1		= &zero,
-	},
-	{
-		.procname	= "sched_group_downmigrate",
-		.data		= &sysctl_sched_group_downmigrate_pct,
-		.maxlen		= sizeof(unsigned int),
-		.mode		= 0644,
-		.proc_handler	= sched_hmp_proc_update_handler,
-		.extra1		= &zero,
-	},
-	{
-		.procname	= "sched_init_task_load",
-		.data		= &sysctl_sched_init_task_load_pct,
-		.maxlen		= sizeof(unsigned int),
-		.mode		= 0644,
-		.proc_handler	= sched_hmp_proc_update_handler,
-		.extra1		= &zero,
-		.extra2		= &one_hundred,
-	},
-	{
-		.procname	= "sched_select_prev_cpu_us",
-		.data		= &sysctl_sched_select_prev_cpu_us,
-		.maxlen		= sizeof(unsigned int),
-		.mode		= 0644,
-		.proc_handler   = sched_hmp_proc_update_handler,
-		.extra1		= &zero,
-	},
-	{
-		.procname	= "sched_restrict_cluster_spill",
-		.data		= &sysctl_sched_restrict_cluster_spill,
-		.maxlen		= sizeof(unsigned int),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec_minmax,
-		.extra1		= &zero,
-		.extra2		= &one,
-	},
-	{
-		.procname	= "sched_small_wakee_task_load",
-		.data		= &sysctl_sched_small_wakee_task_load_pct,
-		.maxlen		= sizeof(unsigned int),
-		.mode		= 0644,
-		.proc_handler   = sched_hmp_proc_update_handler,
-		.extra1		= &zero,
-		.extra2		= &one_hundred,
-	},
-	{
-		.procname	= "sched_big_waker_task_load",
-		.data		= &sysctl_sched_big_waker_task_load_pct,
-		.maxlen		= sizeof(unsigned int),
-		.mode		= 0644,
-		.proc_handler   = sched_hmp_proc_update_handler,
-		.extra1		= &zero,
-		.extra2		= &one_hundred,
-	},
-	{
-		.procname	= "sched_prefer_sync_wakee_to_waker",
-		.data		= &sysctl_sched_prefer_sync_wakee_to_waker,
-		.maxlen		= sizeof(unsigned int),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec_minmax,
-		.extra1		= &zero,
-		.extra2		= &one,
-	},
-	{
-		.procname       = "sched_enable_thread_grouping",
-		.data           = &sysctl_sched_enable_thread_grouping,
-		.maxlen         = sizeof(unsigned int),
-		.mode           = 0644,
-		.proc_handler   = proc_dointvec,
-	},
-	{
-		.procname	= "sched_pred_alert_freq",
-		.data		= &sysctl_sched_pred_alert_freq,
-		.maxlen		= sizeof(unsigned int),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec_minmax,
-		.extra1		= &zero,
-	},
-	{
-		.procname       = "sched_freq_aggregate",
-		.data           = &sysctl_sched_freq_aggregate,
-		.maxlen         = sizeof(unsigned int),
-		.mode           = 0644,
-		.proc_handler   = sched_window_update_handler,
-	},
-	{
-		.procname	= "sched_freq_aggregate_threshold",
-		.data		= &sysctl_sched_freq_aggregate_threshold_pct,
-		.maxlen		= sizeof(unsigned int),
-		.mode		= 0644,
-		.proc_handler	= sched_hmp_proc_update_handler,
-		.extra1		= &zero,
-		/*
-		 * Special handling for sched_freq_aggregate_threshold_pct
-		 * which can be greater than 100. Use 1000 as an upper bound
-		 * value which works for all practical use cases.
-		 */
-		.extra2		= &one_thousand,
-	},
-	{
-		.procname	= "sched_boost",
-		.data		= &sysctl_sched_boost,
-		.maxlen		= sizeof(unsigned int),
-		.mode		= 0644,
-		.proc_handler	= sched_boost_handler,
-		.extra1         = &zero,
-		.extra2		= &three,
-	},
-	{
-		.procname	= "sched_short_burst_ns",
-		.data		= &sysctl_sched_short_burst,
-		.maxlen		= sizeof(unsigned int),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec,
-	},
-	{
-		.procname       = "sched_short_sleep_ns",
-		.data           = &sysctl_sched_short_sleep,
-		.maxlen         = sizeof(unsigned int),
-		.mode           = 0644,
-		.proc_handler   = proc_dointvec,
-	},
-#endif	/* CONFIG_SCHED_HMP */
 #ifdef CONFIG_SCHED_DEBUG
 	{
 		.procname	= "sched_min_granularity_ns",
@@ -539,6 +333,36 @@ static struct ctl_table kern_table[] = {
 		.extra1		= &min_sched_granularity_ns,
 		.extra2		= &max_sched_granularity_ns,
 	},
+#ifdef CONFIG_SCHED_WALT
+	{
+		.procname	= "sched_use_walt_cpu_util",
+		.data		= &sysctl_sched_use_walt_cpu_util,
+		.maxlen		= sizeof(unsigned int),
+		.mode		= 0644,
+		.proc_handler	= proc_dointvec,
+	},
+	{
+		.procname	= "sched_use_walt_task_util",
+		.data		= &sysctl_sched_use_walt_task_util,
+		.maxlen		= sizeof(unsigned int),
+		.mode		= 0644,
+		.proc_handler	= proc_dointvec,
+	},
+	{
+		.procname	= "sched_walt_init_task_load_pct",
+		.data		= &sysctl_sched_walt_init_task_load_pct,
+		.maxlen		= sizeof(unsigned int),
+		.mode		= 0644,
+		.proc_handler	= proc_dointvec,
+	},
+	{
+		.procname	= "sched_walt_cpu_high_irqload",
+		.data		= &sysctl_sched_walt_cpu_high_irqload,
+		.maxlen		= sizeof(unsigned int),
+		.mode		= 0644,
+		.proc_handler	= proc_dointvec,
+	},
+#endif
 	{
 		.procname	= "sched_sync_hint_enable",
 		.data		= &sysctl_sched_sync_hint_enable,
@@ -1512,7 +1336,7 @@ static struct ctl_table vm_table[] = {
 		.proc_handler	= overcommit_kbytes_handler,
 	},
 	{
-		.procname	= "page-cluster", 
+		.procname	= "page-cluster",
 		.data		= &page_cluster,
 		.maxlen		= sizeof(int),
 		.mode		= 0644,
@@ -2021,7 +1845,7 @@ static struct ctl_table fs_table[] = {
 		.mode		= 0555,
 		.child		= inotify_table,
 	},
-#endif	
+#endif
 #ifdef CONFIG_EPOLL
 	{
 		.procname	= "epoll",
@@ -2437,12 +2261,12 @@ static int __do_proc_dointvec(void *tbl_data, struct ctl_table *table,
 	unsigned long page = 0;
 	size_t left;
 	char *kbuf;
-	
+
 	if (!tbl_data || !table->maxlen || !*lenp || (*ppos && !write)) {
 		*lenp = 0;
 		return 0;
 	}
-	
+
 	i = (int *) tbl_data;
 	vleft = table->maxlen / sizeof(*i);
 	left = *lenp;
@@ -2544,7 +2368,7 @@ static int do_proc_dointvec(struct ctl_table *table, int write,
  * @ppos: file position
  *
  * Reads/writes up to table->maxlen/sizeof(unsigned int) integer
- * values from/to the user buffer, treated as an ASCII string. 
+ * values from/to the user buffer, treated as an ASCII string.
  *
  * Returns 0 on success.
  */
@@ -2954,7 +2778,7 @@ static int do_proc_dointvec_ms_jiffies_conv(bool *negp, unsigned long *lvalp,
  * @ppos: file position
  *
  * Reads/writes up to table->maxlen/sizeof(unsigned int) integer
- * values from/to the user buffer, treated as an ASCII string. 
+ * values from/to the user buffer, treated as an ASCII string.
  * The values read are assumed to be in seconds, and are converted into
  * jiffies.
  *
@@ -2976,8 +2800,8 @@ int proc_dointvec_jiffies(struct ctl_table *table, int write,
  * @ppos: pointer to the file position
  *
  * Reads/writes up to table->maxlen/sizeof(unsigned int) integer
- * values from/to the user buffer, treated as an ASCII string. 
- * The values read are assumed to be in 1/USER_HZ seconds, and 
+ * values from/to the user buffer, treated as an ASCII string.
+ * The values read are assumed to be in 1/USER_HZ seconds, and
  * are converted into jiffies.
  *
  * Returns 0 on success.
@@ -2999,8 +2823,8 @@ int proc_dointvec_userhz_jiffies(struct ctl_table *table, int write,
  * @ppos: the current position in the file
  *
  * Reads/writes up to table->maxlen/sizeof(unsigned int) integer
- * values from/to the user buffer, treated as an ASCII string. 
- * The values read are assumed to be in 1/1000 seconds, and 
+ * values from/to the user buffer, treated as an ASCII string.
+ * The values read are assumed to be in 1/1000 seconds, and
  * are converted into jiffies.
  *
  * Returns 0 on success.

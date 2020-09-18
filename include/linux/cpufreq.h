@@ -123,6 +123,9 @@ struct cpufreq_policy {
 	unsigned int		up_transition_delay_us;
 	unsigned int		down_transition_delay_us;
 
+	/* Boost switch for tasks with p->in_iowait set */
+	bool iowait_boost_enable;
+
 	 /* Cached frequency lookup from cpufreq_driver_resolve_freq. */
 	unsigned int cached_target_freq;
 	int cached_resolved_idx;
@@ -533,6 +536,12 @@ extern struct cpufreq_governor cpufreq_gov_sched;
 #elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL)
 extern struct cpufreq_governor cpufreq_gov_schedutil;
 #define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_schedutil)
+#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_BLU_SCHEDUTIL)
+extern struct cpufreq_governor cpufreq_gov_blu_schedutil;
+#define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_blu_schedutil)
+#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_PWRUTILX)
+extern struct cpufreq_governor cpufreq_gov_pwrutilx;
+#define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_pwrutilx)
 #endif
 
 static inline void cpufreq_policy_apply_limits(struct cpufreq_policy *policy)

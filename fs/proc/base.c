@@ -96,6 +96,7 @@
 #include "fd.h"
 
 #include "../../lib/kstrtox.h"
+#include "bg_kill_list.h"
 
 struct task_kill_info {
 	struct task_struct *task;
@@ -1199,7 +1200,7 @@ static ssize_t oom_score_adj_read(struct file *file, char __user *buf,
 static ssize_t oom_score_adj_write(struct file *file, const char __user *buf,
 					size_t count, loff_t *ppos)
 {
-	char task_comm[TASK_COMM_LEN];
+	char task_comm[TASK_COMM_LEN + 2];
 	struct task_struct *task;
 	char buffer[PROC_NUMBUF];
 	unsigned long flags;
@@ -1250,8 +1251,6 @@ static ssize_t oom_score_adj_write(struct file *file, const char __user *buf,
 	if (has_capability_noaudit(current, CAP_SYS_RESOURCE))
 		task->signal->oom_score_adj_min = (short)oom_score_adj;
 	trace_oom_score_adj_update(task);
-	if (oom_score_adj >= 700)
-		strncpy(task_comm, task->comm, TASK_COMM_LEN);
 
 err_sighand:
 	unlock_task_sighand(task, &flags);
@@ -1261,9 +1260,11 @@ err_task_lock:
 out:
 	/* These apps burn through CPU in the background. Don't let them. */
 	if (!err && oom_score_adj >= 700) {
-		if (!strcmp(task_comm, "id.GoogleCamera") ||
-		    !strcmp(task_comm, "ndroid.settings")) {
+		snprintf(task_comm, TASK_COMM_LEN, ";%s;", task->comm);
+		if (strstr(LIST_BG_KILL, task_comm) != NULL) {
 			struct task_kill_info *kinfo;
+
+			pr_debug("bg_proc_kill: %s", task->comm);
 
 			kinfo = kmalloc(sizeof(*kinfo), GFP_KERNEL);
 			if (kinfo) {
@@ -1428,7 +1429,7 @@ static const struct file_operations proc_fault_inject_operations = {
 
 #ifdef CONFIG_SCHED_DEBUG
 /*
- * Print out various scheduling related per-task fields:
+ * Print out various scheduling related per-task fields:* Print out various scheduling related per-task fields:
  */
 static int sched_show(struct seq_file *m, void *v)
 {
@@ -1476,204 +1477,6 @@ static const struct file_operations proc_pid_sched_operations = {
 };
 
 #endif
-
-/*
- * Print out various scheduling related per-task fields:
- */
-
-#ifdef CONFIG_SMP
-
-static int sched_wake_up_idle_show(struct seq_file *m, void *v)
-{
-	struct inode *inode = m->private;
-	struct task_struct *p;
-
-	p = get_proc_task(inode);
-	if (!p)
-		return -ESRCH;
-
-	seq_printf(m, "%d\n", sched_get_wake_up_idle(p));
-
-	put_task_struct(p);
-
-	return 0;
-}
-
-static ssize_t
-sched_wake_up_idle_write(struct file *file, const char __user *buf,
-	    size_t count, loff_t *offset)
-{
-	struct inode *inode = file_inode(file);
-	struct task_struct *p;
-	char buffer[PROC_NUMBUF];
-	int wake_up_idle, err;
-
-	memset(buffer, 0, sizeof(buffer));
-	if (count > sizeof(buffer) - 1)
-		count = sizeof(buffer) - 1;
-	if (copy_from_user(buffer, buf, count)) {
-		err = -EFAULT;
-		goto out;
-	}
-
-	err = kstrtoint(strstrip(buffer), 0, &wake_up_idle);
-	if (err)
-		goto out;
-
-	p = get_proc_task(inode);
-	if (!p)
-		return -ESRCH;
-
-	err = sched_set_wake_up_idle(p, wake_up_idle);
-
-	put_task_struct(p);
-
-out:
-	return err < 0 ? err : count;
-}
-
-static int sched_wake_up_idle_open(struct inode *inode, struct file *filp)
-{
-	return single_open(filp, sched_wake_up_idle_show, inode);
-}
-
-static const struct file_operations proc_pid_sched_wake_up_idle_operations = {
-	.open		= sched_wake_up_idle_open,
-	.read		= seq_read,
-	.write		= sched_wake_up_idle_write,
-	.llseek		= seq_lseek,
-	.release	= single_release,
-};
-
-#endif	/* CONFIG_SMP */
-
-#ifdef CONFIG_SCHED_HMP
-
-static int sched_init_task_load_show(struct seq_file *m, void *v)
-{
-	struct inode *inode = m->private;
-	struct task_struct *p;
-
-	p = get_proc_task(inode);
-	if (!p)
-		return -ESRCH;
-
-	seq_printf(m, "%d\n", sched_get_init_task_load(p));
-
-	put_task_struct(p);
-
-	return 0;
-}
-
-static ssize_t
-sched_init_task_load_write(struct file *file, const char __user *buf,
-	    size_t count, loff_t *offset)
-{
-	struct inode *inode = file_inode(file);
-	struct task_struct *p;
-	char buffer[PROC_NUMBUF];
-	int init_task_load, err;
-
-	memset(buffer, 0, sizeof(buffer));
-	if (count > sizeof(buffer) - 1)
-		count = sizeof(buffer) - 1;
-	if (copy_from_user(buffer, buf, count)) {
-		err = -EFAULT;
-		goto out;
-	}
-
-	err = kstrtoint(strstrip(buffer), 0, &init_task_load);
-	if (err)
-		goto out;
-
-	p = get_proc_task(inode);
-	if (!p)
-		return -ESRCH;
-
-	err = sched_set_init_task_load(p, init_task_load);
-
-	put_task_struct(p);
-
-out:
-	return err < 0 ? err : count;
-}
-
-static int sched_init_task_load_open(struct inode *inode, struct file *filp)
-{
-	return single_open(filp, sched_init_task_load_show, inode);
-}
-
-static const struct file_operations proc_pid_sched_init_task_load_operations = {
-	.open		= sched_init_task_load_open,
-	.read		= seq_read,
-	.write		= sched_init_task_load_write,
-	.llseek		= seq_lseek,
-	.release	= single_release,
-};
-
-static int sched_group_id_show(struct seq_file *m, void *v)
-{
-	struct inode *inode = m->private;
-	struct task_struct *p;
-
-	p = get_proc_task(inode);
-	if (!p)
-		return -ESRCH;
-
-	seq_printf(m, "%d\n", sched_get_group_id(p));
-
-	put_task_struct(p);
-
-	return 0;
-}
-
-static ssize_t
-sched_group_id_write(struct file *file, const char __user *buf,
-	    size_t count, loff_t *offset)
-{
-	struct inode *inode = file_inode(file);
-	struct task_struct *p;
-	char buffer[PROC_NUMBUF];
-	int group_id, err;
-
-	memset(buffer, 0, sizeof(buffer));
-	if (count > sizeof(buffer) - 1)
-		count = sizeof(buffer) - 1;
-	if (copy_from_user(buffer, buf, count)) {
-		err = -EFAULT;
-		goto out;
-	}
-
-	err = kstrtoint(strstrip(buffer), 0, &group_id);
-	if (err)
-		goto out;
-
-	p = get_proc_task(inode);
-	if (!p)
-		return -ESRCH;
-
-	err = sched_set_group_id(p, group_id);
-
-	put_task_struct(p);
-
-out:
-	return err < 0 ? err : count;
-}
-
-static int sched_group_id_open(struct inode *inode, struct file *filp)
-{
-	return single_open(filp, sched_group_id_show, inode);
-}
-
-static const struct file_operations proc_pid_sched_group_id_operations = {
-	.open		= sched_group_id_open,
-	.read		= seq_read,
-	.write		= sched_group_id_write,
-	.llseek		= seq_lseek,
-	.release	= single_release,
-};
-
-#endif	/* CONFIG_SCHED_HMP */
 
 #ifdef CONFIG_SCHED_AUTOGROUP
 /*
@@ -2645,7 +2448,7 @@ out:
 	return -ENOENT;
 }
 
-static struct dentry *proc_pident_lookup(struct inode *dir, 
+static struct dentry *proc_pident_lookup(struct inode *dir,
 					 struct dentry *dentry,
 					 const struct pid_entry *ents,
 					 unsigned int nents)
@@ -2790,7 +2593,7 @@ static const struct pid_entry attr_dir_stuff[] = {
 
 static int proc_attr_dir_readdir(struct file *file, struct dir_context *ctx)
 {
-	return proc_pident_readdir(file, ctx, 
+	return proc_pident_readdir(file, ctx,
 				   attr_dir_stuff, ARRAY_SIZE(attr_dir_stuff));
 }
 
@@ -3115,13 +2918,6 @@ static const struct pid_entry tgid_base_stuff[] = {
 	ONE("status",     S_IRUGO, proc_pid_status),
 	ONE("personality", S_IRUSR, proc_pid_personality),
 	ONE("limits",	  S_IRUGO, proc_pid_limits),
-#ifdef CONFIG_SMP
-	REG("sched_wake_up_idle",      S_IRUGO|S_IWUSR, proc_pid_sched_wake_up_idle_operations),
-#endif
-#ifdef CONFIG_SCHED_HMP
-	REG("sched_init_task_load",      S_IRUGO|S_IWUSR, proc_pid_sched_init_task_load_operations),
-	REG("sched_group_id",      S_IRUGO|S_IWUGO, proc_pid_sched_group_id_operations),
-#endif
 #ifdef CONFIG_SCHED_DEBUG
 	REG("sched",      S_IRUGO|S_IWUSR, proc_pid_sched_operations),
 #endif
