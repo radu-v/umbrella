@@ -6,6 +6,9 @@
 
 - KCal support
 - HW button backlight as notification LEDs
+- Energy Aware Scheduling
+- schedutil, blu_schedutil and pwrutilx CPU governors
+- lzo-rle support for zram
 
 # For building under WSL on Windows 10
 1. WSL 2 strongly recommended
