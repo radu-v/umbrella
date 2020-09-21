@@ -590,7 +590,7 @@
 	MEM_DISCARD(exit.text)
 
 #define EXIT_CALL							\
-	KEEP(*(.exitcall.exit))
+	*(.exitcall.exit)
 
 /*
  * bss (Block Started by Symbol) - uninitialized data
