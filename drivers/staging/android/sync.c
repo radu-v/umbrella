@@ -391,7 +391,7 @@ int sync_fence_wait(struct sync_fence *fence, long timeout)
 		return ret;
 	} else if (ret == 0) {
 		if (timeout) {
-			pr_info("fence timeout on [%pK]%s after %dms\n", fence, fence->name, 
+			pr_info("fence timeout on [%pK]%s after %dms\n", fence, fence->name,
 				jiffies_to_msecs(timeout));
 			if (jiffies_to_msecs(timeout) >=
 				SYNC_DUMP_TIME_LIMIT)
@@ -660,11 +660,14 @@ static int sync_fill_pt_info(struct fence *fence, void *data, int size)
 static long sync_fence_ioctl_fence_info(struct sync_fence *fence,
 					unsigned long arg)
 {
-	u8 data_buf[4096] __aligned(sizeof(long));
-	struct sync_fence_info_data *data = (typeof(data))data_buf;
+	u8 *data_buf __aligned(sizeof(long));
+	struct sync_fence_info_data *data;
 	__u32 size;
 	__u32 len = 0;
 	int ret, i;
+
+	data_buf = kzalloc(4096, GFP_KERNEL);
+	data = (typeof(data))data_buf;
 
 	if (copy_from_user(&size, (void __user *)arg, sizeof(size)))
 		return -EFAULT;
@@ -701,7 +704,7 @@ static long sync_fence_ioctl_fence_info(struct sync_fence *fence,
 		ret = 0;
 
 out:
-
+	kfree(data_buf);
 	return ret;
 }
 
