@@ -7,9 +7,12 @@ properties() { '
 kernel.string={NAME} Kernel
 do.devicecheck=1
 do.modules=0
+do.systemless=0
 do.cleanup=1
 do.cleanuponabort=0
 device.name1={DEVICE}
+supported.versions=
+supported.patchlevels=
 '; } # end properties
 
 # shell variables
@@ -25,6 +28,7 @@ ramdisk_compression=auto;
 
 ## AnyKernel install
 dump_boot;
+
 write_boot;
 ## end install
 
