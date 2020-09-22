@@ -43,7 +43,7 @@ CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN//[^a-zA-Z0-9_]/}
 LAST_COMMIT=$(git rev-parse --verify --short=8 HEAD)
 
 #Build kernel
-make -j$(nproc --all) O=out CONFIG_DEBUG_INFO=y \
+make -j$(nproc --all) O=out CONFIG_DEBUG_INFO=y CONFIG_QCOM_RTB=y CONFIG_QCOM_RTB_SEPARATE_CPUS=y \
     ARCH=arm64 \
     CC="ccache clang" \
     LD=ld.lld AR=llvm-ar NM=llvm-nm STRIP=llvm-strip \
