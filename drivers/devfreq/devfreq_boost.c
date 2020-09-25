@@ -9,6 +9,7 @@
 #include <linux/fb.h>
 #include <linux/input.h>
 #include <linux/kthread.h>
+#include <linux/sched.h>
 
 enum {
 	SCREEN_OFF,
@@ -193,9 +194,11 @@ static int fb_notifier_cb(struct notifier_block *nb, unsigned long action,
 			clear_bit(SCREEN_OFF, &b->state);
 			__devfreq_boost_kick_max(b,
 				CONFIG_DEVFREQ_WAKE_BOOST_DURATION_MS);
+			reset_schedtune_boost("top-app", 1);
 		} else {
 			set_bit(SCREEN_OFF, &b->state);
 			wake_up(&b->boost_waitq);
+			reset_schedtune_boost("top-app", 0);
 		}
 	}
 
