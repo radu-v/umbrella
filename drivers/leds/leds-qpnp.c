@@ -328,8 +328,7 @@ u32 convert_pwm_us (u32 pwm_us)
 
 int check_for_notification_led(struct led_classdev *led_cdev)
 {
-	if ((strcmp(led_cdev->name, "red") == 0) ||
-		(strcmp(led_cdev->name, "green") == 0) ||
+	if ((strcmp(led_cdev->name, "green") == 0) ||
 		(strcmp(led_cdev->name, "blue") == 0))
 		return 1;
 
@@ -1992,8 +1991,10 @@ static void button_backlight_set_brightness(enum led_brightness value)
 	int qpnp_led_data_count = 2;
 	struct qpnp_led_data *leds[] = { g_green_led, g_blue_led };
 
-	for (i = 0; i < qpnp_led_data_count; i++) flush_work(&leds[i]->work);
-	for (i = 0; i < qpnp_led_data_count; i++) mutex_lock(&leds[i]->lock);
+	for (i = 0; i < qpnp_led_data_count; i++) {
+		flush_work(&leds[i]->work);
+		mutex_lock(&leds[i]->lock);
+	}
 
 	for (i = 0; i < qpnp_led_data_count; i++) {
 		struct qpnp_led_data *led = leds[i];
@@ -2007,11 +2008,8 @@ static void button_backlight_set_brightness(enum led_brightness value)
 				pwm_cfg->pwm_enabled = 0;
 			}
 			qpnp_pwm_init(pwm_cfg, led->pdev, led->cdev.name);
-			if (led->id == QPNP_ID_RGB_RED || led->id == QPNP_ID_RGB_GREEN
-					|| led->id == QPNP_ID_RGB_BLUE) {
-				rc = qpnp_rgb_set(led);
-				if (rc < 0) dev_err(&led->pdev->dev, "RGB set brightness failed (%d)\n", rc);
-			}
+			rc = qpnp_rgb_set(led);
+			if (rc < 0) dev_err(&led->pdev->dev, "RGB set brightness failed (%d)\n", rc);
 		}
 
 		led->cdev.brightness = value;
@@ -2031,8 +2029,9 @@ static void qpnp_led_work(struct work_struct *work)
 					struct qpnp_led_data, work);
 #ifdef CONFIG_FIH_NB1
 	//This is NB1 button-backlight
-	if(QPNP_ID_RGB_RED == led->id && (g_green_led != NULL) && (g_blue_led != NULL))
-	{
+	if(strcmp(led->cdev.name, "button-backlight") == 0
+		&& (g_green_led != NULL)
+		&& (g_blue_led != NULL)) {
 		button_backlight_set_brightness(led->cdev.brightness);
 		softkey_glowing = led->cdev.brightness != 0;
 	}
@@ -2903,7 +2902,6 @@ static ssize_t blink_store(struct device *dev,
 	case QPNP_ID_LED_MPP:
 		led_blink(led, led->mpp_cfg->pwm_cfg);
 		break;
-	case QPNP_ID_RGB_RED:
 	case QPNP_ID_RGB_GREEN:
 	case QPNP_ID_RGB_BLUE:
 		if (check_for_notification_led(led_cdev))
