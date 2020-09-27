@@ -117,15 +117,6 @@ void led_trigger_set(struct led_classdev *led_cdev, struct led_trigger *trig)
 	char *envp[2];
 	const char *name;
 
-#ifdef CONFIG_LEDS_FIH_SOFT_KEY
-//SW-PRODUCTION-JH-NB1-Soft key led+[
-	if( !(strcmp(led_cdev->name, "blue")) || !(strcmp(led_cdev->name, "green"))){
-		if(!trig)
-			return;
-	}
-//SW-PRODUCTION-JH-NB1-Soft key led+]
-#endif
-
 	name = trig ? trig->name : "none";
 	event = kasprintf(GFP_KERNEL, "TRIGGER=%s", name);
 
