@@ -1834,7 +1834,6 @@ static int qpnp_rgb_set(struct qpnp_led_data *led)
 			led->rgb_cfg->pwm_cfg->mode =
 				led->rgb_cfg->pwm_cfg->default_mode;
 		if (led->rgb_cfg->pwm_cfg->mode == PWM_MODE) {
-#if !defined(CONFIG_FIH_NB1) || defined(CONFIG_LEDS_FIH_SOFT_KEY_INDIVIDUAL)
 			rc = pwm_change_mode(led->rgb_cfg->pwm_cfg->pwm_dev,
 					PM_PWM_MODE_PWM);
 			if (rc < 0) {
@@ -1843,7 +1842,6 @@ static int qpnp_rgb_set(struct qpnp_led_data *led)
 					rc);
 				return rc;
 			}
-#endif
 			period_us = led->rgb_cfg->pwm_cfg->pwm_period_us;
 			if (period_us > INT_MAX / NSEC_PER_USEC) {
 				duty_us = (period_us * led->cdev.brightness) /
@@ -2038,12 +2036,10 @@ static void qpnp_led_work(struct work_struct *work)
 		button_backlight_set_brightness(led->cdev.brightness);
 		softkey_glowing = led->cdev.brightness != 0;
 	}
-#if defined(CONFIG_LEDS_FIH_SOFT_KEY) && defined(CONFIG_LEDS_FIH_SOFT_KEY_INDIVIDUAL)
 	else if (!softkey_glowing)
 	{
 		__qpnp_led_work(led);
 	}
-#endif
 #else
 	__qpnp_led_work(led);
 #endif
