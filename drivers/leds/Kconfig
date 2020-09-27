@@ -647,13 +647,6 @@ config LEDS_VERSATILE
 	  This option enabled support for the LEDs on the ARM Versatile
 	  and RealView boards. Say Y to enabled these.
 
-config LEDS_FIH_SOFT_KEY
-	bool "FIH LED SOFT_KEY"
-	select LEDS_TRIGGERS
-	default n
-	help
-	  This option enables FIH LED SOFT_KEY
-
 config CHECK_FTM
 	bool "CHECK FTM"
 	depends on LEDS_QPNP
