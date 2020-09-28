@@ -24,8 +24,6 @@
 #include <linux/stat.h>
 #include <linux/delay.h>
 
-#include "a4xx_reg.h"
-
 #ifdef CONFIG_QCOM_OCMEM
 #include <soc/qcom/ocmem.h>
 #endif
@@ -869,8 +867,6 @@ extern unsigned int *adreno_ft_regs;
 extern unsigned int adreno_ft_regs_num;
 extern unsigned int *adreno_ft_regs_val;
 
-extern struct adreno_gpudev adreno_a3xx_gpudev;
-extern struct adreno_gpudev adreno_a4xx_gpudev;
 extern struct adreno_gpudev adreno_a5xx_gpudev;
 
 extern int adreno_wake_nice;
@@ -1276,17 +1272,6 @@ static inline void adreno_set_protected_registers(
 		BUG_ON(*index >= adreno_dev->gpucore->num_protected_regs);
 	else
 		BUG_ON(*index >= 16);
-
-	/*
-	 * On A4XX targets with more than 16 protected mode registers
-	 * the upper registers are not contiguous with the lower 16
-	 * registers so we have to adjust the base and offset accordingly
-	 */
-
-	if (adreno_is_a4xx(adreno_dev) && *index >= 0x10) {
-		base = A4XX_CP_PROTECT_REG_10;
-		offset = *index - 0x10;
-	}
 
 	val = 0x60000000 | ((mask_len & 0x1F) << 24) | ((reg << 2) & 0xFFFFF);
 

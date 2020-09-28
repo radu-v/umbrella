@@ -108,4 +108,3 @@ config DRM_SDE_EVTLOG_DEBUG
           features to: dump SDE registers during driver errors, panic
           driver during fatal errors and enable some display-driver logging
           into an internal buffer (this avoids logging overhead).
-
