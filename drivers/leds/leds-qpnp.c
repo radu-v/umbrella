@@ -365,6 +365,9 @@ enum qpnp_leds {
 	QPNP_ID_RGB_RED,
 	QPNP_ID_RGB_GREEN,
 	QPNP_ID_RGB_BLUE,
+#ifdef CONFIG_FIH_NB1
+	QPNP_ID_RGB_BUTTONS,
+#endif
 	QPNP_ID_LED_MPP,
 	QPNP_ID_KPDBL,
 	QPNP_ID_LED_GPIO,
@@ -447,7 +450,7 @@ static u8 gpio_debug_regs[] = {
 };
 
 #ifdef CONFIG_FIH_NB1
-struct qpnp_led_data *g_red_led, *g_green_led, *g_blue_led;
+struct qpnp_led_data *g_red_led, *g_green_led, *g_blue_led, *g_buttons_led;
 bool softkey_glowing = false;
 #endif
 
@@ -694,6 +697,7 @@ qpnp_led_masked_write(struct qpnp_led_data *led, u16 addr, u8 mask, u8 val)
 
 static void qpnp_dump_regs(struct qpnp_led_data *led, u8 regs[], u8 array_size)
 {
+#ifdef DEBUG
 	int i;
 	u8 val;
 
@@ -705,6 +709,7 @@ static void qpnp_dump_regs(struct qpnp_led_data *led, u8 regs[], u8 array_size)
 					led->base + regs[i], val);
 	}
 	pr_debug("===== %s LED register dump end =====\n", led->cdev.name);
+#endif
 }
 
 static int qpnp_wled_sync(struct qpnp_led_data *led)
@@ -1949,6 +1954,9 @@ static void __qpnp_led_work(struct qpnp_led_data *led)
 	case QPNP_ID_RGB_RED:
 	case QPNP_ID_RGB_GREEN:
 	case QPNP_ID_RGB_BLUE:
+#ifdef CONFIG_FIH_NB1
+	case QPNP_ID_RGB_BUTTONS:
+#endif
 		rc = qpnp_rgb_set(led);
 		if (rc < 0)
 			dev_err(&led->pdev->dev,
@@ -2028,7 +2036,6 @@ static void qpnp_led_work(struct work_struct *work)
 	struct qpnp_led_data *led = container_of(work,
 					struct qpnp_led_data, work);
 #ifdef CONFIG_FIH_NB1
-	//This is NB1 button-backlight
 	if(strcmp(led->cdev.name, "button-backlight") == 0
 		&& (g_green_led != NULL)
 		&& (g_blue_led != NULL)) {
@@ -2057,6 +2064,9 @@ static int qpnp_led_set_max_brightness(struct qpnp_led_data *led)
 	case QPNP_ID_RGB_RED:
 	case QPNP_ID_RGB_GREEN:
 	case QPNP_ID_RGB_BLUE:
+#ifdef CONFIG_FIH_NB1
+	case QPNP_ID_RGB_BUTTONS:
+#endif
 		led->cdev.max_brightness = RGB_MAX_LEVEL;
 		break;
 	case QPNP_ID_LED_MPP:
@@ -2918,6 +2928,9 @@ static ssize_t blink_store(struct device *dev,
 		}
 		else
 			led_blink(led, led->rgb_cfg->pwm_cfg);
+#ifdef CONFIG_FIH_NB1
+	case QPNP_ID_RGB_BUTTONS:
+#endif
 		break;
 	case QPNP_ID_KPDBL:
 		led_blink(led, led->kpdbl_cfg->pwm_cfg);
@@ -3263,6 +3276,11 @@ static int qpnp_rgb_init(struct qpnp_led_data *led)
 		return rc;
 	}
 
+#ifdef CONFIG_FIH_NB1
+	if (QPNP_ID_RGB_BUTTONS == led->id)
+		return 0;
+#endif
+
 	rc = qpnp_pwm_init(led->rgb_cfg->pwm_cfg, led->pdev, led->cdev.name);
 	if (rc) {
 		dev_err(&led->pdev->dev, "Failed to initialize pwm\n");
@@ -3358,6 +3376,9 @@ static int qpnp_led_initialize(struct qpnp_led_data *led)
 	case QPNP_ID_RGB_RED:
 	case QPNP_ID_RGB_GREEN:
 	case QPNP_ID_RGB_BLUE:
+#ifdef CONFIG_FIH_NB1
+	case QPNP_ID_RGB_BUTTONS:
+#endif
 		rc = qpnp_rgb_init(led);
 		if (rc)
 			dev_err(&led->pdev->dev,
@@ -3954,7 +3975,11 @@ static int qpnp_get_config_rgb(struct qpnp_led_data *led,
 	if (!led->rgb_cfg)
 		return -ENOMEM;
 
+#ifdef CONFIG_FIH_NB1
+	if (led->id == QPNP_ID_RGB_RED || led->id == QPNP_ID_RGB_BUTTONS)
+#else
 	if (led->id == QPNP_ID_RGB_RED)
+#endif
 		led->rgb_cfg->enable = RGB_LED_ENABLE_RED;
 	else if (led->id == QPNP_ID_RGB_GREEN)
 		led->rgb_cfg->enable = RGB_LED_ENABLE_GREEN;
@@ -3984,12 +4009,18 @@ static int qpnp_get_config_rgb(struct qpnp_led_data *led,
 		return rc;
 	}
 
-	rc = qpnp_get_config_pwm(led->rgb_cfg->pwm_cfg, led->pdev, node);
-	if (rc < 0) {
-		if (led->rgb_cfg->pwm_cfg->pwm_dev)
-			pwm_put(led->rgb_cfg->pwm_cfg->pwm_dev);
-		return rc;
+#ifdef CONFIG_FIH_NB1
+	if (led->id != QPNP_ID_RGB_BUTTONS) {
+#endif
+		rc = qpnp_get_config_pwm(led->rgb_cfg->pwm_cfg, led->pdev, node);
+		if (rc < 0) {
+			if (led->rgb_cfg->pwm_cfg->pwm_dev)
+				pwm_put(led->rgb_cfg->pwm_cfg->pwm_dev);
+			return rc;
+		}
+#ifdef CONFIG_FIH_NB1
 	}
+#endif
 
 	return 0;
 }
@@ -4164,11 +4195,6 @@ err_config_gpio:
 	return rc;
 }
 
-#ifdef CONFIG_FIH_NB1
-extern int fih_register_button_backlight(struct device *parent, struct led_classdev *led_cdev);
-extern void fih_unregister_button_backlight(struct led_classdev *led_cdev);
-#endif
-
 static int qpnp_leds_probe(struct platform_device *pdev)
 {
 	struct qpnp_led_data *led, *led_array;
@@ -4336,18 +4362,6 @@ static int qpnp_leds_probe(struct platform_device *pdev)
 		if (rc < 0)
 			goto fail_id_check;
 
-#ifdef CONFIG_FIH_NB1
-		if(QPNP_ID_RGB_RED == led->id) {
-			rc = fih_register_button_backlight(&pdev->dev, &led->cdev);
-			if (rc) {
-				dev_err(&pdev->dev,
-					"unable to register button_backlight led %d,rc=%d\n",
-							led->id, rc);
-				rc = 0;
-			}
-		}
-#endif
-
 		rc = led_classdev_register(&pdev->dev, &led->cdev);
 		if (rc) {
 			dev_err(&pdev->dev,
@@ -4392,7 +4406,11 @@ static int qpnp_leds_probe(struct platform_device *pdev)
 			}
 		} else if ((led->id == QPNP_ID_RGB_RED) ||
 			(led->id == QPNP_ID_RGB_GREEN) ||
-			(led->id == QPNP_ID_RGB_BLUE)) {
+			(led->id == QPNP_ID_RGB_BLUE)
+#ifdef CONFIG_FIH_NB1
+			|| (led->id == QPNP_ID_RGB_BUTTONS)
+#endif
+			) {
 			if (led->rgb_cfg->pwm_cfg->mode == PWM_MODE) {
 				rc = sysfs_create_group(&led->cdev.dev->kobj,
 					&pwm_attr_group);
@@ -4452,14 +4470,22 @@ static int qpnp_leds_probe(struct platform_device *pdev)
 		parsed_leds++;
 
 #ifdef CONFIG_FIH_NB1
-		if(QPNP_ID_RGB_RED == led->id)
+		if (QPNP_ID_RGB_RED == led->id)
 			g_red_led = led;
-		else if(QPNP_ID_RGB_GREEN == led->id)
+		else if (QPNP_ID_RGB_GREEN == led->id)
 			g_green_led = led;
-		else if(QPNP_ID_RGB_BLUE == led->id)
+		else if (QPNP_ID_RGB_BLUE == led->id)
 			g_blue_led = led;
+		else if (QPNP_ID_RGB_BUTTONS == led->id)
+			g_buttons_led = led;
 #endif
 	}
+
+#ifdef CONFIG_FIH_NB1
+	if (g_buttons_led && g_red_led) {
+		g_buttons_led->rgb_cfg->pwm_cfg->pwm_dev = g_red_led->rgb_cfg->pwm_cfg->pwm_dev;
+	}
+#endif
 
 	dev_set_drvdata(&pdev->dev, led_array);
 	return 0;
@@ -4472,11 +4498,6 @@ fail_id_check:
 		if (led_array[i].in_order_command_processing)
 			destroy_workqueue(led_array[i].workqueue);
 		led_classdev_unregister(&led_array[i].cdev);
-#ifdef CONFIG_FIH_NB1
-		if (led_array[i].id == QPNP_ID_RGB_RED) {
-			fih_unregister_button_backlight(&led_array[i].cdev);
-		}
-#endif
 	}
 
 	return rc;
@@ -4496,11 +4517,7 @@ static int qpnp_leds_remove(struct platform_device *pdev)
 		if (led_array[i].in_order_command_processing)
 			destroy_workqueue(led_array[i].workqueue);
 		led_classdev_unregister(&led_array[i].cdev);
-#ifdef CONFIG_FIH_NB1
-		if (led_array[i].id == QPNP_ID_RGB_RED) {
-			fih_unregister_button_backlight(&led_array[i].cdev);
-		}
-#endif
+
 		switch (led_array[i].id) {
 		case QPNP_ID_WLED:
 			break;
@@ -4519,6 +4536,9 @@ static int qpnp_leds_remove(struct platform_device *pdev)
 		case QPNP_ID_RGB_RED:
 		case QPNP_ID_RGB_GREEN:
 		case QPNP_ID_RGB_BLUE:
+#ifdef CONFIG_FIH_NB1
+		case QPNP_ID_RGB_BUTTONS:
+#endif
 			if (led_array[i].rgb_cfg->pwm_cfg->mode == PWM_MODE)
 				sysfs_remove_group(&led_array[i].cdev.dev->kobj,
 							&pwm_attr_group);

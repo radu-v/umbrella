@@ -339,30 +339,6 @@ void devm_led_classdev_unregister(struct device *dev,
 }
 EXPORT_SYMBOL_GPL(devm_led_classdev_unregister);
 
-#ifdef CONFIG_FIH_NB1
-// re-use the Red LED to create a button-backlight entry. Crappy solution, but works
-int fih_register_button_backlight(struct device *parent, struct led_classdev *led_cdev)
-{
-	int rc;
-	const char *led_name = led_cdev->name;
-	led_cdev->name = "button-backlight";
-	rc = led_classdev_register(parent, led_cdev);
-	led_cdev->name = led_name;
-
-	return rc;
-}
-EXPORT_SYMBOL_GPL(fih_register_button_backlight);
-
-void fih_unregister_button_backlight(struct led_classdev *led_cdev)
-{
-	const char *led_name = led_cdev->name;
-	led_cdev->name = "button-backlight";
-	led_classdev_unregister(led_cdev);
-	led_cdev->name = led_name;
-}
-EXPORT_SYMBOL_GPL(fih_unregister_button_backlight);
-#endif
-
 static int __init leds_init(void)
 {
 	leds_class = class_create(THIS_MODULE, "leds");
