@@ -357,6 +357,7 @@ bool task_sched_boost(struct task_struct *p)
 	return st->sched_boost_enabled;
 }
 
+#ifdef CONFIG_STUNE_ASSIST
 static u64
 sched_boost_override_read(struct cgroup_subsys_state *css,
 			struct cftype *cft)
@@ -375,7 +376,7 @@ static int sched_boost_override_write(struct cgroup_subsys_state *css,
 
 	return 0;
 }
-
+#endif
 #endif /* CONFIG_SCHED_WALT */
 
 static void
@@ -581,7 +582,7 @@ int schedtune_can_attach(struct cgroup_taskset *tset)
 	return 0;
 }
 
-#ifdef CONFIG_SCHED_WALT
+#if defined(CONFIG_SCHED_WALT) && defined(CONFIG_STUNE_ASSIST)
 static u64 sched_colocate_read(struct cgroup_subsys_state *css,
 			struct cftype *cft)
 {
@@ -602,10 +603,6 @@ static int sched_colocate_write(struct cgroup_subsys_state *css,
 	st->colocate_update_disabled = true;
 	return 0;
 }
-
-#else /* CONFIG_SCHED_WALT */
-
-static inline void init_sched_boost(struct schedtune *st) { }
 
 #endif /* CONFIG_SCHED_WALT */
 
@@ -888,7 +885,7 @@ static int prefer_idle_write_wrapper(struct cgroup_subsys_state *css,
 #endif
 
 static struct cftype files[] = {
-#ifdef CONFIG_SCHED_WALT
+#if defined(CONFIG_STUNE_ASSIST) && defined(CONFIG_SCHED_WALT)
 	{
 		.name = "sched_boost_no_override",
 		.read_u64 = sched_boost_override_read,
@@ -903,12 +900,20 @@ static struct cftype files[] = {
 	{
 		.name = "boost",
 		.read_s64 = boost_read,
+#ifdef CONFIG_STUNE_ASSIST
 		.write_s64 = boost_write_wrapper,
+#else
+		.write_s64 = boost_write,
+#endif
 	},
 	{
 		.name = "prefer_idle",
 		.read_u64 = prefer_idle_read,
+#ifdef CONFIG_STUNE_ASSIST
 		.write_u64 = prefer_idle_write_wrapper,
+#else
+		.write_u64 = prefer_idle_write,
+#endif
 	},
 #ifdef CONFIG_DYNAMIC_STUNE_BOOST
 	{
