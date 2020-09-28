@@ -53,6 +53,19 @@
 				qcom,lut-flags = <31>; /* loop, ramp up, reverse, pause hi, pause lo */
 				qcom,use-blink;
 			};
+
+			buttons_led: qcom,rgb_3 {
+				label = "rgb";
+				qcom,id = <6>;
+				qcom,mode = "pwm";
+				pwms = <&pmi8998_pwm_5 0 0>;
+				qcom,pwm-us = <1000>;
+				qcom,max-current = <12>;
+				qcom,default-state = "off";
+				linux,name = "button-backlight";
+				linux,default-trigger = "none";
+			};
+
 		};
 	};
 };
