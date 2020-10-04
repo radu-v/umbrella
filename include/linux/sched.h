@@ -65,21 +65,6 @@ struct sched_param {
 
 extern bool energy_aware_enable;
 
-#ifdef CONFIG_SCHED_TUNE
-int reset_schedtune_boost(char *st_name, int boost);
-int reset_schedtune_prefer_idle(char *st_name, int prefer_idle);
-#else
-static inline int reset_schedtune_boost(char *st_name, int boost)
-{
-	return 0;
-}
-static inline int reset_schedtune_prefer_idle(char *st_name, int prefer_idle)
-{
-	return 0;
-}
-
-#endif
-
 #if defined(CONFIG_SCHED_TUNE) && defined(CONFIG_CGROUP_SCHEDTUNE)
 void disable_schedtune_boost(int disable);
 #else
