@@ -343,7 +343,7 @@ int pstore_mkfile(enum pstore_type_id type, char *psname, u64 id, int count,
 		break;
 	case PSTORE_TYPE_CONSOLE:
 		scnprintf(name, sizeof(name), "console-%s-%lld", psname, id);
-#if defined CONFIG_FIH_NB1 || defined CONFIG_FIH_A1N
+#ifdef CONFIG_FIH_NB1
 		scnprintf(name, sizeof(name), "console-%s", psname);	//Back compatible
 #endif
 		break;

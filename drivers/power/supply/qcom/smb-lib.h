@@ -570,7 +570,7 @@ void smblib_usb_typec_change(struct smb_charger *chg);
 int smblib_init(struct smb_charger *chg);
 int smblib_deinit(struct smb_charger *chg);
 
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 int smblib_dump_typec_sts(struct smb_charger *chg,
 			       union power_supply_propval *val);
 #endif

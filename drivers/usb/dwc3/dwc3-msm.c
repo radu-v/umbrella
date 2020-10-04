@@ -343,7 +343,7 @@ int fihSetUsbRedriverGpio(struct device *dev, int highLow){
 #endif
 /* end FIH - NB1-53 */
 
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 int dumpTypeCSts(struct dwc3 *dwc)
 {
 	union power_supply_propval pval = {0};

@@ -60,10 +60,7 @@ module_param(det_extn_cable_en, int,
 		S_IRUGO | S_IWUSR | S_IWGRP);
 MODULE_PARM_DESC(det_extn_cable_en, "enable/disable extn cable detect");
 
-//MM-JC-headset detect-00+{
-#ifndef CONFIG_FIH_PM1
 #define LEGACY_SWITCH_DEV_SUPPORT
-#endif
 #ifdef LEGACY_SWITCH_DEV_SUPPORT
 #include <linux/switch.h>
 #include <asm/atomic.h>

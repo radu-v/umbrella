@@ -27,7 +27,7 @@
 
 static struct class *timed_output_class;
 static atomic_t device_count;
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 extern void fih_set_level(int value);
 #endif
 static ssize_t enable_show(struct device *dev, struct device_attribute *attr,
@@ -49,7 +49,7 @@ static ssize_t enable_store(struct device *dev, struct device_attribute *attr,
 	rc = kstrtoint(buf, 0, &value);
 	if (rc != 0)
 		return -EINVAL;
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 	if(value != 0)
 	{
 		if(value == 40)

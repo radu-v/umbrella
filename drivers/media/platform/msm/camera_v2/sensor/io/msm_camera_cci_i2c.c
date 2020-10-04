@@ -14,7 +14,7 @@
 #include "msm_camera_i2c.h"
 #include "msm_cci.h"
 /* MM-JF-add-BBS-log-00+{ */
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 #include "../fih_camera_bbs.h"  //fihtdc,derekcwwu add
 #endif
 /* MM-JF-add-BBS-log-00+} */
@@ -25,7 +25,7 @@
 #define MAX_I2C_ADDR_TYPE_SIZE (MSM_CAMERA_I2C_3B_ADDR + 1)
 #define MAX_I2C_DATA_TYPE_SIZE (MSM_CAMERA_I2C_SET_BYTE_WRITE_MASK_DATA + 1)
 /* MM-JF-add-BBS-log-00+{ */
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 extern void fih_camera_bbs_by_cci(int master,int sid,int error_code);//fihtdc,derekcwwu add
 #endif
 /* MM-JF-add-BBS-log-00+} */
@@ -56,7 +56,7 @@ int32_t msm_camera_cci_i2c_read(struct msm_camera_i2c_client *client,
 	if (rc < 0) {
 		pr_err("%s: line %d rc = %d\n", __func__, __LINE__, rc);
 		/* MM-JF-add-BBS-log-00+{ */
-		#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+		#ifdef CONFIG_FIH_NB1
 		fih_camera_bbs_by_cci(cci_ctrl.cci_info->cci_i2c_master,cci_ctrl.cci_info->sid, FIH_BBS_CAMERA_ERRORCODE_I2C_READ);
 		#endif
 		/* MM-JF-add-BBS-log-00+} */
@@ -150,7 +150,7 @@ int32_t msm_camera_cci_i2c_write(struct msm_camera_i2c_client *client,
 	if (rc < 0) {
 		pr_err("%s: line %d rc = %d\n", __func__, __LINE__, rc);
 		/* MM-JF-add-BBS-log-00+{ */
-		#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+		#ifdef CONFIG_FIH_NB1
 		fih_camera_bbs_by_cci(cci_ctrl.cci_info->cci_i2c_master,cci_ctrl.cci_info->sid, FIH_BBS_CAMERA_ERRORCODE_I2C_WRITE);
 		#endif
 		/* MM-JF-add-BBS-log-00+} */
@@ -253,7 +253,7 @@ cci_i2c_write_table_retry:
 		#endif
 
 		/* MM-JF-add-BBS-log-00+{ */
-		#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+		#ifdef CONFIG_FIH_NB1
 		fih_camera_bbs_by_cci(cci_ctrl.cci_info->cci_i2c_master,cci_ctrl.cci_info->sid, FIH_BBS_CAMERA_ERRORCODE_I2C_WRITE_SEQ);
 		#endif
 		/* MM-JF-add-BBS-log-00+} */
@@ -376,7 +376,7 @@ int32_t msm_camera_cci_i2c_write_table_w_microdelay(
 	if (rc < 0) {
 		pr_err("%s: line %d rc = %d\n", __func__, __LINE__, rc);
 		/* MM-JF-add-BBS-log-00+{ */
-		#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+		#ifdef CONFIG_FIH_NB1
 		fih_camera_bbs_by_cci(cci_ctrl.cci_info->cci_i2c_master,cci_ctrl.cci_info->sid, FIH_BBS_CAMERA_ERRORCODE_I2C_WRITE_SEQ);
 		#endif
 		/* MM-JF-add-BBS-log-00+} */

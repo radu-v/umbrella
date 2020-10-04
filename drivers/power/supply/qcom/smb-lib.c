@@ -37,10 +37,6 @@
 #endif
 //SW8-DH-Notify_USB_status_to_LGD_touch+]
 
-#ifdef CONFIG_FIH_A1N
-static bool first_apsd_complete = 0;
-#endif
-/* end FIH - A1N-5 */
 static bool forecast_charging = false;
 
 #define smblib_err(chg, fmt, ...)		\
@@ -1466,7 +1462,7 @@ out:
 	return rc;
 }
 
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 extern char fih_otg_disable_mode; // FIHTDC, IdaChiang, add for OTG FREQ
 #endif
 /* end FIH - NB1-506 */
@@ -1475,7 +1471,7 @@ static int _smblib_vbus_regulator_enable(struct regulator_dev *rdev)
 {
 	struct smb_charger *chg = rdev_get_drvdata(rdev);
 	int rc;
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 	if(fih_otg_disable_mode){
 		smblib_err(chg, "OTG has been disabled\n");
 		return -ECONNABORTED;
@@ -4205,15 +4201,6 @@ static void smblib_handle_apsd_done(struct smb_charger *chg, bool rising)
 			smblib_notify_device_mode(chg, true);
 	case OCP_CHARGER_BIT:
 	case FLOAT_CHARGER_BIT:
-#ifdef CONFIG_FIH_A1N
-		if(apsd_result->bit == FLOAT_CHARGER_BIT && !first_apsd_complete){
-			smblib_rerun_apsd(chg);
-			first_apsd_complete = 1;
-			return;
-		}
-#endif
-/* end FIH - A1N-5 */
-
 		/* if not DCP then no hvdcp timeout happens, Enable pd here. */
 		vote(chg->pd_disallowed_votable_indirect, HVDCP_TIMEOUT_VOTER,
 				false, 0);
@@ -4226,11 +4213,6 @@ static void smblib_handle_apsd_done(struct smb_charger *chg, bool rising)
 	default:
 		break;
 	}
-
-#ifdef CONFIG_FIH_A1N
-	first_apsd_complete = 1;
-#endif
-/* end FIH - A1N-5 */
 
 	smblib_dbg(chg, PR_INTERRUPT, "IRQ: apsd-done rising; %s detected\n",
 		   apsd_result->name);
@@ -4514,11 +4496,6 @@ static void smblib_handle_typec_removal(struct smb_charger *chg)
 	/* reset APSD voters */
 	vote(chg->apsd_disable_votable, PD_HARD_RESET_VOTER, false, 0);
 	vote(chg->apsd_disable_votable, PD_VOTER, false, 0);
-
-#ifdef CONFIG_FIH_A1N
-	first_apsd_complete = 0;
-#endif
-/* end FIH - A1N-5 */
 
 	cancel_delayed_work_sync(&chg->pl_enable_work);
 	cancel_delayed_work_sync(&chg->hvdcp_detect_work);

@@ -1078,7 +1078,7 @@ static int fg_get_batt_profile(struct fg_chip *chip)
 	profile_node = of_batterydata_get_best_profile(batt_node,
 				chip->batt_id_ohms / 1000, NULL);
 
-	#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+	#ifdef CONFIG_FIH_NB1
 	if(!profile_node) {
 		pr_err("Error: cannot read battery profile, use default profile\n");
 		chip->batt_id_ohms = 39000;
@@ -1096,7 +1096,7 @@ static int fg_get_batt_profile(struct fg_chip *chip)
 		return -ENODATA;
 	}
 
-	#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+	#ifdef CONFIG_FIH_NB1
 	rc = of_property_read_u32(profile_node, "qcom,batt-id-kohm",
 			&chip->batt_id_ohms);
 	if (rc < 0) {

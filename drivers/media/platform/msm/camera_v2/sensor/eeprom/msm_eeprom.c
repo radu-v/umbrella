@@ -18,7 +18,7 @@
 #include "msm_cci.h"
 #include "msm_eeprom.h"
 /* MM-JF-add-BBS-log-00+{ */
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 #include "../fih_camera_bbs.h"  //fihtdc,derekcwwu add
 #endif
 /* MM-JF-add-BBS-log-00+} */
@@ -32,7 +32,7 @@ static struct v4l2_file_operations msm_eeprom_v4l2_subdev_fops;
 #endif
 
 /* MM-JF-add-BBS-log-00+{ */
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 extern int fih_camera_bbs_set(int id,int master,unsigned short sid,int module);//fihtdc,derekcwwu add
 extern void fih_camera_bbs_by_cci(int master,int sid,int error_code);//fihtdc,derekcwwu add
 #endif
@@ -369,7 +369,7 @@ static int eeprom_parse_memory_map(struct msm_eeprom_ctrl_t *e_ctrl,
 		CDBG("Memory map Size: %d",
 			eeprom_map->memory_map_size);
 		/* MM-JF-add-BBS-log-00+{ */
-		#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+		#ifdef CONFIG_FIH_NB1
 		fih_camera_bbs_set((int)e_ctrl->pdev->id,e_ctrl->i2c_client.cci_client->cci_i2c_master,(unsigned short)e_ctrl->i2c_client.cci_client->sid,FIH_BBS_CAMERA_MODULE_EEPROM);//fihtdc,derekcwwu add
 		#endif
 		/* MM-JF-add-BBS-log-00+} */
@@ -388,7 +388,7 @@ static int eeprom_parse_memory_map(struct msm_eeprom_ctrl_t *e_ctrl,
 					pr_err("%s: page write failed\n",
 						__func__);
 					/* MM-JF-add-BBS-log-00+{ */
-					#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+					#ifdef CONFIG_FIH_NB1
 					fih_camera_bbs_by_cci(e_ctrl->i2c_client.cci_client->cci_i2c_master,
                                                e_ctrl->i2c_client.cci_client->sid,FIH_BBS_CAMERA_ERRORCODE_I2C_WRITE);
 					#endif
@@ -410,7 +410,7 @@ static int eeprom_parse_memory_map(struct msm_eeprom_ctrl_t *e_ctrl,
 					pr_err("%s: poll failed\n",
 						__func__);
 					/* MM-JF-add-BBS-log-00+{ */
-					#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+					#ifdef CONFIG_FIH_NB1
 					fih_camera_bbs_by_cci(e_ctrl->i2c_client.cci_client->cci_i2c_master,
                                                e_ctrl->i2c_client.cci_client->sid,FIH_BBS_CAMERA_ERRORCODE_I2C_READ);
 					#endif
@@ -435,7 +435,7 @@ eeprom_init_retry:
 						__func__, i);
 					if (eeprom_init_retry_cnt <= 3) goto eeprom_init_retry;
 					/* MM-JF-add-BBS-log-00+{ */
-					#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+					#ifdef CONFIG_FIH_NB1
 					fih_camera_bbs_by_cci(e_ctrl->i2c_client.cci_client->cci_i2c_master,
                                                e_ctrl->i2c_client.cci_client->sid,FIH_BBS_CAMERA_ERRORCODE_I2C_READ);
 					#endif
@@ -1493,7 +1493,7 @@ static int eeprom_init_config32(struct msm_eeprom_ctrl_t *e_ctrl,
 		pr_err("%s:%d Power Up failed for eeprom\n",
 			__func__, __LINE__);
 		/* MM-JF-add-BBS-log-00+{ */
-		#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+		#ifdef CONFIG_FIH_NB1
 		fih_camera_bbs_by_cci(e_ctrl->i2c_client.cci_client->cci_i2c_master,
                        e_ctrl->i2c_client.cci_client->sid,FIH_BBS_CAMERA_ERRORCODE_POWER_UP);
 		#endif
@@ -1515,7 +1515,7 @@ static int eeprom_init_config32(struct msm_eeprom_ctrl_t *e_ctrl,
 	{
 		pr_err("%s:%d Power down failed rc %d\n",
 			__func__, __LINE__, rc);
-		#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+		#ifdef CONFIG_FIH_NB1
 		fih_camera_bbs_by_cci(e_ctrl->i2c_client.cci_client->cci_i2c_master,
                        e_ctrl->i2c_client.cci_client->sid,FIH_BBS_CAMERA_ERRORCODE_POWER_DW);
 		#endif

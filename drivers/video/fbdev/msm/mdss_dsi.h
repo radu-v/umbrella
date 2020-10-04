@@ -367,7 +367,7 @@ struct dsi_panel_timing {
 	struct dsi_panel_cmds on_cmds;
 	struct dsi_panel_cmds post_panel_on_cmds;
 	struct dsi_panel_cmds switch_cmds;
-	#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+	#ifdef CONFIG_FIH_NB1
 	#ifdef CONFIG_AOD_FEATURE
 	struct dsi_panel_cmds aod_resume_cmds;
 	struct dsi_panel_cmds aod_8color_exit_cmds;
@@ -512,7 +512,7 @@ struct mdss_dsi_ctrl_pdata {
 	struct dsi_panel_cmds lp_on_cmds;
 	struct dsi_panel_cmds lp_off_cmds;
 	struct dsi_panel_cmds status_cmds;
-	#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+	#ifdef CONFIG_FIH_NB1
 	#ifdef CONFIG_AOD_FEATURE
 	struct dsi_panel_cmds aod_suspend_cmds;
 	struct dsi_panel_cmds aod_resume_cmds;

@@ -1785,7 +1785,7 @@ void mdss_fb_set_backlight(struct msm_fb_data_type *mfd, u32 bkl_lvl)
 		 * as well as setting bl_level to bkl_lvl even though the
 		 * backlight has been set to the scaled value.
 		 */
-		#if defined(CONFIG_FIH_NB1) ||defined(CONFIG_FIH_A1N)
+		#ifdef CONFIG_FIH_NB1
 		if(bkl_lvl==0)
 		{
 			exit_aod_set_bl=0;
@@ -2233,7 +2233,7 @@ static int mdss_fb_blank(int blank_mode, struct fb_info *info)
 
 	mutex_lock(&mfd->mdss_sysfs_lock);
 
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 #ifdef CONFIG_AOD_FEATURE
 	fih_set_blank_mode(blank_mode);
 #endif

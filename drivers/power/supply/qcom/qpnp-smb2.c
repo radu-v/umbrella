@@ -212,7 +212,7 @@ module_param_named(
 #define BITE_WDOG_TIMEOUT_8S		0x3
 #define BARK_WDOG_TIMEOUT_MASK		GENMASK(3, 2)
 #define BARK_WDOG_TIMEOUT_SHIFT		2
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 static struct smb2 *mChip = NULL;
 char fih_otg_disable_mode = 0; // FIHTDC, IdaChiang, add for OTG FREQ
 static ssize_t fih_otg_show(struct device *dev,
@@ -573,7 +573,7 @@ static int smb2_usb_get_prop(struct power_supply *psy,
 			val->intval = chg->real_charger_type;
 		break;
 	case POWER_SUPPLY_PROP_TYPEC_MODE:
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 		smblib_dump_typec_sts(chg, val);
 #endif
 /* end FIH - NB1-680 */
@@ -1999,12 +1999,6 @@ static int smb2_init_hw(struct smb2 *chip)
 		break;
 	}
 
-//@TEST_ :
-#ifdef CONFIG_FIH_A1N
-	rc = smblib_masked_write(chg, USBIN_OPTIONS_2_CFG_REG, 0x20, 0);
-#endif
-//@_TEST :
-
 	rc = smblib_set_charge_param(chg, &chg->param.jeita_cc_comp, chip->dt.jeita_fcc_comp);
 	if (rc < 0) {
 		pr_err("Wayne: Couldn't configure jeita fcc comp rc = %d\n", rc);
@@ -2755,19 +2749,7 @@ static int smb2_probe(struct platform_device *pdev)
 	}
 	#endif
 
-/* FIH - SimonSSChang - Disable QC Wi-Power config */
-#if defined(CONFIG_FIH_A1N)
-	/* AICL configuration */
-	smblib_write(chg, DCIN_AICL_OPTIONS_CFG_REG, 0x7C);
-	/* Lower AICL collapse threshold */
-	smblib_write(chg, DCIN_AICL_REF_SEL_CFG_REG, 0x02);
-	/* Disable Wi-Power */
-	smblib_write(chg, WI_PWR_OPTIONS_REG, 0x00);
-	printk(KERN_INFO "Disable Wi-Power option\n");
-#endif
-/* end FIH */
-
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 	device_create_file(&pdev->dev, &dev_attr_fih_otg_fun); // FIHTDC, IdaChiang, add for FREQ
 	mChip = chip;
 #endif

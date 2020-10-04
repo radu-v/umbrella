@@ -30,19 +30,8 @@ static int32_t msm_sensor_driver_platform_probe(struct platform_device *pdev);
 /* Static declaration */
 static struct msm_sensor_ctrl_t *g_sctrl[MAX_CAMERAS];
 
-#ifdef CONFIG_FIH_A1N
-//fihtdc,derekcwwu add for debug,start	41
-#define FIH_DEBUG
-#ifdef FIH_DEBUG
-static struct kobject *fih_camera_kernel_kobj = NULL;
-static uint16_t fih_camera_read_register_value=0;
-static unsigned int fih_camera_read_register_reg=0;
-#endif
-//fihtdc,derekcwwu add for debug,end
-#endif
-
 /* MM-JF-add-BBS-log-00+{ */
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 extern int fih_camera_dev_init(struct msm_camera_sensor_slave_info *slave_info);
 extern int fih_camera_bbs_init(struct msm_sensor_ctrl_t * ctrl);//fihtdc,derekcwwu add
 #endif
@@ -1113,7 +1102,7 @@ CSID_TG:
 	msm_sensor_fill_sensor_info(s_ctrl, probed_info, entity_name);
 
 	/* MM-JF-add-BBS-log-00+{ */
-	#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+	#ifdef CONFIG_FIH_NB1
 	fih_camera_bbs_init(s_ctrl);//fihtdc,derekcwwu add
 	#endif
 	/* MM-JF-add-BBS-log-00+} */
@@ -1292,64 +1281,6 @@ FREE_SENSOR_DATA:
 	return rc;
 }
 
-#ifdef CONFIG_FIH_A1N
-//fihtdc,derekcwwu add for debug,start
-#ifdef FIH_DEBUG
-static ssize_t fih_camera_read_register_store(struct device *dev, struct  device_attribute *attr, const char *buf, size_t size)
-{
-	unsigned int reg = 0,id=0;
-	uint16_t value = 0;
-	struct msm_sensor_ctrl_t  *s_ctrl;
-
-	if (sscanf(buf, "%d,%x",&id, &reg) <= 0) {
-		pr_err("Could not tranform the register value\n");
-		return -EINVAL;
-	}
-
-	s_ctrl = g_sctrl[id];
-	s_ctrl->sensor_i2c_client->i2c_func_tbl->i2c_read(s_ctrl->sensor_i2c_client, reg, &value, MSM_CAMERA_I2C_BYTE_DATA);
-
-	pr_err("Register 0x%X: 0x%X\n", reg, value);
-	fih_camera_read_register_value=value;
-	fih_camera_read_register_reg=reg;
-	return 1;//strlen("fih_camera_read_register_store\n");
-}
-static ssize_t fih_camera_read_register_show(struct device *dev, struct  device_attribute *attr , char *buf)
-{
-	sprintf(buf, "read register:0x%x,value=0x%x\n",fih_camera_read_register_reg, fih_camera_read_register_value);
-	return strlen(buf);
-}
-static ssize_t fih_camera_write_register_store(struct device *dev, struct  device_attribute *attr, const char *buf, size_t size)
-{
-	unsigned int rc=0,reg = 0,value=0, id=0;
-	struct msm_sensor_ctrl_t  *s_ctrl;
-
-	if (sscanf(buf, "%d,%x,%x", &id , &reg , &value) <= 0) {
-		pr_err("Could not tranform the register value\n");
-		return -EINVAL;
-	}
-	s_ctrl = g_sctrl[id];
-	s_ctrl->sensor_i2c_client->i2c_func_tbl->i2c_write(s_ctrl->sensor_i2c_client, (uint16_t)reg, (uint16_t) value, MSM_CAMERA_I2C_BYTE_DATA);
-	pr_err("Write Register 0x%X: 0x%X\n", reg, value);
-	if(rc){
-		pr_err("Write Register fail\n");
-	}
-	return 1;//strlen("fih_camera_read_register_store\n");
-}
-static DEVICE_ATTR(register_read, 0644, fih_camera_read_register_show, fih_camera_read_register_store);
-static DEVICE_ATTR(register_write, 0644, NULL, fih_camera_write_register_store);
-static struct attribute *fih_camera_attributes[] = {
-		&dev_attr_register_read.attr,
-		&dev_attr_register_write.attr,
-		NULL
-};
-static const struct attribute_group fih_camera_attr_group = {
-		.attrs = fih_camera_attributes,
-};
-#endif
-//fihtdc,derekcwwu add for debug,end
-#endif
-
 static int32_t msm_sensor_driver_parse(struct msm_sensor_ctrl_t *s_ctrl)
 {
 	int32_t                   rc = 0;
@@ -1402,20 +1333,6 @@ static int32_t msm_sensor_driver_parse(struct msm_sensor_ctrl_t *s_ctrl)
 	/* Store sensor control structure in static database */
 	g_sctrl[s_ctrl->id] = s_ctrl;
 	CDBG("g_sctrl[%d] %pK", s_ctrl->id, g_sctrl[s_ctrl->id]);
-
-#ifdef CONFIG_FIH_A1N
-//fihtdc,derekcwwu add for debug,start
-#ifdef FIH_DEBUG
-	if(fih_camera_kernel_kobj == NULL)
-	{
-		fih_camera_kernel_kobj = kobject_create_and_add("fih_camera_control", kernel_kobj);
-		rc = sysfs_create_group(fih_camera_kernel_kobj, &fih_camera_attr_group);
-		if (rc)
-			kobject_put(fih_camera_kernel_kobj);
-	}
-#endif
-//fihtdc,derekcwwu add for debug,end
-#endif
 
 	return rc;
 

@@ -22,9 +22,6 @@
 #define FIH_PROC_TP_DOWN_GRADE  "AllHWList/tp_fw_back"
 #define FIH_PROC_TP_VENDOR		"AllHWList/tp_vendor"
 #define FIH_PROC_TP_PROX_STATUS  "AllHWList/tp_prox_status"
-#ifdef CONFIG_FIH_A1N
-#define FIH_PROC_TP_SIDE_TOUCH_STATUS  "AllHWList/tp_side_status"
-#endif
 
 //SW8-JH-ALT test+[
 #define FIH_PROC_TP_ALT_RST         "AllHWList/tp_alt_rst"
@@ -81,7 +78,7 @@ struct fih_touch_cb touch_cb = {
 	.touch_gesture_available_read = NULL,
 	.touch_gesture_available_write = NULL,
 #endif
-	
+
 };
 int tp_probe_success = 0;	//SW4-HL-TouchPanel-AccordingToTPDriverProbeResultToDecideWhetherToCreateVirtualFileOrNot-00+_20151130
 
@@ -106,51 +103,6 @@ static int touchinfo_proc_open(struct inode *inode, struct file *file)
 static struct file_operations touch_info_file_ops = {
 	.owner   = THIS_MODULE,
 	.open    = touchinfo_proc_open,
-	.read    = seq_read,
-	.llseek  = seq_lseek,
-	.release = single_release
-};
-#endif
-#ifdef CONFIG_FIH_A1N
-static int fih_touch_side_touch_show(struct seq_file *m, void *v)
-{
-	if (touch_cb.touch_side_touch_status != NULL)
-	{
-		pr_info("F@Touch Side Touch Status\n");
-		seq_printf(m, "%d\n", touch_cb.touch_side_touch_status());
-	}
-	return 0;
-}
-
-static int fih_touch_side_touch_proc_open(struct inode *inode, struct file *file)
-{
-	return single_open(file, fih_touch_side_touch_show, NULL);
-};
-
-static ssize_t fih_touch_side_touch_proc_write(struct file *file, const char __user *buffer,
-	size_t count, loff_t *ppos)
-{
-	unsigned int enabled_side_touch;
-	sscanf(buffer, "%u", &enabled_side_touch) ;
-
-	if((enabled_side_touch != 0) &&  (enabled_side_touch != 1))
-	{
-		pr_err("F@Touch %s, wrong value\n", __func__);
-		return -EINVAL;
-	}
-
-	if (touch_cb.touch_double_tap_write != NULL)
-	{
-		pr_info("F@Touch %s side touch\n", enabled_side_touch ? "Enable" : "Disable");
-		touch_cb.touch_side_touch_enable(enabled_side_touch);
-	}
-	return count;
-
-}
-static struct file_operations touch_side_touch_proc_file_ops = {
-	.owner   = THIS_MODULE,
-	.write   = fih_touch_side_touch_proc_write,
-	.open    = fih_touch_side_touch_proc_open,
 	.read    = seq_read,
 	.llseek  = seq_lseek,
 	.release = single_release
@@ -701,12 +653,12 @@ static struct file_operations touch_alt_st_enable_file_ops = {
 static int __init fih_touch_init(void)
 {
         int retry_count = 50;
-        while(!tp_probe_success && retry_count-- > 0)    
-        {   
+        while(!tp_probe_success && retry_count-- > 0)
+        {
              if((retry_count % 10) == 9)
                  pr_err("waitng for touch panel probe ready %d\n",retry_count%10);
              msleep(100);
-        }; 
+        };
 	if(tp_probe_success)	//SW4-HL-TouchPanel-AccordingToTPDriverProbeResultToDecideWhetherToCreateVirtualFileOrNot-00+_20151130
 	{
 		pr_err("panel probe success, create proc file\n");
@@ -757,17 +709,17 @@ static int __init fih_touch_init(void)
 			pr_err("fail to create proc/%s\n", FIH_PROC_TP_VENDOR);
 			return (1);
 		}
-		if (proc_create(FIH_PROC_TP_DOWN_GRADE, 0, NULL, &touch_fwback_proc_file_ops) == NULL) 
+		if (proc_create(FIH_PROC_TP_DOWN_GRADE, 0, NULL, &touch_fwback_proc_file_ops) == NULL)
 		{
 			pr_err("fail to create proc/%s\n", FIH_PROC_TP_DOWN_GRADE);
 			return (1);
 		}
-		if (proc_create(FIH_PROC_TP_DOUBLE_TAP, 0, NULL, &touch_double_tap_proc_file_ops) == NULL) 
+		if (proc_create(FIH_PROC_TP_DOUBLE_TAP, 0, NULL, &touch_double_tap_proc_file_ops) == NULL)
 		{
 			pr_err("fail to create proc/%s\n", FIH_PROC_TP_DOUBLE_TAP);
 			return (1);
 		}
-		if (proc_create(FIH_PROC_TP_PROX_STATUS, 0, NULL, &touch_prox_status_proc_file_ops) == NULL) 
+		if (proc_create(FIH_PROC_TP_PROX_STATUS, 0, NULL, &touch_prox_status_proc_file_ops) == NULL)
 		{
 			pr_err("fail to create proc/%s\n", FIH_PROC_TP_PROX_STATUS);
 			return (1);
@@ -790,13 +742,6 @@ static int __init fih_touch_init(void)
 			   return (1);
 		}
 //SW8-JH-ALT test+]
-#ifdef CONFIG_FIH_A1N
-		if (proc_create(FIH_PROC_TP_SIDE_TOUCH_STATUS, 0, NULL, &touch_side_touch_proc_file_ops) == NULL)
-		{
-			pr_err("fail to create proc/%s\n", FIH_PROC_TP_SIDE_TOUCH_STATUS);
-			return (1);
-		}
-#endif
 	}
 	else
 	{
