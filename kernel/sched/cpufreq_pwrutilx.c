@@ -26,8 +26,9 @@ unsigned long boosted_cpu_util(int cpu);
 #define cpufreq_driver_fast_switch(x, y) 0
 #define cpufreq_enable_fast_switch(x)
 #define cpufreq_disable_fast_switch(x)
-#define LATENCY_MULTIPLIER (1000000)
 #define PWRGOV_KTHREAD_PRIORITY 25
+#define UP_RATE_LIMIT_US 1000000
+#define DOWN_RATE_LIMIT_US 1000000
 
 struct pwrgov_tunables {
 	struct gov_attr_set attr_set;
@@ -663,8 +664,8 @@ static void get_tunables_data(struct pwrgov_tunables *tunables,
 	}
 
 initialize:
-	tunables->up_rate_limit_us = LATENCY_MULTIPLIER;
-	tunables->down_rate_limit_us = LATENCY_MULTIPLIER;
+	tunables->up_rate_limit_us = UP_RATE_LIMIT_US;
+	tunables->down_rate_limit_us = DOWN_RATE_LIMIT_US;
 	lat = policy->cpuinfo.transition_latency / NSEC_PER_USEC;
 	if (lat) {
 		tunables->up_rate_limit_us *= lat;
