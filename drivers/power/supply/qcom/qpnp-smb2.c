@@ -1413,7 +1413,6 @@ static int smb2_batt_set_prop(struct power_supply *psy,
 		FIH_soft_JEITA_recharge_check(chg);
 		FIH_chg_abnormal_check(chg);
 	break;
-	/* end A1N-1713 */
 	case POWER_SUPPLY_PROP_INPUT_CURRENT_MAX:
 		/* Use icl function to instead of vote mechanism, because the new icl vote_callback cannot allow to set the icl which is smaller than aicl_result */
 		smblib_set_icl_current(chg, val->intval);
