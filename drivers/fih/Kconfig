@@ -1,11 +1,5 @@
 menu "Device Drivers for FIH"
 
-  config FIH_A1N
-  	bool "FIH A1N project"
-  	default n
-  	help
-  	  support fih A1N project
-
   config FIH_NB1
   	bool "FIH NB1 project"
   	default n

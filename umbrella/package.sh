@@ -12,9 +12,6 @@ if [ "$KDEVICE" = "" ]; then
     if echo $KVERSION | grep -qi NB1; then
         KDEVICE="NB1"
     fi
-    if echo $KVERSION | grep -qi A1N; then
-        KDEVICE="A1N"
-    fi
 fi
 if [ "$KNAME" = "" ]; then
     KNAME="Umbrella"

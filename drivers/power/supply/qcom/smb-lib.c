@@ -2602,7 +2602,6 @@ void FIH_chg_abnormal_check(struct smb_charger *chg)
 		FIH_USBIN_reEnable(chg);
 	}
 }
-/* end A1N-1713 */
 
 /* 1. The charger is online
   * 2. The charging status is FULL or DISCHARGING
@@ -3830,7 +3829,6 @@ void smblib_usb_plugin_locked(struct smb_charger *chg)
 
 
 	chg->fih_reEnable_max_limit = 0;
-	/* end FIH - A1N-1713 */
 
 	//SW8-DH-Notify_USB_status_to_LGD_touch+[
 	#ifdef CONFIG_TOUCHSCREEN_SIW

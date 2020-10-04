@@ -343,7 +343,6 @@ static bool ss_host = true;
 
 module_param(ss_dev, bool, S_IRUSR | S_IWUSR);
 module_param(ss_host, bool, S_IRUSR | S_IWUSR);
-/* end FIH - A1N-5 */
 
 static const u32 default_src_caps[] = { 0x36019096 };	/* VSafe5V @ 1.5A */
 static const u32 default_snk_caps[] = { 0x2601912C };	/* VSafe5V @ 3A */
@@ -501,7 +500,6 @@ static inline void start_usb_host(struct usbpd *pd, bool ss)
 			cc == ORIENTATION_CC2);
 	//extcon_set_cable_state_(pd->extcon, EXTCON_USB_SPEED, ss);
 	extcon_set_cable_state_(pd->extcon, EXTCON_USB_SPEED, ss <= ss_host ? ss : ss_host);
-	/* end FIH - A1N-5 */
 	extcon_set_cable_state_(pd->extcon, EXTCON_USB_HOST, 1);
 }
 
@@ -518,7 +516,6 @@ static inline void start_usb_peripheral(struct usbpd *pd)
 			cc == ORIENTATION_CC2);
 	//extcon_set_cable_state_(pd->extcon, EXTCON_USB_SPEED, 1);
 	extcon_set_cable_state_(pd->extcon, EXTCON_USB_SPEED, ss_dev);
-	/* end FIH - A1N-5 */
 	extcon_set_cable_state_(pd->extcon, EXTCON_USB_TYPEC_MED_HIGH_CURRENT,
 		pd->typec_mode > POWER_SUPPLY_TYPEC_SOURCE_DEFAULT ? 1 : 0);
 	extcon_set_cable_state_(pd->extcon, EXTCON_USB, 1);

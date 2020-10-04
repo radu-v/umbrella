@@ -11,7 +11,6 @@ static int fih_info_proc_open_project_show(struct seq_file *m, void *v)
 	char msg[8];
 
 	switch (fih_hwid_fetch(FIH_HWID_PRJ)) {
-		case FIH_PRJ_A1N: strcpy(msg, "A1N"); break;
 		case FIH_PRJ_NB1: strcpy(msg, "NB1"); break;
 		default: strcpy(msg, "N/A"); break;
 	}
@@ -98,15 +97,9 @@ static int fih_info_proc_open_hwmodel_show(struct seq_file *m, void *v)
 	char msg[8];
 
 	switch (fih_hwid_fetch(FIH_HWID_PRJ)) {
-		case FIH_PRJ_A1N:
-			if (fih_hwid_fetch(FIH_HWID_RF) == FIH_BAND_G_850_900_1800_1900_W_1_2_5_8_C_0_T_34_39_L_1_2_3_4_5_7_8_20_28_34_38_39_40_41_SS)
-				strcpy(msg, "A1C"); 
-			else
-				strcpy(msg, "A1N");
-			break;
-		case FIH_PRJ_NB1: 
+		case FIH_PRJ_NB1:
 			if (fih_hwid_fetch(FIH_HWID_RF) == FIH_BAND_G_850_900_1800_1900_W_1_2_5_8_T_34_39_L_1_2_3_4_5_7_8_20_28_38_39_40_41)
-				strcpy(msg, "B1C"); 
+				strcpy(msg, "B1C");
 			else
 				strcpy(msg, "NB1");
 			break;
@@ -168,9 +161,7 @@ static int fih_info_proc_open_module_show(struct seq_file *m, void *v)
 	char msg[8];
 
 	switch (fih_hwid_fetch(FIH_HWID_PRJ)) {
-		case FIH_PRJ_PM1: strcpy(msg, "PM1"); break;
 		case FIH_PRJ_NB1: strcpy(msg, "NB1"); break;
-		case FIH_PRJ_A1N: strcpy(msg, "A1N"); break;
 		default: strcpy(msg, "N/A"); break;
 	}
 
@@ -255,31 +246,31 @@ static const struct file_operations hw_rev_file_ops = {
 static const struct file_operations rf_band_file_ops = {
 	.owner   = THIS_MODULE,
 	.open    = fih_info_proc_open_rf_band,
-	.read    = seq_read 
+	.read    = seq_read
 };
 
 static const struct file_operations hwmodel_file_ops = {
 	.owner   = THIS_MODULE,
 	.open    = fih_info_proc_open_hwmodel,
-	.read    = seq_read 
+	.read    = seq_read
 };
 
 static const struct file_operations hwcfg_file_ops = {
 	.owner   = THIS_MODULE,
 	.open    = fih_info_proc_open_hwcfg,
-	.read    = seq_read 
+	.read    = seq_read
 };
 
 static const struct file_operations simslot_file_ops = {
 	.owner   = THIS_MODULE,
 	.open    = fih_info_proc_open_simslot,
-	.read    = seq_read 
+	.read    = seq_read
 };
 
 static const struct file_operations module_file_ops = {
 	.owner   = THIS_MODULE,
 	.open    = fih_info_proc_open_module,
-	.read    = seq_read 
+	.read    = seq_read
 };
 
 static struct file_operations fqc_xml_file_ops = {
