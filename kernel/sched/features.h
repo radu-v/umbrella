@@ -16,14 +16,14 @@ SCHED_FEAT(START_DEBIT, true)
  * wakeup-preemption), since its likely going to consume data we
  * touched, increases cache locality.
  */
-SCHED_FEAT(NEXT_BUDDY, false)
+SCHED_FEAT(NEXT_BUDDY, true)
 
 /*
  * Prefer to schedule the task that ran last (when we did
  * wake-preempt) as that likely will touch the same data, increases
  * cache locality.
  */
-SCHED_FEAT(LAST_BUDDY, true)
+SCHED_FEAT(LAST_BUDDY, false)
 
 /*
  * Consider buddies to be cache hot, decreases the likelyness of a
@@ -36,7 +36,7 @@ SCHED_FEAT(CACHE_HOT_BUDDY, true)
  */
 SCHED_FEAT(WAKEUP_PREEMPTION, true)
 
-SCHED_FEAT(HRTICK, false)
+SCHED_FEAT(HRTICK, true)
 SCHED_FEAT(DOUBLE_TICK, false)
 SCHED_FEAT(LB_BIAS, true)
 
@@ -49,7 +49,7 @@ SCHED_FEAT(NONTASK_CAPACITY, true)
  * Queue remote wakeups on the target CPU and process them
  * using the scheduler IPI. Reduces rq->lock contention/bounces.
  */
-SCHED_FEAT(TTWU_QUEUE, false)
+SCHED_FEAT(TTWU_QUEUE, true)
 
 #ifdef HAVE_RT_PUSH_IPI
 /*
