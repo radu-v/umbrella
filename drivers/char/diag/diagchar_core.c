@@ -3487,7 +3487,7 @@ static ssize_t diagchar_write(struct file *file, const char __user *buf,
 	return err;
 }
 
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 static ssize_t diagtest_write(struct file *file, const char __user *buf,
 			      size_t count, loff_t *ppos)
 {
@@ -4083,7 +4083,7 @@ static int __init diagchar_init(void)
 	if (error)
 		goto fail;
 
-	#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+	#ifdef CONFIG_FIH_NB1
 	misc_register(&diagtest);
 	#endif
 

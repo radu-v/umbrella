@@ -34,7 +34,7 @@
 #include <soc/qcom/socinfo.h>
 #include <soc/qcom/smem.h>
 #include <soc/qcom/boot_stats.h>
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 #include <fih/hwid.h>
 #endif
 
@@ -1610,7 +1610,7 @@ int __init socinfo_init(void)
 	arch_read_hardware_id = msm_read_hardware_id;
 	socinfo_init_done = true;
 
-	#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+	#ifdef CONFIG_FIH_NB1
 	/* FIH, initial hwid mechanism */
 	fih_hwid_setup();
 	#endif

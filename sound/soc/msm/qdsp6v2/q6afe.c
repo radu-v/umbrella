@@ -135,7 +135,7 @@ static unsigned long afe_configured_cmd;
 
 static struct afe_ctl this_afe;
 
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N) || defined(CONFIG_FIH_F11)
+#ifdef CONFIG_FIH_NB1
 #define TIMEOUT_MS 2500
 #else
 #define TIMEOUT_MS 1000

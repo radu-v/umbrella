@@ -60,7 +60,7 @@
 #define WCD9XXX_PAGE_NUM(reg)    (((reg) >> 8) & 0xff)
 #define WCD9XXX_PAGE_SIZE 256
 
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N) || defined(CONFIG_FIH_F11)
+#ifdef CONFIG_FIH_NB1
 /*MM-JohnHCChiang-BBS log-00+{ */
 #define BBOX_SLIMBUS_TRANSFER_FAIL do {printk("BBox::UEC;2::0\n");} while (0);
 #define BBOX_SLIMBUS_PROBE_FAIL do {printk("BBox::UEC;2::3\n");} while (0);
@@ -250,7 +250,7 @@ static int wcd9xxx_slim_read_device(struct wcd9xxx *wcd9xxx, unsigned short reg,
 		usleep_range(5000, 5100);
 	}
 
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N) || defined(CONFIG_FIH_F11)
+#ifdef CONFIG_FIH_NB1
 	if (ret){
 		dev_err(wcd9xxx->dev, "%s: Error, Codec read failed (%d)\n",
 			__func__, ret);
@@ -301,7 +301,7 @@ static int wcd9xxx_slim_write_device(struct wcd9xxx *wcd9xxx,
 		usleep_range(5000, 5100);
 	}
 
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N) || defined(CONFIG_FIH_F11)
+#ifdef CONFIG_FIH_NB1
 	if (ret){
 		pr_err("%s: Error, Codec write failed (%d)\n", __func__, ret);
 		/*MM-JohnHCChiang-BBS log-00+{ */
@@ -1246,7 +1246,7 @@ static int wcd9xxx_slim_probe(struct slim_device *slim)
 	struct wcd9xxx_pdata *pdata;
 	const struct slim_device_id *device_id;
 	int ret = 0;
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N) || defined(CONFIG_FIH_F11)
+#ifdef CONFIG_FIH_NB1
 	int retry = 0;
 #endif
 	int intf_type;
@@ -1376,7 +1376,7 @@ static int wcd9xxx_slim_probe(struct slim_device *slim)
 		usleep_range(5, 10);
 
 	ret = wcd9xxx_reset(&slim->dev);
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N) || defined(CONFIG_FIH_F11)
+#ifdef CONFIG_FIH_NB1
 	if (ret) {
 		dev_err(&slim->dev, "%s: Resetting Codec failed\n", __func__);
 		/*MM-JohnHCChiang-BBS log-00+{ */

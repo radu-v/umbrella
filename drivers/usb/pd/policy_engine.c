@@ -339,11 +339,7 @@ module_param(min_sink_current, int, S_IRUSR | S_IWUSR);
 
 static bool ss_dev = true;
 
-#ifdef CONFIG_FIH_A1N
 static bool ss_host = true;
-#else
-static bool ss_host = true;
-#endif
 
 module_param(ss_dev, bool, S_IRUSR | S_IWUSR);
 module_param(ss_host, bool, S_IRUSR | S_IWUSR);
