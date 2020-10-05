@@ -3,6 +3,9 @@ jobs:
   build:
     docker:
     - image: glx135/kernel_arm64:latest
+      auth:
+        username: $DOCKERHUB_USERNAME
+        password: $DOCKERHUB_PASSWORD
     steps:
     - run:
         name: Checkout
