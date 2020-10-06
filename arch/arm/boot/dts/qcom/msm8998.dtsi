@@ -1824,6 +1824,7 @@
 
 		qcom,dwc-usb3-msm-tx-fifo-size = <21288>;
 		extcon = <&pmi8998_pdphy>;
+		qcom,no-wakeup-src-in-hostmode;
 
 		clocks = <&clock_gcc clk_gcc_usb30_master_clk>,
 			<&clock_gcc clk_gcc_cfg_noc_usb3_axi_clk>,
