@@ -1,2 +1,2 @@
 // processes to kill when running in background. Separate and surround list with semicolon
-#define LIST_BG_KILL	";id.GoogleCamera;ndroid.settings;rtboost:service;well.smartboost;"
+#define LIST_BG_KILL	";id.GoogleCamera;ndroid.settings;rtboost:service;well.smartboost;.powersaving.g3;eaurora.snapcam;"

@@ -1159,6 +1159,7 @@ config FAIR_GROUP_SCHED
 config CFS_BANDWIDTH
 	bool "CPU bandwidth provisioning for FAIR_GROUP_SCHED"
 	depends on FAIR_GROUP_SCHED
+	depends on !SCHED_WALT
 	default n
 	help
 	  This option allows users to define CPU bandwidth rates (limits) for
@@ -1344,15 +1345,6 @@ config STUNE_ASSIST
 	depends on ANDROID
 	help
 	  This option enables in-kernel overrides for SchedTune values.
-
-	  If unsure, say N.
-
-config DYNAMIC_STUNE_BOOST
-	bool "Dynamic SchedTune boosting support"
-	depends on CPU_BOOST && SCHED_TUNE && CGROUP_SCHEDTUNE
-	help
-	  This option extends the SchedTune framework and provides APIs to
-	  activate and reset SchedTune boosting from anywhere in the kernel.
 
 	  If unsure, say N.
 

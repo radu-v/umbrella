@@ -101,7 +101,7 @@ static inline int avc_hash(u32 ssid, u32 tsid, u16 tclass)
 	return (ssid ^ (tsid<<2) ^ (tclass<<4)) & (AVC_CACHE_SLOTS - 1);
 }
 
-#ifndef CONFIG_SECURITY_SELINUX_NO_AUDIT
+#ifdef CONFIG_AUDIT
 /**
  * avc_dump_av - Display an access vector in human-readable form.
  * @tclass: target security class
@@ -349,26 +349,27 @@ static struct avc_xperms_decision_node
 	struct avc_xperms_decision_node *xpd_node;
 	struct extended_perms_decision *xpd;
 
-	xpd_node = kmem_cache_zalloc(avc_xperms_decision_cachep, GFP_NOWAIT);
+	xpd_node = kmem_cache_zalloc(avc_xperms_decision_cachep,
+			GFP_NOWAIT | __GFP_NOWARN);
 	if (!xpd_node)
 		return NULL;
 
 	xpd = &xpd_node->xpd;
 	if (which & XPERMS_ALLOWED) {
 		xpd->allowed = kmem_cache_zalloc(avc_xperms_data_cachep,
-						GFP_NOWAIT);
+						GFP_NOWAIT | __GFP_NOWARN);
 		if (!xpd->allowed)
 			goto error;
 	}
 	if (which & XPERMS_AUDITALLOW) {
 		xpd->auditallow = kmem_cache_zalloc(avc_xperms_data_cachep,
-						GFP_NOWAIT);
+						GFP_NOWAIT | __GFP_NOWARN);
 		if (!xpd->auditallow)
 			goto error;
 	}
 	if (which & XPERMS_DONTAUDIT) {
 		xpd->dontaudit = kmem_cache_zalloc(avc_xperms_data_cachep,
-						GFP_NOWAIT);
+						GFP_NOWAIT | __GFP_NOWARN);
 		if (!xpd->dontaudit)
 			goto error;
 	}
@@ -396,7 +397,8 @@ static struct avc_xperms_node *avc_xperms_alloc(void)
 {
 	struct avc_xperms_node *xp_node;
 
-	xp_node = kmem_cache_zalloc(avc_xperms_cachep, GFP_NOWAIT);
+	xp_node = kmem_cache_zalloc(avc_xperms_cachep,
+			GFP_NOWAIT | __GFP_NOWARN);
 	if (!xp_node)
 		return xp_node;
 	INIT_LIST_HEAD(&xp_node->xpd_head);
@@ -471,6 +473,7 @@ static inline int avc_xperms_audit(u32 ssid, u32 tsid, u16 tclass,
 				u8 perm, int result,
 				struct common_audit_data *ad)
 {
+#ifdef CONFIG_AUDIT
 	u32 audited, denied;
 
 	audited = avc_xperms_audit_required(
@@ -479,6 +482,9 @@ static inline int avc_xperms_audit(u32 ssid, u32 tsid, u16 tclass,
 		return 0;
 	return slow_avc_audit(ssid, tsid, tclass, requested,
 			audited, denied, result, ad, 0);
+#else
+	return 0;
+#endif
 }
 
 static void avc_node_free(struct rcu_head *rhead)
@@ -549,7 +555,7 @@ static struct avc_node *avc_alloc_node(void)
 {
 	struct avc_node *node;
 
-	node = kmem_cache_zalloc(avc_node_cachep, GFP_NOWAIT);
+	node = kmem_cache_zalloc(avc_node_cachep, GFP_NOWAIT | __GFP_NOWARN);
 	if (!node)
 		goto out;
 
@@ -701,15 +707,7 @@ out:
 	return node;
 }
 
-#ifdef CONFIG_SECURITY_SELINUX_NO_AUDIT
-noinline int slow_avc_audit(u32 ssid, u32 tsid, u16 tclass,
-		u32 requested, u32 audited, u32 denied, int result,
-		struct common_audit_data *a,
-		unsigned flags)
-{
-	return 0;
-}
-#else
+#ifdef CONFIG_AUDIT
 /**
  * avc_audit_pre_callback - SELinux specific information
  * will be called by generic audit code
@@ -753,6 +751,10 @@ noinline int slow_avc_audit(u32 ssid, u32 tsid, u16 tclass,
 {
 	struct common_audit_data stack_data;
 	struct selinux_audit_data sad;
+
+	/* Only log permissive=1 messages */
+	if (denied && !result)
+		return 0;
 
 	if (!a) {
 		a = &stack_data;

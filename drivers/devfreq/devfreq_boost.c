@@ -193,11 +193,9 @@ static int fb_notifier_cb(struct notifier_block *nb, unsigned long action,
 		if (*blank == FB_BLANK_UNBLANK) {
 			set_bit(SCREEN_ON, &b->state);
 			__devfreq_boost_kick_max(b, 500);
-			reset_schedtune_boost("top-app", 1);
 		} else if (*blank == FB_BLANK_POWERDOWN) {
 			clear_bit(SCREEN_ON, &b->state);
 			wake_up(&b->boost_waitq);
-			reset_schedtune_boost("top-app", 0);
 		}
 	}
 
@@ -297,8 +295,8 @@ static int __init devfreq_boost_init(void)
 	for (i = 0; i < DEVFREQ_MAX; i++) {
 		struct boost_dev *b = d->devices + i;
 
-		thread[i] = kthread_run_perf_critical(devfreq_boost_thread, b,
-						      "devfreq_boostd/%d", i);
+		thread[i] = kthread_run(devfreq_boost_thread, b,
+					"devfreq_boostd/%d", i);
 		if (IS_ERR(thread[i])) {
 			ret = PTR_ERR(thread[i]);
 			pr_err("Failed to create kthread, err: %d\n", ret);

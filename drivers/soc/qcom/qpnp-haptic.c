@@ -278,7 +278,7 @@ struct qpnp_hap_lra_ares_cfg {
 	u16				lra_res_cal_period;
 	u8				auto_res_mode;
 };
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 void fih_set_level(int value);
 u32 g_weak_voltage;
 u32 g_default_voltage;
@@ -1798,7 +1798,7 @@ static ssize_t qpnp_hap_vmax_store(struct device *dev,
 	if (rc)
 		return rc;
 
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 	if (data == 0) // weak voltage
 	    hap->vmax_mv = g_weak_voltage;
 	else if (data == 1)
@@ -1825,18 +1825,14 @@ static ssize_t qpnp_hap_vmax_store(struct device *dev,
 	return count;
 }
 
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 void fih_set_level(int value)
 {
 	struct qpnp_hap *hap = ghap;
 	int rc = 0, vmax = 0;
 
 	if(value == 9)
-#ifdef CONFIG_FIH_A1N
-		vmax = 3000;
-#else
 		vmax = QPNP_HAP_VMAX_MAX_MV;
-#endif
 	else
 		vmax = g_default_voltage;
 
@@ -2363,6 +2359,11 @@ static void qpnp_hap_td_enable(struct timed_output_dev *dev, int time_ms)
 	spin_unlock(&hap->td_lock);
 
 	schedule_work(&hap->td_work);
+}
+
+void set_vibrate(int value)
+{
+	qpnp_hap_td_enable(&ghap->timed_dev, value);
 }
 
 /* play pwm bytes */
@@ -2925,7 +2926,7 @@ static int qpnp_hap_parse_dt(struct qpnp_hap *hap)
 		pr_err("Unable to read vmax\n");
 		return rc;
 	}
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 	g_default_voltage = hap->vmax_mv;
 	rc = of_property_read_u32(pdev->dev.of_node, "qcom,weak-vmax-mv", &temp);
 	if (!rc) {

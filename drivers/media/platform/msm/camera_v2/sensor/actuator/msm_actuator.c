@@ -17,7 +17,7 @@
 #include "msm_actuator.h"
 #include "msm_cci.h"
 /* MM-JF-add-BBS-log-00+{ */
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 #include "../fih_camera_bbs.h"  //fihtdc,derekcwwu add
 #endif
 /* MM-JF-add-BBS-log-00+} */
@@ -46,7 +46,7 @@ static struct msm_actuator msm_hvcm_actuator_table;
 static struct msm_actuator msm_bivcm_actuator_table;
 
 /* MM-JF-add-BBS-log-00+{ */
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 extern int fih_camera_bbs_set(int id,int master,unsigned short sid,int module);//fihtdc,derekcwwu add
 extern void fih_camera_bbs_by_cci(int master,int sid,int error_code);//fihtdc,derekcwwu add
 #endif
@@ -856,7 +856,7 @@ static int32_t msm_actuator_park_lens(struct msm_actuator_ctrl_t *a_ctrl)
 	next_lens_pos = a_ctrl->step_position_table[a_ctrl->curr_step_pos];
 
     /* MM-MC-FixCameraCloseOver10s-00+{ */
-    //DAC data size is 10 bits, value = 0~1024 
+    //DAC data size is 10 bits, value = 0~1024
     if ((next_lens_pos < 0)||(next_lens_pos > 1024))
     {
         int new_lens_pos = 0;
@@ -1349,7 +1349,7 @@ static int32_t msm_actuator_set_param(struct msm_actuator_ctrl_t *a_ctrl,
 		cci_client->i2c_freq_mode =
 			set_info->actuator_params.i2c_freq_mode;
 		/* MM-JF-add-BBS-log-00+{ */
-		#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+		#ifdef CONFIG_FIH_NB1
 		fih_camera_bbs_set((int)a_ctrl->pdev->id,cci_client->cci_i2c_master,(unsigned short)cci_client->sid,FIH_BBS_CAMERA_MODULE_ACTUATOR);//fihtdc,derekcwwu add
 		#endif
 		/* MM-JF-add-BBS-log-00+} */
@@ -1522,7 +1522,7 @@ static int32_t msm_actuator_config(struct msm_actuator_ctrl_t *a_ctrl,
 		/* MM-JF-add-BBS-log-00+{ */
 		{
 			pr_err("msm_actuator_power_down failed %d\n", rc);
-			#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+			#ifdef CONFIG_FIH_NB1
 			fih_camera_bbs_by_cci(a_ctrl->i2c_client.cci_client->cci_i2c_master,
                                a_ctrl->i2c_client.cci_client->sid,FIH_BBS_CAMERA_ERRORCODE_POWER_DW);
 			#endif
@@ -1545,7 +1545,7 @@ static int32_t msm_actuator_config(struct msm_actuator_ctrl_t *a_ctrl,
 		/* MM-JF-add-BBS-log-00+{ */
 		{
 			pr_err("Failed actuator power up%d\n", rc);
-			#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+			#ifdef CONFIG_FIH_NB1
 			fih_camera_bbs_by_cci(a_ctrl->i2c_client.cci_client->cci_i2c_master,
                                a_ctrl->i2c_client.cci_client->sid,FIH_BBS_CAMERA_ERRORCODE_POWER_UP);
 			#endif

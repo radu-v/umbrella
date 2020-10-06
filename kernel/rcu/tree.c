@@ -573,7 +573,7 @@ static int
 cpu_has_callbacks_ready_to_invoke(struct rcu_data *rdp)
 {
 	return &rdp->nxtlist != rdp->nxttail[RCU_DONE_TAIL] &&
-	       rdp->nxttail[RCU_DONE_TAIL] != NULL;
+	       rdp->nxttail[RCU_NEXT_TAIL] != NULL;
 }
 
 /*
@@ -3874,6 +3874,12 @@ void synchronize_sched_expedited(void)
 	unsigned long s;
 	struct rcu_node *rnp;
 	struct rcu_state *rsp = &rcu_sched_state;
+
+	/* If expedited grace periods are prohibited, fall back to normal. */
+	if (rcu_gp_is_normal()) {
+		wait_rcu_gp(call_rcu_sched);
+		return;
+	}
 
 	/* Take a snapshot of the sequence number.  */
 	s = rcu_exp_gp_seq_snap(rsp);

@@ -2051,11 +2051,7 @@ static void tfa98xx_interrupt_enable(struct tfa98xx *tfa98xx, bool enable)
  * Downloaded once only at module init
  * FIXME: may need to review that (one per instance of codec device?)
  */
-#ifdef CONFIG_FIH_PM1
-static char *fw_name = "TFA9891.cnt";
-#else //FIH_NB1 , FIH_A1N
 static char *fw_name = "tfa98xx.cnt";
-#endif
 #ifdef CONFIG_FIH_NB1
 static char *fw_nameEVT = "tfa98xxEVT.cnt";
 #endif
@@ -2500,7 +2496,7 @@ static int tfa98xx_startup(struct snd_pcm_substream *substream,
 	/* loop over all profiles and get the supported samples rate(s) from
 	 * the profiles with the same basename
 	 */
-    
+
 	for (prof = 0; prof < nprof; prof++) {
 		if (0 == strncmp(basename, tfaContProfileName(tfa98xx->handle, prof), len)) {
 			/* Check which sample rate is supported with current profile,
@@ -2515,7 +2511,7 @@ static int tfa98xx_startup(struct snd_pcm_substream *substream,
 	}
 
 /* MM-NC_EMCallNoSound-00-[+ */
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 	return 0;
 #else
 	return snd_pcm_hw_constraint_list(substream->runtime, 0,

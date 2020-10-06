@@ -123,10 +123,6 @@ static struct step_chg_cfg step_chg_config = {
 		{0,		40,		3000000},
 		{41,		100,		1500000},
 	#endif
-	#if defined(CONFIG_FIH_A1N)
-		{0,		50,		3260000},
-		{51,		100,		1630000},
-	#endif
 	},
 };
 
@@ -168,11 +164,6 @@ static struct jeita_fcc_cfg jeita_fcc_config = {
 		{0,		       159,		900000},
 		{160,		449,		3000000},
 		{450,		549,		2200000},
-		#endif
-		#if defined(CONFIG_FIH_A1N)
-		{0,		       159,		652000},
-		{160,		449,		3260000},
-		{450,		549,		1630000},
 		#endif
 	},
 };
@@ -265,7 +256,7 @@ static int get_val(struct range_data *range, int hysteresis, int current_index,
 			*val = range[current_index].value;
 		}
 	} else if (*new_index == current_index - 1) {
-		if (threshold > range[*new_index].high_threshold - hysteresis + 1 ) { 
+		if (threshold > range[*new_index].high_threshold - hysteresis + 1 ) {
 			/*
 			 * stay in the current index, threshold is not lower
 			 * by hysteresis amount

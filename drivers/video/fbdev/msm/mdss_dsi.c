@@ -40,7 +40,7 @@
 #include "../../../fih/fih_touch.h"//SW8-DH-TP_vendor-00+
 extern struct fih_touch_cb touch_cb;
 #endif
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 #ifdef CONFIG_AOD_FEATURE
 #include "fih/fih_msm_mdss_aod.h"
 #endif
@@ -83,7 +83,7 @@ EXPORT_SYMBOL(fih_set_blank_mode);
 EXPORT_SYMBOL(fih_get_blank_mode);
 #endif
 #if defined(CONFIG_AOD_FEATURE)
-#if defined(CONFIG_FIH_NB1)||defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 extern bool exit_aod_set_bl;
 #endif
 #endif
@@ -1745,7 +1745,7 @@ static int mdss_dsi_unblank(struct mdss_panel_data *pdata)
 		}
 #endif
 #if defined(CONFIG_AOD_FEATURE)
-#if defined(CONFIG_FIH_NB1)||defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 		if(fih_get_glance()){
 			exit_aod_set_bl=1;
 		}
@@ -1816,7 +1816,7 @@ static int mdss_dsi_blank(struct mdss_panel_data *pdata, int power_state)
 		if (ctrl_pdata->low_power_config)
 			ret = ctrl_pdata->low_power_config(pdata, true);
 #if defined(CONFIG_AOD_FEATURE)
-#if defined(CONFIG_FIH_NB1)||defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 		exit_aod_set_bl=0;
 #endif
 #endif
@@ -3806,7 +3806,7 @@ static int mdss_dsi_ctrl_probe(struct platform_device *pdev)
 
 	mdss_dsi_debug_bus_init(mdss_dsi_res);
 
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 #ifdef CONFIG_AOD_FEATURE
 	fih_mdss_dsi_aod_panel_init(pdev,ctrl_pdata,index);
 #endif

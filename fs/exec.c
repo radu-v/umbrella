@@ -72,17 +72,6 @@ int suid_dumpable = 0;
 static LIST_HEAD(formats);
 static DEFINE_RWLOCK(binfmt_lock);
 
-#define ZYGOTE32_BIN	"/system/bin/app_process32"
-#define ZYGOTE64_BIN	"/system/bin/app_process64"
-static atomic_t zygote32_pid;
-static atomic_t zygote64_pid;
-
-bool is_zygote_pid(pid_t pid)
-{
-	return atomic_read(&zygote32_pid) == pid ||
-		atomic_read(&zygote64_pid) == pid;
-}
-
 void __register_binfmt(struct linux_binfmt * fmt, int insert)
 {
 	BUG_ON(!fmt);
@@ -314,7 +303,7 @@ static int __bprm_mm_init(struct linux_binprm *bprm)
 	vma->vm_start = vma->vm_end - PAGE_SIZE;
 	vma->vm_flags = VM_SOFTDIRTY | VM_STACK_FLAGS | VM_STACK_INCOMPLETE_SETUP;
 	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
-	INIT_LIST_HEAD(&vma->anon_vma_chain);
+	INIT_VMA(vma);
 
 	err = insert_vm_struct(mm, vma);
 	if (err)
@@ -1650,13 +1639,6 @@ static int do_execveat_common(int fd, struct filename *filename,
 	retval = exec_binprm(bprm);
 	if (retval < 0)
 		goto out;
-
-	if (capable(CAP_SYS_ADMIN)) {
-		if (unlikely(!strcmp(filename->name, ZYGOTE32_BIN)))
-			atomic_set(&zygote32_pid, current->pid);
-		else if (unlikely(!strcmp(filename->name, ZYGOTE64_BIN)))
-			atomic_set(&zygote64_pid, current->pid);
-	}
 
 	/* execve succeeded */
 	current->fs->in_exec = 0;

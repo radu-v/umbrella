@@ -63,18 +63,12 @@ struct sched_param {
 
 #include <asm/processor.h>
 
-#ifdef CONFIG_SCHED_TUNE
-int reset_schedtune_boost(char *st_name, int boost);
-int reset_schedtune_prefer_idle(char *st_name, int prefer_idle);
+extern bool energy_aware_enable;
+
+#if defined(CONFIG_SCHED_TUNE) && defined(CONFIG_CGROUP_SCHEDTUNE)
+void disable_schedtune_boost(int disable);
 #else
-static inline int reset_schedtune_boost(char *st_name, int boost)
-{
-	return 0;
-}
-static inline int reset_schedtune_prefer_idle(char *st_name, int prefer_idle)
-{
-	return 0;
-}
+static inline void disable_schedtune_boost(int disable) { }
 #endif
 
 #define SCHED_ATTR_SIZE_VER0	48	/* sizeof first published struct */
@@ -2271,6 +2265,9 @@ static inline void put_task_struct(struct task_struct *t)
 		__put_task_struct(t);
 }
 
+struct task_struct *task_rcu_dereference(struct task_struct **ptask);
+struct task_struct *try_get_task_struct(struct task_struct **ptask);
+
 #ifdef CONFIG_VIRT_CPU_ACCOUNTING_GEN
 extern void task_cputime(struct task_struct *t,
 			 cputime_t *utime, cputime_t *stime);
@@ -2330,7 +2327,6 @@ extern void thread_group_cputime_adjusted(struct task_struct *p, cputime_t *ut, 
 #define PF_KTHREAD	0x00200000	/* I am a kernel thread */
 #define PF_RANDOMIZE	0x00400000	/* randomize virtual address space */
 #define PF_SWAPWRITE	0x00800000	/* Allowed to write to swap */
-#define PF_PERF_CRITICAL 0x01000000	/* Thread is performance-critical */
 #define PF_NO_SETAFFINITY 0x04000000	/* Userland is not allowed to meddle with cpus_allowed */
 #define PF_MCE_EARLY    0x08000000      /* Early kill for mce process policy */
 #define PF_MUTEX_TESTER	0x20000000	/* Thread belongs to the rt mutex tester */
@@ -3554,11 +3550,5 @@ void cpufreq_add_update_util_hook(int cpu, struct update_util_data *data,
                                     unsigned int flags));
 void cpufreq_remove_update_util_hook(int cpu);
 #endif /* CONFIG_CPU_FREQ */
-
-#ifdef CONFIG_DYNAMIC_STUNE_BOOST
-int do_stune_boost(char *st_name, int boost, int *slot);
-int do_stune_sched_boost(char *st_name, int *slot);
-int reset_stune_boost(char *st_name, int slot);
-#endif /* CONFIG_DYNAMIC_STUNE_BOOST */
 
 #endif

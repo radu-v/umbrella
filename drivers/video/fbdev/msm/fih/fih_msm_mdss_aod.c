@@ -34,7 +34,7 @@ extern struct fih_touch_cb touch_cb;
 extern int fih_JDI_notifier(int aod_enable); //SW8-DH-JDI-double_tap-00+
 #endif
 
-#if defined(CONFIG_PANEL_COLOR_MANAGERIAL) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_PANEL_COLOR_MANAGERIAL
 #include "fih_mdss_color_managerial.h"
 #endif
 
@@ -606,7 +606,7 @@ void fih_mdss_lp_config(struct mdss_panel_data *pdata,int enable,int ndx)
 	if(enable){
 		pinfo->aod_screen_timeout=0;
 	}else{
-#if defined(CONFIG_PANEL_COLOR_MANAGERIAL) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_PANEL_COLOR_MANAGERIAL
 		mdss_dsi_color_mode_restore(ctrl_pdata);
 #endif
 	}

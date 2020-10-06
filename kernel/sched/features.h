@@ -26,6 +26,12 @@ SCHED_FEAT(NEXT_BUDDY, false)
 SCHED_FEAT(LAST_BUDDY, true)
 
 /*
+ * skip buddy i.e task called yield() is always skipped and the
+ * next entity is selected to run irrespective of the vruntime
+ */
+SCHED_FEAT(STRICT_SKIP_BUDDY, true)
+
+/*
  * Consider buddies to be cache hot, decreases the likelyness of a
  * cache buddy being migrated away, increases cache locality.
  */
@@ -36,7 +42,7 @@ SCHED_FEAT(CACHE_HOT_BUDDY, true)
  */
 SCHED_FEAT(WAKEUP_PREEMPTION, true)
 
-SCHED_FEAT(HRTICK, false)
+SCHED_FEAT(HRTICK, true)
 SCHED_FEAT(DOUBLE_TICK, false)
 SCHED_FEAT(LB_BIAS, true)
 
@@ -49,7 +55,7 @@ SCHED_FEAT(NONTASK_CAPACITY, true)
  * Queue remote wakeups on the target CPU and process them
  * using the scheduler IPI. Reduces rq->lock contention/bounces.
  */
-SCHED_FEAT(TTWU_QUEUE, false)
+SCHED_FEAT(TTWU_QUEUE, true)
 
 #ifdef HAVE_RT_PUSH_IPI
 /*
@@ -92,3 +98,10 @@ SCHED_FEAT(STUNE_BOOST_BIAS_BIG, true)
  * restrictions.
  */
 SCHED_FEAT(MIN_CAPACITY_CAPPING, true)
+
+/*
+ * Inflate the effective utilization of SchedTune-boosted tasks, which
+ * generally leads to usage of higher frequencies.
+ * If disabled, boosts will only bias tasks to higher-capacity CPUs.
+ */
+SCHED_FEAT(SCHEDTUNE_BOOST_UTIL, true)

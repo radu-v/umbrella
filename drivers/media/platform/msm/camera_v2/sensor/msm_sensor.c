@@ -18,7 +18,7 @@
 #include <linux/regulator/rpm-smd-regulator.h>
 #include <linux/regulator/consumer.h>
 /* MM-JF-add-BBS-log-00+{ */
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 #include "fih_camera_bbs.h" //fihtdc,derekcwwu add
 #endif
 /* MM-JF-add-BBS-log-00+} */
@@ -27,7 +27,7 @@
 #define CDBG(fmt, args...) pr_debug(fmt, ##args)
 
 /* MM-JF-add-BBS-log-00+{ */
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 extern void fih_camera_bbs_by_cci(int master,int sid,int error_code);//fihtdc,derekcwwu add
 #endif
 /* MM-JF-add-BBS-log-00+} */
@@ -163,6 +163,7 @@ int msm_sensor_power_up(struct msm_sensor_ctrl_t *s_ctrl)
 	struct msm_camera_slave_info *slave_info;
 	const char *sensor_name;
 	uint32_t retry = 0;
+	uint32_t check_id_retry = 0;
 
 	if (!s_ctrl) {
 		pr_err("%s:%d failed: %pK\n",
@@ -214,7 +215,13 @@ int msm_sensor_power_up(struct msm_sensor_ctrl_t *s_ctrl)
 			sensor_i2c_client);
 		if (rc < 0)
 			return rc;
-		rc = msm_sensor_check_id(s_ctrl);
+
+		for(check_id_retry = 0; check_id_retry < 3; check_id_retry++) {
+			rc = msm_sensor_check_id(s_ctrl);
+			if (!rc) break;
+			msleep(20);
+		}
+
 		if (rc < 0) {
 			msm_camera_power_down(power_info,
 				s_ctrl->sensor_device_type, sensor_i2c_client);
@@ -790,7 +797,7 @@ static int msm_sensor_config32(struct msm_sensor_ctrl_t *s_ctrl,
 				pr_err("%s:%d failed rc %d\n", __func__,
 					__LINE__, rc);
 				/* MM-JF-add-BBS-log-00+{ */
-				#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+				#ifdef CONFIG_FIH_NB1
 				fih_camera_bbs_by_cci(s_ctrl->sensor_i2c_client->cci_client->cci_i2c_master,
                                        s_ctrl->sensor_i2c_client->cci_client->sid, FIH_BBS_CAMERA_ERRORCODE_POWER_UP);
 				#endif
@@ -825,7 +832,7 @@ static int msm_sensor_config32(struct msm_sensor_ctrl_t *s_ctrl,
 				pr_err("%s:%d failed rc %d\n", __func__,
 					__LINE__, rc);
 				/* MM-JF-add-BBS-log-00+{ */
-				#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+				#ifdef CONFIG_FIH_NB1
 				fih_camera_bbs_by_cci(s_ctrl->sensor_i2c_client->cci_client->cci_i2c_master,
                                        s_ctrl->sensor_i2c_client->cci_client->sid,FIH_BBS_CAMERA_ERRORCODE_POWER_DW);
 				#endif

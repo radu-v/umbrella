@@ -33,7 +33,7 @@
 extern struct fih_touch_cb touch_cb;
 #endif
 
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 #ifdef CONFIG_AOD_FEATURE
 #include "fih/fih_msm_mdss_aod.h"
 #endif
@@ -56,7 +56,7 @@ extern struct fih_touch_cb touch_cb;
 
 #define VSYNC_DELAY msecs_to_jiffies(17)
 
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 static int previous_bl_level = 0;
 #endif
 //SW5-DH-Disable_touch_irq_before_Display_off+[
@@ -1007,7 +1007,7 @@ static void mdss_dsi_panel_bl_ctrl(struct mdss_panel_data *pdata,
 		break;
 	}
 
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 	/*Show brightness level when suspend and resume*/
 	if ((bl_level == 0) || ((previous_bl_level == 0) && (bl_level != 0))){
 		pr_err("%s: level=%d\n", __func__, bl_level);
@@ -1111,7 +1111,7 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 	#endif
 #endif
 	//SW8-DH-Touch-Notify-00+
-#if defined(CONFIG_PANEL_COLOR_MANAGERIAL) || defined(CONFIG_FIH_A1N)
+#if defined(CONFIG_PANEL_COLOR_MANAGERIAL)
 	mdss_dsi_color_mode_restore(ctrl);
 #endif
 
@@ -1211,7 +1211,7 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 	#endif
 #endif
 
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 	#ifdef CONFIG_AOD_FEATURE
 		/*If The the the system have been enter AOD and still panel off chnage panel to normal on mode then off*/
 		mdss_aod_resume_config(pdata);
@@ -1280,7 +1280,7 @@ static int mdss_dsi_panel_low_power_config(struct mdss_panel_data *pdata,
 
 	pr_debug("%s: ctrl=%pK ndx=%d enable=%d\n", __func__, ctrl, ctrl->ndx,
 		enable);
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 	#ifdef CONFIG_AOD_FEATURE
 	fih_mdss_lp_config(pdata,enable,ctrl->ndx);
 	#endif
@@ -1601,11 +1601,7 @@ void mdss_dsi_panel_dsc_pps_send(struct mdss_dsi_ctrl_pdata *ctrl,
 
 	pcmds.cmd_cnt = 1;
 	pcmds.cmds = &cmd;
-	#ifdef CONFIG_FIH_A1N
-	pcmds.link_state = DSI_HS_MODE;
-	#else
 	pcmds.link_state = DSI_LP_MODE;
-	#endif
 	mdss_dsi_panel_cmds_send(ctrl, &pcmds, CMD_REQ_COMMIT);
 }
 
@@ -2726,7 +2722,7 @@ int mdss_dsi_panel_timing_switch(struct mdss_dsi_ctrl_pdata *ctrl,
 
 	ctrl->on_cmds = pt->on_cmds;
 	ctrl->post_panel_on_cmds = pt->post_panel_on_cmds;
-	#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+	#ifdef CONFIG_FIH_NB1
 	#ifdef CONFIG_AOD_FEATURE
 	fih_mdss_dsi_panel_aod_exit_register(ctrl,pt);
 	#endif
@@ -2879,7 +2875,7 @@ static int  mdss_dsi_panel_config_res_properties(struct device_node *np,
 		"qcom,mdss-dsi-timing-switch-command",
 		"qcom,mdss-dsi-timing-switch-command-state");
 
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 #ifdef CONFIG_AOD_FEATURE
 	fih_mdss_dsi_panel_config_aod_res_properties(np,pt);
 #endif
@@ -2987,7 +2983,7 @@ static int mdss_panel_parse_dt(struct device_node *np,
 	if (mdss_dsi_is_hw_config_split(ctrl_pdata->shared_data))
 		pinfo->is_split_display = true;
 
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 #ifdef CONFIG_PANEL_POWER_CONTROL_FEATURE
 	fih_mdss_panel_parse_dt(np,ctrl_pdata);
 #else
@@ -3234,7 +3230,7 @@ static int mdss_panel_parse_dt(struct device_node *np,
 	mdss_dsi_parse_dcs_cmds(np, &ctrl_pdata->off_cmds,
 		"qcom,mdss-dsi-off-command", "qcom,mdss-dsi-off-command-state");
 
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 #ifdef CONFIG_AOD_FEATURE
 	fih_mdss_dsi_panel_config_aod_parse_dt(np,ctrl_pdata);
 #endif

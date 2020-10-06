@@ -106,14 +106,14 @@ struct reset_attribute {
 			__ATTR(_name, _mode, _show, _store)
 
 #ifdef CONFIG_FIH_DLOAD
-static int __init oem_dload_set(char *str);//* FIH, ramdump set by fastboot 
+static int __init oem_dload_set(char *str);//* FIH, ramdump set by fastboot
 #endif
 
 module_param_call(download_mode, dload_set, param_get_int,
 			&download_mode, 0644);
 
 #ifdef CONFIG_FIH_DLOAD
-__setup("download_mode=", oem_dload_set);//* FIH, ramdump set by fastboot oem command			
+__setup("download_mode=", oem_dload_set);//* FIH, ramdump set by fastboot oem command
 #endif
 
 static int panic_prep_restart(struct notifier_block *this,
@@ -228,7 +228,7 @@ static int dload_set(const char *val, struct kernel_param *kp)
 //* FIH, ramdump set by fastboot oem command
 static int __init oem_dload_set(char *str)
 {
-    int old_val = download_mode; 
+    int old_val = download_mode;
     get_option(&str, &download_mode);
 
 
@@ -236,7 +236,7 @@ static int __init oem_dload_set(char *str)
         download_mode = old_val;
         return -EINVAL;
     }
-    
+
     pr_err("%s check download_mode %d\n", __func__,download_mode);
 	set_dload_mode(download_mode);
 
@@ -344,6 +344,13 @@ static void msm_restart_prepare(const char *cmd)
 #ifdef CONFIG_QCOM_PRESERVE_MEM
 	need_warm_reset = true;
 #endif
+
+	/* Perform a regular reboot upon panic or unspecified command */
+	if (in_panic || !cmd) {
+		__raw_writel(0x77665501, restart_reason);
+		cmd = NULL;
+		in_panic = false;
+	}
 
 	/* Hard reset the PMIC unless memory contents must be maintained. */
 	if (need_warm_reset) {

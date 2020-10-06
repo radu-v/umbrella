@@ -34,6 +34,7 @@
 
 	chosen {
 		stdout-path = "serial0";
+		bootargs = "noirqdebug rcupdate.rcu_normal_after_boot=1";
 	};
 
 	cpus {
@@ -1823,6 +1824,7 @@
 
 		qcom,dwc-usb3-msm-tx-fifo-size = <21288>;
 		extcon = <&pmi8998_pdphy>;
+		qcom,no-wakeup-src-in-hostmode;
 
 		clocks = <&clock_gcc clk_gcc_usb30_master_clk>,
 			<&clock_gcc clk_gcc_cfg_noc_usb3_axi_clk>,
@@ -2144,7 +2146,7 @@
 			compatible = "qcom,memshare-peripheral";
 			qcom,peripheral-size = <0x0>;
 			qcom,client-id = <1>;
-			qcom,allocate-boot-time;
+			qcom,allocate-on-request;
 			label = "modem";
 		};
 	};
@@ -2819,8 +2821,8 @@
 		qcom,bcl-enable;
 		qcom,bcl-framework-interface;
 		qcom,bcl-freq-control-list = <&CPU4 &CPU5 &CPU6 &CPU7>;
-		qcom,bcl-hotplug-list = <&CPU4 &CPU5 &CPU6 &CPU7>;
-		qcom,bcl-soc-hotplug-list = <&CPU4 &CPU5 &CPU6 &CPU7>;
+		qcom,bcl-hotplug-list = <>;
+		qcom,bcl-soc-hotplug-list = <>;
 		qcom,ibat-monitor {
 			qcom,low-threshold-uamp = <3400000>;
 			qcom,high-threshold-uamp = <4200000>;

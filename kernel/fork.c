@@ -79,7 +79,6 @@
 #include <linux/sysctl.h>
 #include <linux/kcov.h>
 #include <linux/cpufreq_times.h>
-#include <linux/cpu_input_boost.h>
 #include <linux/simple_lmk.h>
 
 #include <asm/pgtable.h>
@@ -239,6 +238,8 @@ void free_task(struct task_struct *tsk)
 	ftrace_graph_exit_task(tsk);
 	put_seccomp_filter(tsk);
 	arch_release_task_struct(tsk);
+	if (tsk->flags & PF_KTHREAD)
+		free_kthread_struct(tsk);
 	free_task_struct(tsk);
 }
 EXPORT_SYMBOL(free_task);
@@ -467,7 +468,7 @@ static int dup_mmap(struct mm_struct *mm, struct mm_struct *oldmm)
 		if (!tmp)
 			goto fail_nomem;
 		*tmp = *mpnt;
-		INIT_LIST_HEAD(&tmp->anon_vma_chain);
+		INIT_VMA(tmp);
 		retval = vma_dup_policy(mpnt, tmp);
 		if (retval)
 			goto fail_nomem_policy;
@@ -609,6 +610,9 @@ static struct mm_struct *mm_init(struct mm_struct *mm, struct task_struct *p,
 	mm->mmap = NULL;
 	mm->mm_rb = RB_ROOT;
 	mm->vmacache_seqnum = 0;
+#ifdef CONFIG_SPECULATIVE_PAGE_FAULT
+	rwlock_init(&mm->mm_rb_lock);
+#endif
 	atomic_set(&mm->mm_users, 1);
 	atomic_set(&mm->mm_count, 1);
 	init_rwsem(&mm->mmap_sem);
@@ -719,7 +723,6 @@ static inline void __mmput(struct mm_struct *mm)
 	ksm_exit(mm);
 	khugepaged_exit(mm); /* must run before exit_mmap */
 	exit_mmap(mm);
-	simple_lmk_mm_freed(mm);
 	set_mm_exe_file(mm, NULL);
 	if (!list_empty(&mm->mmlist)) {
 		spin_lock(&mmlist_lock);
@@ -728,6 +731,7 @@ static inline void __mmput(struct mm_struct *mm)
 	}
 	if (mm->binfmt)
 		module_put(mm->binfmt->module);
+	simple_lmk_mm_freed(mm);
 	mmdrop(mm);
 }
 
@@ -1375,6 +1379,18 @@ static struct task_struct *copy_process(unsigned long clone_flags,
 
 	cpufreq_task_times_init(p);
 
+	/*
+	 * This _must_ happen before we call free_task(), i.e. before we jump
+	 * to any of the bad_fork_* labels. This is to avoid freeing
+	 * p->set_child_tid which is (ab)used as a kthread's data pointer for
+	 * kernel threads (PF_KTHREAD).
+	 */
+	p->set_child_tid = (clone_flags & CLONE_CHILD_SETTID) ? child_tidptr : NULL;
+	/*
+	 * Clear TID on mm_release()?
+	 */
+	p->clear_child_tid = (clone_flags & CLONE_CHILD_CLEARTID) ? child_tidptr : NULL;
+
 	ftrace_graph_init_task(p);
 
 	rt_mutex_init_task(p);
@@ -1534,11 +1550,6 @@ static struct task_struct *copy_process(unsigned long clone_flags,
 		}
 	}
 
-	p->set_child_tid = (clone_flags & CLONE_CHILD_SETTID) ? child_tidptr : NULL;
-	/*
-	 * Clear TID on mm_release()?
-	 */
-	p->clear_child_tid = (clone_flags & CLONE_CHILD_CLEARTID) ? child_tidptr : NULL;
 #ifdef CONFIG_BLOCK
 	p->plug = NULL;
 #endif
@@ -1786,10 +1797,6 @@ long _do_fork(unsigned long clone_flags,
 	struct task_struct *p;
 	int trace = 0;
 	long nr;
-
-	/* Boost CPU to the max for 1250 ms when userspace launches an app */
-	if (is_zygote_pid(current->pid))
-		cpu_input_boost_kick_max(1250);
 
 	/*
 	 * Determine whether and which event to report to ptracer.  When

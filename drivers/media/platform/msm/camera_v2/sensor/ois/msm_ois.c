@@ -18,7 +18,7 @@
 #include "msm_ois.h"
 #include "msm_cci.h"
 /* MM-JF-add-BBS-log-00+{ */
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 #include "../fih_camera_bbs.h"  //fihtdc,derekcwwu add
 #endif
 /* MM-JF-add-BBS-log-00+} */
@@ -39,7 +39,7 @@ static int32_t msm_ois_power_down(struct msm_ois_ctrl_t *o_ctrl);
 static struct i2c_driver msm_ois_i2c_driver;
 
 /* MM-JF-add-BBS-log-00+{ */
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 extern int fih_camera_bbs_set(int id,int master,unsigned short sid,int module);//fihtdc,derekcwwu add
 extern void fih_camera_bbs_by_cci(int master,int sid,int error_code);//fihtdc,derekcwwu add
 #endif
@@ -534,7 +534,7 @@ static int32_t msm_ois_control(struct msm_ois_ctrl_t *o_ctrl,
 		cci_client->cci_i2c_master = o_ctrl->cci_master;
 		cci_client->i2c_freq_mode = set_info->ois_params.i2c_freq_mode;
 		/* MM-JF-add-BBS-log-00+{ */
-		#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+		#ifdef CONFIG_FIH_NB1
 		fih_camera_bbs_set((int)o_ctrl->pdev->id,cci_client->cci_i2c_master,(unsigned short)cci_client->sid,FIH_BBS_CAMERA_MODULE_OIS);//fihtdc,derekcwwu add
 		#endif
 		/* MM-JF-add-BBS-log-00+} */
@@ -630,7 +630,7 @@ static int32_t msm_ois_config(struct msm_ois_ctrl_t *o_ctrl,
 		/* MM-JF-add-BBS-log-00+{ */
 		{
 			pr_err("msm_ois_power_down failed %d\n", rc);
-			#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+			#ifdef CONFIG_FIH_NB1
 			fih_camera_bbs_by_cci(o_ctrl->i2c_client.cci_client->cci_i2c_master,
                                o_ctrl->i2c_client.cci_client->sid,FIH_BBS_CAMERA_ERRORCODE_POWER_DW);
 			#endif
@@ -643,7 +643,7 @@ static int32_t msm_ois_config(struct msm_ois_ctrl_t *o_ctrl,
 		/* MM-JF-add-BBS-log-00+{ */
 		{
 			pr_err("Failed ois power up%d\n", rc);
-			#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+			#ifdef CONFIG_FIH_NB1
 			fih_camera_bbs_by_cci(o_ctrl->i2c_client.cci_client->cci_i2c_master,
                                o_ctrl->i2c_client.cci_client->sid,FIH_BBS_CAMERA_ERRORCODE_POWER_UP);
 			#endif
@@ -1148,7 +1148,7 @@ uint32_t fih_write_reg(int addr, int data)
 {
 	uint32_t rc=0;
 	struct msm_camera_i2c_seq_reg_array reg_setting;
-	
+
 	pr_info("reg_write_data, addr=[%x], data=[%d]\n", addr, data);
 	reg_setting.reg_data_size = 1;
 	reg_setting.reg_addr = addr;

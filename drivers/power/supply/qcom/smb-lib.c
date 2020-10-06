@@ -37,10 +37,6 @@
 #endif
 //SW8-DH-Notify_USB_status_to_LGD_touch+]
 
-#ifdef CONFIG_FIH_A1N
-static bool first_apsd_complete = 0;
-#endif
-/* end FIH - A1N-5 */
 static bool forecast_charging = false;
 
 #define smblib_err(chg, fmt, ...)		\
@@ -1466,7 +1462,7 @@ out:
 	return rc;
 }
 
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 extern char fih_otg_disable_mode; // FIHTDC, IdaChiang, add for OTG FREQ
 #endif
 /* end FIH - NB1-506 */
@@ -1475,7 +1471,7 @@ static int _smblib_vbus_regulator_enable(struct regulator_dev *rdev)
 {
 	struct smb_charger *chg = rdev_get_drvdata(rdev);
 	int rc;
-#if defined(CONFIG_FIH_NB1) || defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 	if(fih_otg_disable_mode){
 		smblib_err(chg, "OTG has been disabled\n");
 		return -ECONNABORTED;
@@ -2606,7 +2602,6 @@ void FIH_chg_abnormal_check(struct smb_charger *chg)
 		FIH_USBIN_reEnable(chg);
 	}
 }
-/* end A1N-1713 */
 
 /* 1. The charger is online
   * 2. The charging status is FULL or DISCHARGING
@@ -3834,7 +3829,6 @@ void smblib_usb_plugin_locked(struct smb_charger *chg)
 
 
 	chg->fih_reEnable_max_limit = 0;
-	/* end FIH - A1N-1713 */
 
 	//SW8-DH-Notify_USB_status_to_LGD_touch+[
 	#ifdef CONFIG_TOUCHSCREEN_SIW
@@ -4150,8 +4144,8 @@ static void smblib_force_legacy_icl(struct smb_charger *chg, int pst)
 		vote(chg->usb_icl_votable, LEGACY_UNKNOWN_VOTER, true, 3000000);
 		break;
 	default:
-		smblib_err(chg, "Unknown APSD %d; forcing 500mA\n", pst);
-		vote(chg->usb_icl_votable, LEGACY_UNKNOWN_VOTER, true, 500000);
+		smblib_err(chg, "Unknown APSD %d; forcing suspend\n", pst);
+		vote(chg->usb_icl_votable, LEGACY_UNKNOWN_VOTER, true, 0);
 		break;
 	}
 }
@@ -4205,15 +4199,6 @@ static void smblib_handle_apsd_done(struct smb_charger *chg, bool rising)
 			smblib_notify_device_mode(chg, true);
 	case OCP_CHARGER_BIT:
 	case FLOAT_CHARGER_BIT:
-#ifdef CONFIG_FIH_A1N
-		if(apsd_result->bit == FLOAT_CHARGER_BIT && !first_apsd_complete){
-			smblib_rerun_apsd(chg);
-			first_apsd_complete = 1;
-			return;
-		}
-#endif
-/* end FIH - A1N-5 */
-
 		/* if not DCP then no hvdcp timeout happens, Enable pd here. */
 		vote(chg->pd_disallowed_votable_indirect, HVDCP_TIMEOUT_VOTER,
 				false, 0);
@@ -4226,11 +4211,6 @@ static void smblib_handle_apsd_done(struct smb_charger *chg, bool rising)
 	default:
 		break;
 	}
-
-#ifdef CONFIG_FIH_A1N
-	first_apsd_complete = 1;
-#endif
-/* end FIH - A1N-5 */
 
 	smblib_dbg(chg, PR_INTERRUPT, "IRQ: apsd-done rising; %s detected\n",
 		   apsd_result->name);
@@ -4515,16 +4495,11 @@ static void smblib_handle_typec_removal(struct smb_charger *chg)
 	vote(chg->apsd_disable_votable, PD_HARD_RESET_VOTER, false, 0);
 	vote(chg->apsd_disable_votable, PD_VOTER, false, 0);
 
-#ifdef CONFIG_FIH_A1N
-	first_apsd_complete = 0;
-#endif
-/* end FIH - A1N-5 */
-
 	cancel_delayed_work_sync(&chg->pl_enable_work);
 	cancel_delayed_work_sync(&chg->hvdcp_detect_work);
 
 	/* reset input current limit voters */
-	vote(chg->usb_icl_votable, LEGACY_UNKNOWN_VOTER, true, 100000);
+	vote(chg->usb_icl_votable, LEGACY_UNKNOWN_VOTER, true, 0);
 	vote(chg->usb_icl_votable, PD_VOTER, false, 0);
 	vote(chg->usb_icl_votable, USB_PSY_VOTER, false, 0);
 	vote(chg->usb_icl_votable, DCP_VOTER, false, 0);

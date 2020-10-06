@@ -377,7 +377,7 @@ struct msm_fb_data_type {
 	struct mutex switch_lock;
 	struct input_handler *input_handler;
 #if defined(CONFIG_AOD_FEATURE)
-#if defined(CONFIG_FIH_NB1)||defined(CONFIG_FIH_A1N)
+#ifdef CONFIG_FIH_NB1
 	u32 bl_aod_recovery;
 #endif
 #endif
