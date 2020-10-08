@@ -263,7 +263,6 @@ static struct msm_vidc_inst *get_inst(struct msm_vidc_inst *inst)
 static int publish_unreleased_reference(struct msm_vidc_inst *inst,
 		struct seq_file *s)
 {
-	char *cur = *dbuf;
 	struct buffer_info *temp = NULL;
 
 	if (!inst) {
@@ -345,6 +344,7 @@ static int vidc_debug_inst_show(struct seq_file *s, void *unused)
 		}
 
 		seq_printf(s, "count: %u\n",
+			inst->bufq[i].vb2_bufq.num_buffers);
 
 		for (j = 0; j < inst->prop.num_planes[i]; j++)
 			seq_printf(s,

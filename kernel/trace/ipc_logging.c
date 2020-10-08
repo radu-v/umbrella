@@ -286,7 +286,6 @@ void ipc_log_write(void *ctxt, struct encode_context *ectxt)
 	struct ipc_log_context *ilctxt = (struct ipc_log_context *)ctxt;
 	int bytes_to_write;
 	unsigned long flags;
-	int ret;
 
 	if (!ilctxt || !ectxt) {
 		pr_err("%s: Invalid ipc_log or encode context\n", __func__);
