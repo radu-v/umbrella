@@ -696,6 +696,9 @@ static int smb138x_parallel_set_prop(struct power_supply *psy,
 			break;
 		rc = smblib_set_prop_ship_mode(chg, val);
 		break;
+	case POWER_SUPPLY_PROP_BUCK_FREQ:
+		rc = 0;
+		break;
 	default:
 		pr_debug("parallel power supply set prop %d not supported\n",
 			prop);
