@@ -356,8 +356,6 @@ struct smb_charger {
 	bool			fih_chg_abnormal_check_en;
 	u8			fih_reEnable_max_limit;
 	/* end NB1-3293 */
-	bool			fih_wlc_fcc_en;
-	/* end A1NO-799 */
 
 	/* workaround flag */
 	u32			wa_flags;

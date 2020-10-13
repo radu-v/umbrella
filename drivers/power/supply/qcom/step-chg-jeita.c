@@ -21,8 +21,6 @@
 #define MAX_STEP_CHG_ENTRIES	8
 #define STEP_CHG_VOTER		"STEP_CHG_VOTER"
 #define JEITA_VOTER		"JEITA_VOTER"
-#define FIH_WLC_VOTER "FIH_WLC_VOTER"
-/* end A1NO-799 */
 
 #define is_between(left, right, value) \
 		(((left) >= (right) && (left) >= (value) \
@@ -43,14 +41,6 @@ struct step_chg_cfg {
 	struct range_data	fcc_cfg[MAX_STEP_CHG_ENTRIES];
 };
 
-struct wlc_fcc_cfg {
-	u32			psy_prop;
-	char			*prop_name;
-	int			hysteresis;
-	struct range_data	fcc_cfg[MAX_STEP_CHG_ENTRIES];
-};
-/* end A1NO-799 */
-
 struct jeita_fcc_cfg {
 	u32			psy_prop;
 	char			*prop_name;
@@ -68,8 +58,6 @@ struct jeita_fv_cfg {
 struct step_chg_info {
 	ktime_t			step_last_update_time;
 	ktime_t			jeita_last_update_time;
-	ktime_t			wlc_last_update_time;
-	/* end A1NO-799 */
 	bool			step_chg_enable;
 	bool			sw_jeita_enable;
 	int			jeita_fcc_index;
@@ -78,15 +66,11 @@ struct step_chg_info {
 	int			last_jeita_status;
 	/* end NB1O-1214 */
 	int			wlc_fcc_index;
-	bool 		fih_wlc_fcc_en;
-	/* end A1NO-799 */
 
 	struct votable		*fcc_votable;
 	struct votable		*fv_votable;
 	struct wakeup_source	*step_chg_ws;
 	struct power_supply	*batt_psy;
-	struct power_supply	*dc_psy;
-	/* end A1NO-799 */
 	struct delayed_work	status_change_work;
 	struct notifier_block	nb;
 };
@@ -125,25 +109,6 @@ static struct step_chg_cfg step_chg_config = {
 	#endif
 	},
 };
-
-/*
- * Because wireless charging generate more power dissipation, the battery
- * temperature would be raise quickly. We need to use another charging
- * strategy to avoid it
- */
-static struct wlc_fcc_cfg wlc_fcc_config = {
-	.psy_prop	= POWER_SUPPLY_PROP_TEMP,
-	.prop_name	= "BATT_TEMP",
-	.hysteresis	= 10, /* 1degC hysteresis */
-	.fcc_cfg	= {
-		/* TEMP_LOW	TEMP_HIGH	FCC */
-		{0,		       349,		3100000},
-		{350,		379,		1000000},
-		{380,		409,		700000},
-		{410,		549,		400000},
-	},
-};
-/* end A1NO-799 */
 
 /*
  * Jeita Charging Configuration
@@ -190,18 +155,6 @@ static bool is_batt_available(struct step_chg_info *chip)
 
 	return true;
 }
-
-static bool is_dc_available(struct step_chg_info *chip)
-{
-	if (!chip->dc_psy)
-		chip->dc_psy = power_supply_get_by_name("dc");
-
-	if (!chip->dc_psy)
-		return false;
-
-	return true;
-}
-/* end A1NO-799 */
 
 static int get_val(struct range_data *range, int hysteresis, int current_index,
 		int threshold,
@@ -444,104 +397,6 @@ reschedule:
 	return (STEP_CHG_HYSTERISIS_DELAY_US - elapsed_us + 1000);
 }
 
-static int handle_WLC(struct step_chg_info *chip)
-{
-	union power_supply_propval pval = {0, };
-	union power_supply_propval jeita_pval = {0, };
-	/* end NB1O-1214 */
-
-	int rc = 0, fcc_ua = 0;
-	u64 elapsed_us;
-	bool dc_present = 0;
-	bool dc_online = 0;
-
-	if ((!chip->fih_wlc_fcc_en) || (!is_dc_available(chip))) {
-		if (chip->fcc_votable)
-			vote(chip->fcc_votable, FIH_WLC_VOTER, false, 0);
-		return 0;
-	}
-
-	rc = power_supply_get_property(chip->dc_psy,
-	POWER_SUPPLY_PROP_PRESENT, &pval);
-	if(rc < 0)
-		dc_present = 0;
-	else
-		dc_present = pval.intval;
-
-	pval.intval = 0;
-	rc = power_supply_get_property(chip->dc_psy,
-	POWER_SUPPLY_PROP_ONLINE, &pval);
-	if(rc < 0)
-		dc_online = 0;
-	else
-		dc_online = pval.intval;
-
-	if(dc_present !=1 || dc_online !=1) {
-		if (chip->fcc_votable)
-			vote(chip->fcc_votable, FIH_WLC_VOTER, false, 0);
-		return 0;
-	}
-
-	elapsed_us = ktime_us_delta(ktime_get(), chip->wlc_last_update_time);
-	if (elapsed_us < STEP_CHG_HYSTERISIS_DELAY_US)
-		goto reschedule;
-
-	rc = power_supply_get_property(chip->batt_psy,
-				wlc_fcc_config.psy_prop, &pval);
-	if (rc < 0) {
-		pr_err("Couldn't read %s property rc=%d\n",
-				wlc_fcc_config.prop_name, rc);
-		return rc;
-	}
-
-	rc = power_supply_get_property(chip->batt_psy,
-				POWER_SUPPLY_PROP_HEALTH, &jeita_pval);
-
-	if(rc < 0) {
-		pr_err("Could not get battery health in handle_jeita\n");
-		return rc;
-	}
-
-	rc = get_val(wlc_fcc_config.fcc_cfg, wlc_fcc_config.hysteresis,
-			chip->wlc_fcc_index,
-			pval.intval,
-			&chip->wlc_fcc_index,
-			&fcc_ua,
-			chip->last_jeita_status,
-			jeita_pval.intval
-			);
-	/* end NB1O-1214 */
-
-	if (rc < 0) {
-		/* remove the vote if no wlc fcc is found */
-		if (chip->fcc_votable)
-			vote(chip->fcc_votable, FIH_WLC_VOTER, false, 0);
-		goto update_time;
-	}
-
-	if (!chip->fcc_votable)
-		chip->fcc_votable = find_votable("FCC");
-	if (!chip->fcc_votable)
-		/* changing FCC is a must */
-		return -EINVAL;
-
-	vote(chip->fcc_votable, FIH_WLC_VOTER, true, fcc_ua);
-
-	pr_debug("WLC: %s = %d WLC-FCC = %duA\n",
-		wlc_fcc_config.prop_name, pval.intval, fcc_ua);
-
-update_time:
-	chip->last_jeita_status = jeita_pval.intval;
-	/* end NB1O-1214 */
-	chip->wlc_last_update_time = ktime_get();
-	return 0;
-
-reschedule:
-	/* reschedule 1000uS after the remaining time */
-	return (STEP_CHG_HYSTERISIS_DELAY_US - elapsed_us + 1000);
-}
-/* end A1NO-799 */
-
 static void status_change_work(struct work_struct *work)
 {
 	struct step_chg_info *chip = container_of(work,
@@ -550,14 +405,12 @@ static void status_change_work(struct work_struct *work)
 	int reschedule_us;
 	int reschedule_jeita_work_us = 0;
 	int reschedule_step_work_us = 0;
-	int reschedule_wlc_work_us = 0;
 	union power_supply_propval pval = {0, };
 
 	if (!is_batt_available(chip)) {
 		__pm_relax(chip->step_chg_ws);
 		return;
 	}
-	/* end A1NO-799 */
 
 	/* skip jeita and step if not charging */
 	rc = power_supply_get_property(chip->batt_psy,
@@ -579,16 +432,7 @@ static void status_change_work(struct work_struct *work)
 	if (rc < 0)
 		pr_err("Couldn't handle step rc = %d\n", rc);
 
-	rc = handle_WLC(chip);
-	if (rc > 0)
-		reschedule_wlc_work_us = rc;
-	if (rc < 0)
-		pr_err("Couldn't handle WLC rc = %d\n", rc);
-	/* end A1NO-799 */
-
 	reschedule_us = min(reschedule_jeita_work_us, reschedule_step_work_us);
-	reschedule_us = min(reschedule_us, reschedule_wlc_work_us);
-	/* end A1NO-799 */
 
 	if (reschedule_us == 0)
 		__pm_relax(chip->step_chg_ws);
@@ -628,8 +472,7 @@ static int step_chg_register_notifier(struct step_chg_info *chip)
 	return 0;
 }
 
-int qcom_step_chg_init(bool step_chg_enable, bool sw_jeita_enable, bool fih_wlc_fcc_enable)
-/* end A1NO-799 */
+int qcom_step_chg_init(bool step_chg_enable, bool sw_jeita_enable)
 {
 	int rc;
 	struct step_chg_info *chip;
@@ -651,8 +494,6 @@ int qcom_step_chg_init(bool step_chg_enable, bool sw_jeita_enable, bool fih_wlc_
 
 	chip->step_chg_enable = step_chg_enable;
 	chip->sw_jeita_enable = sw_jeita_enable;
-	chip->fih_wlc_fcc_en = fih_wlc_fcc_enable;
-	/* end A1NO-799 */
 
 	chip->step_index = -EINVAL;
 	chip->jeita_fcc_index = -EINVAL;
@@ -681,15 +522,6 @@ int qcom_step_chg_init(bool step_chg_enable, bool sw_jeita_enable, bool fih_wlc_
 		rc = -ENODATA;
 		goto release_wakeup_source;
 	}
-
-	if (fih_wlc_fcc_enable && (!wlc_fcc_config.psy_prop ||
-				!wlc_fcc_config.prop_name)) {
-		/* fail if step-chg configuration is invalid */
-		pr_err("WLC TEMP configuration not defined - fail\n");
-		rc = -ENODATA;
-		goto release_wakeup_source;
-	}
-	/* end A1NO-799 */
 
 	INIT_DELAYED_WORK(&chip->status_change_work, status_change_work);
 

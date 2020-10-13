@@ -477,11 +477,8 @@ static int smb2_parse_dt(struct smb2 *chip)
 	}
 	/* end NB1-468 */
 
-	chg->fih_wlc_fcc_en = of_property_read_bool(node, "fih,wlc-fcc-en");
-	/* end A1NO-799 */
-
 	chg->fih_chg_abnormal_check_en = of_property_read_bool(node, "fih,chg-abnormal-check-en");
-	if(chg->fih_chg_abnormal_check_en == true) {
+	if(chg->fih_chg_abnormal_check_en) {
 		chg->fih_reEnable_max_limit = 0;
 	}
 	/* end NB1O-1665 */
@@ -1113,8 +1110,6 @@ static enum power_supply_property smb2_batt_props[] = {
 	POWER_SUPPLY_PROP_FCC_STEPPER_ENABLE,
 	POWER_SUPPLY_PROP_CHARGE_FULL,
 	POWER_SUPPLY_PROP_CYCLE_COUNT,
-	POWER_SUPPLY_PROP_FIH_WLC_FCC_EN,
-	/* end A1NO-799 */
 	POWER_SUPPLY_PROP_JEITA_FULL_CAPACITY_STATUS,
 	/* end NB1-8555 */
 	POWER_SUPPLY_PROP_INPUT_CURRENT_MAX,
@@ -1232,10 +1227,6 @@ static int smb2_batt_get_prop(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_FCC_STEPPER_ENABLE:
 		val->intval = chg->fcc_stepper_mode;
 		break;
-	case POWER_SUPPLY_PROP_FIH_WLC_FCC_EN:
-		val->intval = chg->fih_wlc_fcc_en;
-		break;
-	/* end A1NO-799 */
 	case POWER_SUPPLY_PROP_JEITA_FULL_CAPACITY_STATUS:
 		val->intval = FIH_check_chg_status(chg);
 		break;

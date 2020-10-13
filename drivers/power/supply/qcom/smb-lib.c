@@ -10,6 +10,8 @@
  * GNU General Public License for more details.
  */
 
+#define pr_fmt(fmt) "SMBLIB: %s: " fmt, __func__
+
 #include <linux/device.h>
 #include <linux/regmap.h>
 #include <linux/delay.h>
@@ -30,6 +32,7 @@
 #include <linux/fastchg.h>
 #endif
 
+#define showInfoDelayms 10000
 
 //SW8-DH-Notify_USB_status_to_LGD_touch+[
 #ifdef CONFIG_TOUCHSCREEN_SIW
@@ -38,6 +41,7 @@
 //SW8-DH-Notify_USB_status_to_LGD_touch+]
 
 static bool forecast_charging = false;
+static int fih_charging_en(struct smb_charger *chg, bool en);
 
 #define smblib_err(chg, fmt, ...)		\
 	pr_err("%s: %s: " fmt, chg->name,	\
@@ -54,7 +58,7 @@ static bool forecast_charging = false;
 	} while (0)
 
 
-#define BBS_LOG 1
+#define BBS_LOG 0
 #ifdef BBS_LOG
 #define QPNPCHG_CHARGER_FLOATING_CHARGER_ERROR do {pr_info("BBox;%s: Charger floating charger\n", __func__); pr_info("BBox::UEC;3::1\n");} while (0)
 #define QPNPCHG_CHARGER_UNKNOW_CHARGER_TYPE_ERROR do {pr_info("BBox;%s: Charger unknow charger type\n", __func__); pr_info("BBox::UEC;3::5\n");} while (0)
@@ -2550,7 +2554,7 @@ void FIH_chg_abnormal_check(struct smb_charger *chg)
 	bool jeita_hit = false;
 	int rc = 0;
 
-	if(chg->fih_chg_abnormal_check_en == false)
+	if(!chg->fih_chg_abnormal_check_en)
 		return;
 
 	prop.intval = 0;
@@ -3607,6 +3611,26 @@ irqreturn_t smblib_handle_otg_overcurrent(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
+static int fih_charging_en(struct smb_charger *chg, bool en)
+{
+	int rc;
+
+	smblib_dbg(chg, PR_MISC, "%s", en ? "enable" : "disable");
+
+	forecast_charging = en;
+	chg->chg_done = !en;
+	rc = smblib_masked_write(chg, CHARGING_ENABLE_CMD_REG,
+				 CHARGING_ENABLE_CMD_BIT,
+				 en ? CHARGING_ENABLE_CMD_BIT : 0);
+	if (rc < 0) {
+		smblib_err(chg, "Couldn't %s charging rc=%d\n",
+			en ? "enable" : "disable", rc);
+		return rc;
+	}
+
+	return 0;
+}
+
 irqreturn_t smblib_handle_chg_state_change(int irq, void *data)
 {
 	struct smb_irq_data *irq_data = data;
@@ -3614,9 +3638,7 @@ irqreturn_t smblib_handle_chg_state_change(int irq, void *data)
 	u8 stat;
 	int rc;
 
-	pr_debug("%s: %s: IRQ: %s\n", chg->name, __func__, irq_data->name);
-	/* end FIH - NB1-680 */
-	forecast_charging = false;
+	smblib_dbg(chg, PR_INTERRUPT, "IRQ: %s\n", irq_data->name);
 
 	rc = smblib_read(chg, BATTERY_CHARGER_STATUS_1_REG, &stat);
 	if (rc < 0) {
@@ -3626,10 +3648,15 @@ irqreturn_t smblib_handle_chg_state_change(int irq, void *data)
 	}
 
 	stat = stat & BATTERY_CHARGER_STATUS_MASK;
+	if (stat == TERMINATE_CHARGE) {
+		/* charge done, disable charge in software also */
+		chg->chg_done = true;
+		pr_err("TERMINATE_CHARGE: chg_done");
+		fih_charging_en(chg, false);
+	}
 	power_supply_changed(chg->batt_psy);
 	return IRQ_HANDLED;
 }
-
 
 irqreturn_t smblib_handle_batt_temp_changed(int irq, void *data)
 {
@@ -3852,9 +3879,9 @@ irqreturn_t smblib_handle_usb_plugin(int irq, void *data)
 	pr_debug("%s: %s: IRQ: %s\n", chg->name, __func__, irq_data->name);
 	/* end FIH - NB1-680 */
 	if (smblib_get_prop_usb_present(chg, &val) < 0 || !val.intval) {
-		forecast_charging = false;
+		fih_charging_en(chg, false);
 	} else {
-		forecast_charging = true;
+		fih_charging_en(chg, true);
 	}
 
 	mutex_unlock(&chg->lock);
@@ -4497,6 +4524,7 @@ static void smblib_handle_typec_removal(struct smb_charger *chg)
 
 	cancel_delayed_work_sync(&chg->pl_enable_work);
 	cancel_delayed_work_sync(&chg->hvdcp_detect_work);
+	cancel_delayed_work_sync(&chg->update_batt_info_work);
 
 	/* reset input current limit voters */
 	vote(chg->usb_icl_votable, LEGACY_UNKNOWN_VOTER, true, 0);
@@ -4573,8 +4601,10 @@ static void smblib_handle_typec_removal(struct smb_charger *chg)
 			rc);
 
 	/* enable DRP */
-	rc = smblib_masked_write(chg, TYPE_C_INTRPT_ENB_SOFTWARE_CTRL_REG,
-				 TYPEC_POWER_ROLE_CMD_MASK, 0);
+	rc = smblib_masked_write(chg,
+		TYPE_C_INTRPT_ENB_SOFTWARE_CTRL_REG,
+		TYPEC_POWER_ROLE_CMD_MASK,
+		0);
 	if (rc < 0)
 		smblib_err(chg, "Couldn't enable DRP rc=%d\n", rc);
 
@@ -4642,6 +4672,8 @@ static void smblib_handle_typec_insertion(struct smb_charger *chg)
 			smblib_err(chg, "Couldn't to enable DPDM rc=%d\n", rc);
 		typec_sink_removal(chg);
 	}
+
+	schedule_delayed_work(&chg->update_batt_info_work, msecs_to_jiffies(showInfoDelayms));
 }
 
 static void smblib_handle_rp_change(struct smb_charger *chg, int typec_mode)
@@ -4786,9 +4818,9 @@ irqreturn_t smblib_handle_dc_plugin(int irq, void *data)
 
 	pr_debug("%s: %s: IRQ: %s\n", chg->name, __func__, irq_data->name);
 	if (smblib_get_prop_dc_present(chg, &val) < 0 || !val.intval) {
-		forecast_charging = false;
+		fih_charging_en(chg, false);
 	} else {
-		forecast_charging = true;
+		fih_charging_en(chg, true);
 	}
 	power_supply_changed(chg->dc_psy);
 	return IRQ_HANDLED;
@@ -5072,6 +5104,7 @@ static void smblib_otg_oc_exit(struct smb_charger *chg, bool success)
 	if (!success) {
 		smblib_err(chg, "OTG soft start failed\n");
 		chg->otg_en = false;
+		vote(chg->usb_icl_votable, USBIN_USBIN_BOOST_VOTER, false, 0);
 	}
 
 	smblib_dbg(chg, PR_OTG, "enabling VBUS < 1V check\n");
@@ -5319,7 +5352,6 @@ unlock:
 	mutex_unlock(&chg->lock);
 }
 
-#define showInfoDelayms 10000
 static void fih_update_batt_info_work(struct work_struct *work)
 {
 	union power_supply_propval val = {0, };
@@ -5596,7 +5628,6 @@ static int smblib_create_votables(struct smb_charger *chg)
 		return rc;
 	}
 
-
 	chg->hvdcp_disable_votable_indirect = create_votable(
 				"HVDCP_DISABLE_INDIRECT",
 				VOTE_SET_ANY,
@@ -5729,9 +5760,7 @@ int smblib_init(struct smb_charger *chg)
 		}
 
 		rc = qcom_step_chg_init(chg->step_chg_enabled,
-						chg->sw_jeita_enabled,
-						chg->fih_wlc_fcc_en);
-						/* end A1NO-799 */
+						chg->sw_jeita_enabled);
 		if (rc < 0) {
 			smblib_err(chg, "Couldn't init qcom_step_chg_init rc=%d\n",
 				rc);
@@ -5769,6 +5798,7 @@ int smblib_deinit(struct smb_charger *chg)
 {
 	switch (chg->mode) {
 	case PARALLEL_MASTER:
+		cancel_delayed_work_sync(&chg->update_batt_info_work);
 		cancel_work_sync(&chg->bms_update_work);
 		cancel_work_sync(&chg->rdstd_cc2_detach_work);
 		cancel_delayed_work_sync(&chg->hvdcp_detect_work);
