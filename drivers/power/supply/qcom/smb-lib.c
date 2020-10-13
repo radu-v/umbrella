@@ -56,15 +56,15 @@ static bool forecast_charging = false;
 
 #define BBS_LOG 1
 #ifdef BBS_LOG
-#define QPNPCHG_CHARGER_FLOATING_CHARGER_ERROR do {printk("BBox;%s: Charger floating charger\n", __func__); printk("BBox::UEC;3::1\n");} while (0)
-#define QPNPCHG_CHARGER_UNKNOW_CHARGER_TYPE_ERROR do {printk("BBox;%s: Charger unknow charger type\n", __func__); printk("BBox::UEC;3::5\n");} while (0)
-#define QPNPCHG_BATTERY_MISSING_ERROR do {printk("BBox;%s: Battery missing\n", __func__); printk("BBox::UEC;11::2\n");} while (0)
-#define CHARGER_READ_ERROR	do {printk("BBox;%s: charger read failed\n", __func__); printk("BBox::UEC;11::3\n");} while (0)
-#define CHARGER_WRITE_ERROR	do {printk("BBox;%s: charger write failed\n", __func__); printk("BBox::UEC;11::4\n");} while (0)
-#define CHARGER_WEAK_ERROR	do {printk("BBox;%s: charger weak\n", __func__); printk("BBox::UEC;11::5\n");} while (0)
-#define CHARGER_OVP_ERROR	do {printk("BBox;%s: charger ovp error\n", __func__); printk("BBox::UEC;11::6\n");} while (0)
-#define CHARGER_USBIN_UV_ERROR	do {printk("BBox;%s: charger usbin uv\n", __func__); printk("BBox::UEC;11::7\n");} while (0)
-#define QPNPFG_BATTERY_SHUTDOWN_TEMP do {printk("BBox;%s: Battery temp reach shutdown temp\n", __func__); printk("BBox::UEC;49::1\n");} while (0)
+#define QPNPCHG_CHARGER_FLOATING_CHARGER_ERROR do {pr_info("BBox;%s: Charger floating charger\n", __func__); pr_info("BBox::UEC;3::1\n");} while (0)
+#define QPNPCHG_CHARGER_UNKNOW_CHARGER_TYPE_ERROR do {pr_info("BBox;%s: Charger unknow charger type\n", __func__); pr_info("BBox::UEC;3::5\n");} while (0)
+#define QPNPCHG_BATTERY_MISSING_ERROR do {pr_info("BBox;%s: Battery missing\n", __func__); pr_info("BBox::UEC;11::2\n");} while (0)
+#define CHARGER_READ_ERROR	do {pr_info("BBox;%s: charger read failed\n", __func__); pr_info("BBox::UEC;11::3\n");} while (0)
+#define CHARGER_WRITE_ERROR	do {pr_info("BBox;%s: charger write failed\n", __func__); pr_info("BBox::UEC;11::4\n");} while (0)
+#define CHARGER_WEAK_ERROR	do {pr_info("BBox;%s: charger weak\n", __func__); pr_info("BBox::UEC;11::5\n");} while (0)
+#define CHARGER_OVP_ERROR	do {pr_info("BBox;%s: charger ovp error\n", __func__); pr_info("BBox::UEC;11::6\n");} while (0)
+#define CHARGER_USBIN_UV_ERROR	do {pr_info("BBox;%s: charger usbin uv\n", __func__); pr_info("BBox::UEC;11::7\n");} while (0)
+#define QPNPFG_BATTERY_SHUTDOWN_TEMP do {pr_info("BBox;%s: Battery temp reach shutdown temp\n", __func__); pr_info("BBox::UEC;49::1\n");} while (0)
 #endif
 /* end NB1-105 */
 
@@ -3570,7 +3570,7 @@ irqreturn_t smblib_handle_debug(int irq, void *data)
 			value = get_effective_result(chg->usb_icl_votable);
 			value = value / 1000;
 			if(value <= 700 && (chg->usb_psy_desc.type != POWER_SUPPLY_TYPE_USB))
-				printk("BBox::UPD;51::%d::DCP\n", value);
+				pr_info("BBox::UPD;51::%d::DCP\n", value);
 		} else if (!strcmp(irq_data->name, "usbin-collapse"))
 			CHARGER_WEAK_ERROR;
 		else if (!strcmp(irq_data->name, "usbin-ov"))
