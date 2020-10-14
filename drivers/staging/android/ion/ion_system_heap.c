@@ -99,11 +99,6 @@ size_t ion_system_heap_secure_page_pool_total(struct ion_heap *heap,
 	return total << PAGE_SHIFT;
 }
 
-static int ion_heap_is_system_heap_type(enum ion_heap_type type)
-{
-	return type == ((enum ion_heap_type)ION_HEAP_TYPE_SYSTEM);
-}
-
 static struct page *alloc_buffer_page(struct ion_system_heap *heap,
 				      struct ion_buffer *buffer,
 				      unsigned long order,
