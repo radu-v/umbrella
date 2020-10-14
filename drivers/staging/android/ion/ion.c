@@ -51,13 +51,18 @@ static struct ion_buffer *ion_buffer_create(struct ion_heap *heap, size_t len,
 	if (!buffer)
 		return ERR_PTR(-ENOMEM);
 
-	INIT_LIST_HEAD(&buffer->iommu_data.map_list);
-	mutex_init(&buffer->iommu_data.lock);
-	buffer->heap = heap;
-	buffer->flags = flags;
-	kref_init(&buffer->ref);
-
-	ret = heap->ops->allocate(heap, buffer, len, align, flags);
+	*buffer = (typeof(*buffer)){
+		.flags = flags,
+		.heap = heap,
+		.size = len,
+		.refcount = ATOMIC_INIT(1),
+		.kmap_lock = __MUTEX_INITIALIZER(buffer->kmap_lock),
+		.free = __WORK_INITIALIZER(buffer->free, ion_buffer_free_work),
+		.iommu_data = {
+			.map_list = LIST_HEAD_INIT(buffer->iommu_data.map_list),
+			.lock = __MUTEX_INITIALIZER(buffer->iommu_data.lock)
+		}
+	};
 
 	if (heap->ops->allocate(heap, buffer, len, align, flags)) {
 		if (!(heap->flags & ION_HEAP_FLAG_DEFER_FREE))
@@ -88,24 +93,6 @@ free_buffer:
 void ion_buffer_put(struct ion_buffer *buffer)
 {
 	struct ion_heap *heap = buffer->heap;
-	struct ion_device *dev = buffer->dev;
-
-	msm_dma_buf_freed(&buffer->iommu_data);
-
-	mutex_lock(&dev->buffer_lock);
-	rb_erase(&buffer->node, &dev->buffers);
-	mutex_unlock(&dev->buffer_lock);
-
-	if (heap->flags & ION_HEAP_FLAG_DEFER_FREE)
-		ion_heap_freelist_add(heap, buffer);
-	else
-		ion_buffer_destroy(buffer);
-}
-
-static void ion_buffer_get(struct ion_buffer *buffer)
-{
-	kref_get(&buffer->ref);
-}
 
 	if (atomic_dec_and_test(&buffer->refcount)) {
 		if (heap->flags & ION_HEAP_FLAG_DEFER_FREE)
@@ -270,8 +257,8 @@ static struct sg_table *ion_map_dma_buf(struct dma_buf_attachment *attachment,
 					enum dma_data_direction dir)
 {
 	struct dma_buf *dmabuf = attachment->dmabuf;
-	struct ion_buffer *buffer = container_of(dmabuf->priv, typeof(*buffer), iommu_data);
-	struct sg_table *table;
+	struct ion_buffer *buffer = container_of(dmabuf->priv, typeof(*buffer),
+						 iommu_data);
 
 	return ion_dup_sg_table(buffer->sg_table);
 }
@@ -286,8 +273,9 @@ static void ion_unmap_dma_buf(struct dma_buf_attachment *attachment,
 
 static int ion_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
 {
-	struct ion_buffer *buffer = container_of(dmabuf->priv, typeof(*buffer), iommu_data);
-	int ret = 0;
+	struct ion_buffer *buffer = container_of(dmabuf->priv, typeof(*buffer),
+						 iommu_data);
+	struct ion_heap *heap = buffer->heap;
 
 	if (!heap->ops->map_user)
 		return -EINVAL;
@@ -300,14 +288,16 @@ static int ion_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
 
 static void ion_dma_buf_release(struct dma_buf *dmabuf)
 {
-	struct ion_buffer *buffer = container_of(dmabuf->priv, typeof(*buffer), iommu_data);
+	struct ion_buffer *buffer = container_of(dmabuf->priv, typeof(*buffer),
+						 iommu_data);
 
 	ion_buffer_put(buffer);
 }
 
 static void *ion_dma_buf_kmap(struct dma_buf *dmabuf, unsigned long offset)
 {
-	struct ion_buffer *buffer = container_of(dmabuf->priv, typeof(*buffer), iommu_data);
+	struct ion_buffer *buffer = container_of(dmabuf->priv, typeof(*buffer),
+						 iommu_data);
 
 	return buffer->vaddr + offset * PAGE_SIZE;
 }
@@ -315,14 +305,8 @@ static void *ion_dma_buf_kmap(struct dma_buf *dmabuf, unsigned long offset)
 static int ion_dma_buf_begin_cpu_access(struct dma_buf *dmabuf, size_t start,
 					size_t len, enum dma_data_direction dir)
 {
-	struct ion_buffer *buffer = container_of(dmabuf->priv, typeof(*buffer), iommu_data);
-	void *vaddr;
-
-	if (!buffer->heap->ops->map_kernel) {
-		pr_err("%s: map kernel is not implemented by this heap.\n",
-		       __func__);
-		return -ENODEV;
-	}
+	struct ion_buffer *buffer = container_of(dmabuf->priv, typeof(*buffer),
+						 iommu_data);
 
 	return PTR_RET(__ion_map_kernel(buffer));
 }
@@ -330,7 +314,8 @@ static int ion_dma_buf_begin_cpu_access(struct dma_buf *dmabuf, size_t start,
 static void ion_dma_buf_end_cpu_access(struct dma_buf *dmabuf, size_t start,
 				       size_t len, enum dma_data_direction dir)
 {
-	struct ion_buffer *buffer = container_of(dmabuf->priv, typeof(*buffer), iommu_data);
+	struct ion_buffer *buffer = container_of(dmabuf->priv, typeof(*buffer),
+						 iommu_data);
 
 	__ion_unmap_kernel(buffer);
 }
@@ -355,26 +340,6 @@ struct dma_buf *__ion_share_dma_buf(struct ion_buffer *buffer)
 		.priv = &buffer->iommu_data
 	};
 	struct dma_buf *dmabuf;
-	bool valid_handle;
-
-	if (lock_client)
-		mutex_lock(&client->lock);
-	valid_handle = ion_handle_validate(client, handle);
-	if (!valid_handle) {
-		WARN(1, "%s: invalid handle passed to share.\n", __func__);
-		if (lock_client)
-			mutex_unlock(&client->lock);
-		return ERR_PTR(-EINVAL);
-	}
-	buffer = handle->buffer;
-	ion_buffer_get(buffer);
-	if (lock_client)
-		mutex_unlock(&client->lock);
-
-	exp_info.ops = &dma_buf_ops;
-	exp_info.size = buffer->size;
-	exp_info.flags = O_RDWR;
-	exp_info.priv = &buffer->iommu_data;
 
 	dmabuf = dma_buf_export(&exp_info);
 	if (!IS_ERR(dmabuf))
@@ -407,37 +372,6 @@ struct ion_buffer *__ion_import_dma_buf(int fd)
 	dmabuf = dma_buf_get(fd);
 	if (IS_ERR(dmabuf))
 		return ERR_CAST(dmabuf);
-	/* if this memory came from ion */
-
-	if (dmabuf->ops != &dma_buf_ops) {
-		pr_err("%s: can not import dmabuf from another exporter\n",
-		       __func__);
-		dma_buf_put(dmabuf);
-		return ERR_PTR(-EINVAL);
-	}
-	buffer = container_of(dmabuf->priv, typeof(*buffer), iommu_data);
-
-	mutex_lock(&client->lock);
-	/* if a handle exists for this buffer just take a reference to it */
-	handle = ion_handle_lookup(client, buffer);
-	if (!IS_ERR(handle)) {
-		handle = ion_handle_get_check_overflow(handle);
-		mutex_unlock(&client->lock);
-		goto end;
-	}
-
-	handle = ion_handle_create(client, buffer);
-	if (IS_ERR(handle)) {
-		mutex_unlock(&client->lock);
-		goto end;
-	}
-
-	ret = ion_handle_add(client, handle);
-	mutex_unlock(&client->lock);
-	if (ret) {
-		ion_handle_put(handle);
-		handle = ERR_PTR(ret);
-	}
 
 	buffer = container_of(dmabuf->priv, typeof(*buffer), iommu_data);
 	atomic_inc(&buffer->refcount);
@@ -455,14 +389,8 @@ struct ion_handle *ion_handle_get_by_id(struct ion_client *client, int id)
 		atomic_inc(&handle->refcount);
 	read_unlock(&client->idr_lock);
 
-	/* if this memory came from ion */
-	if (dmabuf->ops != &dma_buf_ops) {
-		pr_err("%s: can not sync dmabuf from another exporter\n",
-		       __func__);
-		dma_buf_put(dmabuf);
-		return -EINVAL;
-	}
-	buffer = container_of(dmabuf->priv, typeof(*buffer), iommu_data);
+	return handle ? handle : ERR_PTR(-EINVAL);
+}
 
 static void ion_handle_rb_add(struct ion_client *client,
 			      struct ion_handle *handle)
