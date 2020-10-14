@@ -35,9 +35,136 @@
 #endif
 #include <linux/device.h>
 #include <linux/miscdevice.h>
+#include <linux/msm_dma_iommu_mapping.h>
 
 #include "ion.h"
 
+struct ion_buffer *ion_handle_buffer(struct ion_handle *handle);
+
+/**
+ * struct ion_buffer - metadata for a particular buffer
+ * @ref:		reference count
+ * @node:		node in the ion_device buffers tree
+ * @dev:		back pointer to the ion_device
+ * @heap:		back pointer to the heap the buffer came from
+ * @flags:		buffer specific flags
+ * @private_flags:	internal buffer specific flags
+ * @size:		size of the buffer
+ * @priv_virt:		private data to the buffer representable as
+ *			a void *
+ * @priv_phys:		private data to the buffer representable as
+ *			an ion_phys_addr_t (and someday a phys_addr_t)
+ * @lock:		protects the buffers cnt fields
+ * @kmap_cnt:		number of times the buffer is mapped to the kernel
+ * @vaddr:		the kenrel mapping if kmap_cnt is not zero
+ * @sg_table:		the sg table for the buffer.  Note that if you need
+ *			an sg_table for this buffer, you should likely be
+ *			using Ion as a DMA Buf exporter and using
+ *			dma_buf_map_attachment rather than trying to use this
+ *			field directly.
+ * @pages:		flat array of pages in the buffer -- used by fault
+ *			handler and only valid for buffers that are faulted in
+ * @vmas:		list of vma's mapping this buffer
+ * @handle_count:	count of handles referencing this buffer
+ * @task_comm:		taskcomm of last client to reference this buffer in a
+ *			handle, used for debugging
+ * @pid:		pid of last client to reference this buffer in a
+ *			handle, used for debugging
+*/
+struct ion_buffer {
+	struct kref ref;
+	union {
+		struct rb_node node;
+		struct list_head list;
+	};
+	struct ion_device *dev;
+	struct ion_heap *heap;
+	unsigned long flags;
+	unsigned long private_flags;
+	size_t size;
+	union {
+		void *priv_virt;
+		ion_phys_addr_t priv_phys;
+	};
+	struct mutex lock;
+	int kmap_cnt;
+	void *vaddr;
+	struct sg_table *sg_table;
+	struct page **pages;
+	struct list_head vmas;
+	/* used to track orphaned buffers */
+	int handle_count;
+	char task_comm[TASK_COMM_LEN];
+	pid_t pid;
+	struct msm_iommu_data iommu_data;
+};
+void ion_buffer_destroy(struct ion_buffer *buffer);
+
+/**
+ * struct ion_device - the metadata of the ion device node
+ * @dev:		the actual misc device
+ * @buffers:		an rb tree of all the existing buffers
+ * @buffer_lock:	lock protecting the tree of buffers
+ * @lock:		rwsem protecting the tree of heaps and clients
+ * @heaps:		list of all the heaps in the system
+ * @user_clients:	list of all the clients created from userspace
+ */
+struct ion_device {
+	struct miscdevice dev;
+	struct rb_root buffers;
+	struct mutex buffer_lock;
+	struct rw_semaphore lock;
+	struct plist_head heaps;
+	long (*custom_ioctl)(struct ion_client *client, unsigned int cmd,
+			     unsigned long arg);
+	struct rb_root clients;
+	struct dentry *debug_root;
+	struct dentry *heaps_debug_root;
+	struct dentry *clients_debug_root;
+};
+
+/**
+ * struct ion_client - a process/hw block local address space
+ * @node:		node in the tree of all clients
+ * @dev:		backpointer to ion device
+ * @handles:		an rb tree of all the handles in this client
+ * @idr:		an idr space for allocating handle ids
+ * @lock:		lock protecting the tree of handles
+ * @name:		used for debugging
+ * @display_name:	used for debugging (unique version of @name)
+ * @display_serial:	used for debugging (to make display_name unique)
+ * @task:		used for debugging
+ *
+ * A client represents a list of buffers this client may access.
+ * The mutex stored here is used to protect both handles tree
+ * as well as the handles themselves, and should be held while modifying either.
+ */
+struct ion_client {
+	struct rb_node node;
+	struct ion_device *dev;
+	struct rb_root handles;
+	struct idr idr;
+	struct mutex lock;
+	char *name;
+	char *display_name;
+	int display_serial;
+	struct task_struct *task;
+	pid_t pid;
+	struct dentry *debug_root;
+};
+
+/**
+ * ion_handle - a client local reference to a buffer
+ * @ref:		reference count
+ * @client:		back pointer to the client the buffer resides in
+ * @buffer:		pointer to the buffer
+ * @node:		node in the client's handle rbtree
+ * @kmap_cnt:		count of times this client has mapped to kernel
+ * @id:			client-unique id allocated by client->idr
+ *
+ * Modifications to node, map_cnt or mapping should be protected by the
+ * lock in the client.  Other fields are never changed after initialization.
+ */
 struct ion_handle {
 	struct ion_buffer *buffer;
 	struct ion_client *client;
