@@ -28,7 +28,7 @@
 static struct class *timed_output_class;
 static atomic_t device_count;
 #ifdef CONFIG_FIH_NB1
-extern void fih_set_level(int value);
+extern void set_vibrate(int value);
 #endif
 static ssize_t enable_show(struct device *dev, struct device_attribute *attr,
 			   char *buf)
@@ -56,7 +56,7 @@ static ssize_t enable_store(struct device *dev, struct device_attribute *attr,
 			value = 9;
 		else if(value == 16)
 			value = 6;
-		fih_set_level(value);
+		set_vibrate(value);
 	}
 #endif
 	tdev->enable(tdev, value);
