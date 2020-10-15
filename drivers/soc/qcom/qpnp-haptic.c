@@ -1798,63 +1798,34 @@ static ssize_t qpnp_hap_vmax_store(struct device *dev,
 	if (rc)
 		return rc;
 
-	hap->vmax_mv = data;
-	return count;
-}
 #ifdef CONFIG_FIH_NB1
-static ssize_t qpnp_hap_level_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
-{
-	struct timed_output_dev *timed_dev = dev_get_drvdata(dev);
-	struct qpnp_hap *hap = container_of(timed_dev, struct qpnp_hap,
-					 timed_dev);
-
-	int rc, data;
-
-	if (sscanf(buf, "%d", &data) != 1)
-		return -EINVAL;
+	if (data == 0) // weak voltage
+	    hap->vmax_mv = g_weak_voltage;
+	else if (data == 1)
+	    hap->vmax_mv = g_default_voltage;
 	else
 	{
-		if(data == 0) //weak voltage
-			hap->vmax_mv = g_weak_voltage;
-		else if(data == 1)
-			hap->vmax_mv = g_default_voltage;
-		else
-		{
-			hap->vmax_mv = data;
-			g_default_voltage = hap->vmax_mv;
-		}
+	    if (data < QPNP_HAP_VMAX_MIN_MV) data = QPNP_HAP_VMAX_MIN_MV;
+	    else if (data > QPNP_HAP_VMAX_MAX_MV) data = QPNP_HAP_VMAX_MAX_MV;
 
-		dev_info(&hap->pdev->dev, "set haptics vmax = %d\n", hap->vmax_mv);
+	    hap->vmax_mv = data;
+	    g_default_voltage = hap->vmax_mv;
 	}
+
+	dev_info(&hap->pdev->dev, "set haptics vmax = %d\n", hap->vmax_mv);
+
 	/* Configure the VMAX register */
 	rc = qpnp_hap_vmax_config(hap, hap->vmax_mv, false);
 	if (rc)
 		return rc;
+#else
+	hap->vmax_mv = data;
+#endif
 
 	return count;
 }
 
-/* sysfs show function for min max test data */
-static ssize_t qpnp_hap_level_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
-{
-	struct timed_output_dev *timed_dev = dev_get_drvdata(dev);
-	struct qpnp_hap *hap = container_of(timed_dev, struct qpnp_hap,
-					 timed_dev);
-
-	int count = 0;
-	u8 val;
-
-	qpnp_hap_read_reg(hap, hap->base + 0x51, &val);
-	count += snprintf(buf + count, PAGE_SIZE,
-			"qpnp_haptics: REG_0x%x = 0x%x\n",
-			hap->base + 0x51,
-			val);
-
-	return count;
-}
-
+#ifdef CONFIG_FIH_NB1
 void fih_set_level(int value)
 {
 	struct qpnp_hap *hap = ghap;
@@ -1903,9 +1874,6 @@ static struct device_attribute qpnp_hap_attrs[] = {
 		qpnp_hap_override_auto_mode_show,
 		qpnp_hap_override_auto_mode_store),
 	__ATTR(vmax_mv, 0664, qpnp_hap_vmax_show, qpnp_hap_vmax_store),
-#ifdef CONFIG_FIH_NB1
-	__ATTR(level, 0664, qpnp_hap_level_show, qpnp_hap_level_store),
-#endif
 };
 
 static int calculate_lra_code(struct qpnp_hap *hap)
