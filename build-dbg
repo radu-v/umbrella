@@ -51,4 +51,4 @@ make -j$(nproc --all) O=out \
     READELF=llvm-readelf HOSTCC=clang HOSTCXX=clang++ HOSTAR=llvm-ar \
     CROSS_COMPILE=aarch64-linux-gnu- \
     CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
-    LOCALVERSION=-dbg-$CURRENT_BRANCH_CLEAN-$LAST_COMMIT-$(date +%s) $*
+    LOCALVERSION=-dbg-$CURRENT_BRANCH_CLEAN-$(date +"%d%m%y%H%M")-$LAST_COMMIT $*
