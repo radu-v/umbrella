@@ -145,7 +145,7 @@ static enum tfa_error tfa98xx_tfa_start(struct tfa98xx *tfa98xx, int next_profil
 static int tfa98xx_input_open(struct input_dev *dev)
 {
 	struct tfa98xx *tfa98xx = input_get_drvdata(dev);
-	dev_err(tfa98xx->codec->dev, "tfa98xx: opening device file\n");
+	dev_dbg(tfa98xx->codec->dev, "tfa98xx: opening device file\n");
 
 	/* note: open function is called only once by the framework.
 	 * No need to count number of open file instances.
@@ -167,7 +167,7 @@ static void tfa98xx_input_close(struct input_dev *dev)
 {
 	struct tfa98xx *tfa98xx = input_get_drvdata(dev);
 
-	dev_err(tfa98xx->codec->dev, "tfa98xx: closing device file\n");
+	dev_dbg(tfa98xx->codec->dev, "tfa98xx: closing device file\n");
 
 	/* Note: close function is called if the device is unregistered */
 
@@ -213,7 +213,7 @@ static int tfa98xx_register_inputdev(struct tfa98xx *tfa98xx)
 		goto err_free_dev;
 	}
 
-	dev_err(tfa98xx->codec->dev, "tfa98xx: Input device for tap-detection registered: %s\n",
+	dev_dbg(tfa98xx->codec->dev, "tfa98xx: Input device for tap-detection registered: %s\n",
 		input->name);
 	tfa98xx->input = input;
 	return 0;
@@ -260,7 +260,7 @@ static void __tfa98xx_inputdev_check_register(struct tfa98xx *tfa98xx, bool unre
 
 	/* input device required */
 	if (tfa98xx->input)
-		dev_err(tfa98xx->codec->dev, "tfa98xx: Input device already registered, skipping\n");
+		dev_dbg(tfa98xx->codec->dev, "tfa98xx: Input device already registered, skipping\n");
 	else
 		tfa98xx_register_inputdev(tfa98xx);
 }
@@ -1609,7 +1609,7 @@ static int tfa98xx_register_dsp(struct tfa98xx *tfa98xx)
 	}
 	if (handle != -1) {
 		tfa98xx_devices[handle] = tfa98xx;
-		dev_err(&tfa98xx->i2c->dev,
+		dev_dbg(&tfa98xx->i2c->dev,
 				"tfa98xx: Registered DSP instance with handle %d\n",
 								handle);
 		tfa98xx_registered_handles++;
@@ -1627,7 +1627,7 @@ static void tfa98xx_unregister_dsp(struct tfa98xx *tfa98xx)
 	tfa98xx_registered_handles--;
 
 	tfa98xx_devices[tfa98xx->handle] = NULL;
-	dev_err(&tfa98xx->i2c->dev, "tfa98xx: Un-registered DSP instance with handle %d\n",
+	dev_dbg(&tfa98xx->i2c->dev, "tfa98xx: Un-registered DSP instance with handle %d\n",
 							tfa98xx->handle);
 }
 
@@ -1902,14 +1902,14 @@ static void tfa98xx_tapdet_check_update(struct tfa98xx *tfa98xx)
 						&tfa98xx->tapdet_work, HZ/10);
 		else
 			cancel_delayed_work_sync(&tfa98xx->tapdet_work);
-		dev_err(tfa98xx->codec->dev,
+		dev_dbg(tfa98xx->codec->dev,
 			"tfa98xx: Polling for tap-detection: %s (%d; 0x%x, %d)\n",
 			enable? "enabled":"disabled",
 			tfa98xx->tapdet_open, tfa98xx->tapdet_profiles,
 			tfa98xx_profile);
 
 	} else {
-		dev_err(tfa98xx->codec->dev,
+		dev_dbg(tfa98xx->codec->dev,
 			"tfa98xx: SPK interrupt for tap-detection: %s (%d; 0x%x, %d)\n",
 				enable? "enabled":"disabled",
 				tfa98xx->tapdet_open, tfa98xx->tapdet_profiles,
@@ -1976,7 +1976,7 @@ static void __tfa98xx_interrupt_setup(struct tfa98xx *tfa98xx)
 	handles_local[tfa98xx->handle].interrupt_enable[0] = ie_reg;
 	handles_local[tfa98xx->handle].interrupt_status[0] = 0;
 
-	dev_err(&tfa98xx->i2c->dev, "tfa98xx: Initial interrupts setup: ICR = 0x%04x\n", ie_reg);
+	dev_dbg(&tfa98xx->i2c->dev, "tfa98xx: Initial interrupts setup: ICR = 0x%04x\n", ie_reg);
 }
 
 /* Restore for 1st generation of devices */
@@ -1992,10 +1992,10 @@ static void __tfa98xx_interrupt_restore(struct tfa98xx *tfa98xx)
 		/* Write interrupt enable registers */
 		regmap_write(tfa98xx->regmap, TFA98XX_INTERRUPT_REG, ie_reg);
 
-		dev_err(&tfa98xx->i2c->dev, "tfa98xx: Restored interrupts: ICR = 0x%04x\n",
+		dev_dbg(&tfa98xx->i2c->dev, "tfa98xx: Restored interrupts: ICR = 0x%04x\n",
 									ie_reg);
 	} else {
-		dev_err(&tfa98xx->i2c->dev, "tfa98xx: No interrupt restore needed\n");
+		dev_dbg(&tfa98xx->i2c->dev, "tfa98xx: No interrupt restore needed\n");
 	}
 
 }
@@ -2133,7 +2133,7 @@ static void tfa98xx_container_loaded(const struct firmware *cont, void *context)
 			if (strcmp(tfaContProfileName(tfa98xx->handle, i),
 							dflt_prof_name) == 0) {
 				tfa98xx_profile = i;
-				dev_err(tfa98xx->dev,
+				dev_dbg(tfa98xx->dev,
 					"tfa98xx: changing default profile to %s (%d)\n",
 					dflt_prof_name, tfa98xx_profile);
 				break;
@@ -2346,7 +2346,7 @@ static void tfa98xx_dsp_init(struct tfa98xx *tfa98xx)
 			reschedule = true;
 		} else {
 			/* Subsystem ready, tfa init complete */
-			dev_err(&tfa98xx->i2c->dev,
+			dev_dbg(&tfa98xx->i2c->dev,
 						"tfa98xx: tfa_start success (%d)\n",
 						tfa98xx->init_count);
 			/* cancel other pending init works */
@@ -2610,7 +2610,7 @@ static int tfa98xx_mute(struct snd_soc_dai *dai, int mute, int stream)
 	struct snd_soc_codec *codec = dai->codec;
 	struct tfa98xx *tfa98xx = snd_soc_codec_get_drvdata(codec);
 
-	dev_err(&tfa98xx->i2c->dev, "tfa98xx: state: %d\n", mute);
+	dev_dbg(&tfa98xx->i2c->dev, "tfa98xx: state: %d\n", mute);
 
 	if (!(tfa98xx->flags & TFA98XX_FLAG_DSP_START_ON_MUTE))
 		return 0;
@@ -2847,7 +2847,7 @@ static void __tfa98xx_irq(struct tfa98xx *tfa98xx)
 
 	val = snd_soc_read(tfa98xx->codec, TFA98XX_STATUSREG);
 
-	dev_err(&tfa98xx->i2c->dev, "tfa98xx: interrupt: 0x%04x (enabled: 0x%04x)\n", val, ie);
+	dev_dbg(&tfa98xx->i2c->dev, "tfa98xx: interrupt: 0x%04x (enabled: 0x%04x)\n", val, ie);
 #ifdef DEBUG
 	if (!(val & ie)) {
 		unsigned int ireg;
