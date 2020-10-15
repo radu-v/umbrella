@@ -1396,7 +1396,7 @@ extern struct msm_rpmstats_mode_data rpmstats_suspend;
 extern void msm_show_rpm_master_stats(void);
 extern void get_apss_power_collapse_time(unsigned long *apps_pc_time);
 #endif
-
+#ifdef CONFIG_FIH_SUSPEND_RESUME_LOG
 static void msm_show_rpmstats(void)
 {
 	unsigned long xosd_msec_rem;
@@ -1442,6 +1442,7 @@ static void msm_show_rpmstats(void)
 		msm_show_rpm_master_stats();
 	#endif
 }
+#endif /* CONFIG_FIH_SUSPEND_RESUME_LOG */
 #endif /* CONFIG_FIH_FEATURE_RPM_STATS_LOG */
 //CORE-PK-RPMStatsLog-00+]
 
