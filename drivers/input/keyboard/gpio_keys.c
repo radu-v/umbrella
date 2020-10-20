@@ -381,7 +381,6 @@ static void gpio_keys_gpio_report_event(struct gpio_button_data *bdata)
 	} else {
 		input_event(input, type, button->code, !!state);
 	}
-	dev_info(input->dev.parent, "Gpio input keys: code=%d, state=0x%hhx\n", button->code, state);
 	input_sync(input);
 }
 

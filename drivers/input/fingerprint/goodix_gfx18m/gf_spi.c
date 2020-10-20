@@ -112,7 +112,7 @@ static struct gf_dev gf;
 static void gf_enable_irq(struct gf_dev *gf_dev)
 {
 	if (gf_dev->irq_enabled) {
-		pr_info("F@FP IRQ has been enabled.\n");
+		pr_debug("F@FP IRQ has been enabled.\n");
 	} else {
 		enable_irq(gf_dev->irq);
 		gf_dev->irq_enabled = 1;
@@ -175,7 +175,7 @@ static void spi_clock_set(struct gf_dev *gf_dev, int speed)
 
 	rate = spi_clk_max_rate(gf_dev->core_clk, speed);
 	if (rate < 0) {
-		pr_info("%s: no match found for requested clock frequency:%d",
+		pr_err("%s: no match found for requested clock frequency:%d",
 			__func__, speed);
 		return;
 	}
@@ -287,16 +287,16 @@ static long gf_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		    !access_ok(VERIFY_READ, (void __user *)arg, _IOC_SIZE(cmd));
 	if (retval)
 		return -EFAULT;
-    
-    if(gf_dev->device_available == 0) 
+
+    if(gf_dev->device_available == 0)
     {
         if((cmd == GF_IOC_POWER_ON) || (cmd == GF_IOC_POWER_OFF))
         {
-            pr_info("power cmd\n");
+            pr_debug("power cmd\n");
         }
         else
         {
-            pr_info("Sensor is power off currently. \n");
+            pr_err("Sensor is power off currently. \n");
             return -ENODEV;
         }
     }
@@ -356,12 +356,12 @@ static long gf_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
             break;
         }
     }
-    
+
     if(i == ARRAY_SIZE(key_map)) {
         pr_warn("key %d not support yet \n", gf_key.key);
         retval = -EFAULT;
     }
-    
+
 		break;
 	case GF_IOC_CLK_READY:
 #ifdef AP_CONTROL_CLK
@@ -527,7 +527,7 @@ static int goodix_fb_state_chg_callback(struct notifier_block *nb,
 
 	if (val != FB_EARLY_EVENT_BLANK)
 		return 0;
-	pr_info("F@FP %s go to the goodix_fb_state_chg_callback value = %d\n",
+	pr_debug("F@FP %s go to the goodix_fb_state_chg_callback value = %d\n",
 		__func__, (int)val);
 	gf_dev = container_of(nb, struct gf_dev, notifier);
 	if (evdata && evdata->data && val == FB_EARLY_EVENT_BLANK && gf_dev) {
@@ -560,7 +560,7 @@ static int goodix_fb_state_chg_callback(struct notifier_block *nb,
 			}
 			break;
 		default:
-			pr_info("%s defalut\n", __func__);
+			pr_debug("%s defalut\n", __func__);
 			break;
 		}
 	}
@@ -597,7 +597,7 @@ static int gf_probe(struct platform_device *pdev)
 	unsigned long minor;
 	int ret;
 	FUNC_ENTRY();
-	pr_info("F@FP %s.\n",__func__);
+	pr_debug("F@FP %s.\n",__func__);
 	/* Initialize the driver data */
 	INIT_LIST_HEAD(&gf_dev->device_entry);
 #if defined(USE_SPI_BUS)
@@ -653,7 +653,7 @@ static int gf_probe(struct platform_device *pdev)
 			status = -ENOMEM;
 		}
 #ifdef AP_CONTROL_CLK
-		pr_info("Get the clk resource.\n");
+		pr_debug("Get the clk resource.\n");
 		/* Enable spi clock */
 		if (gfspi_ioctl_clk_init(gf_dev))
 			goto gfspi_probe_clk_init_failed;
@@ -667,7 +667,7 @@ static int gf_probe(struct platform_device *pdev)
 		gf_dev->notifier = goodix_noti_block;
 		fb_register_client(&gf_dev->notifier);
 		gf_reg_key_kernel(gf_dev);
-		
+
         gf_dev->irq = gf_irq_num(gf_dev);
 #if 1
 		ret = request_threaded_irq(gf_dev->irq, NULL, gf_irq,
@@ -697,7 +697,7 @@ error:
 	gf_cleanup(gf_dev);
 	gf_dev->device_available = 0;
 	if (gf_dev->devt != 0) {
-		pr_info("Err: status = %d\n", status);
+		pr_err("Err: status = %d\n", status);
 		mutex_lock(&device_list_lock);
 		list_del(&gf_dev->device_entry);
 		device_destroy(gf_class, gf_dev->devt);
@@ -764,7 +764,7 @@ static int gf_suspend(struct platform_device *pdev, pm_message_t state)
 	gfspi_device = spi_get_drvdata(spi);
 	gfspi_ioctl_clk_disable(gfspi_device);
 #endif
-	pr_info(KERN_ERR "gf_suspend_test.\n");
+	pr_debug(KERN_ERR "gf_suspend_test.\n");
 	return 0;
 }
 
@@ -782,7 +782,7 @@ static int gf_resume(struct platform_device *pdev)
 	gfspi_device = spi_get_drvdata(spi);
 	gfspi_ioctl_clk_enable(gfspi_device);
 #endif
-	pr_info(KERN_ERR "gf_resume_test.\n");
+	pr_debug(KERN_ERR "gf_resume_test.\n");
 	return 0;
 }
 
@@ -851,7 +851,7 @@ static int __init gf_init(void)
 		pr_warn("Failed to register SPI driver.\n");
 	}
 
-	pr_info("F@FP %s status = 0x%x\n",__func__, status);
+	pr_debug("F@FP %s status = 0x%x\n",__func__, status);
 	FUNC_EXIT();
 	return 0;		//status;
 }
