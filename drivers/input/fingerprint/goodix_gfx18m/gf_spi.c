@@ -287,8 +287,8 @@ static long gf_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		    !access_ok(VERIFY_READ, (void __user *)arg, _IOC_SIZE(cmd));
 	if (retval)
 		return -EFAULT;
-
-    if(gf_dev->device_available == 0)
+    
+    if(gf_dev->device_available == 0) 
     {
         if((cmd == GF_IOC_POWER_ON) || (cmd == GF_IOC_POWER_OFF))
         {
@@ -356,12 +356,12 @@ static long gf_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
             break;
         }
     }
-
+    
     if(i == ARRAY_SIZE(key_map)) {
         pr_warn("key %d not support yet \n", gf_key.key);
         retval = -EFAULT;
     }
-
+    
 		break;
 	case GF_IOC_CLK_READY:
 #ifdef AP_CONTROL_CLK
@@ -518,38 +518,6 @@ static const struct file_operations gf_fops = {
 #endif
 };
 
-static ssize_t proximity_state_set(struct device *dev,
-	struct device_attribute *attr, const char *buf, size_t count)
-{
-	struct gf_dev *gf_dev = dev_get_drvdata(dev);
-	int rc, val;
-
-	rc = kstrtoint(buf, 10, &val);
-	if (rc)
-		return -EINVAL;
-
-	gf_dev->proximity_state = !!val;
-
-	if (gf_dev->proximity_state) {
-		gf_disable_irq(gf_dev);
-	} else {
-		gf_enable_irq(gf_dev);
-	}
-
-	return count;
-}
-
-static DEVICE_ATTR(proximity_state, S_IWUSR, NULL, proximity_state_set);
-
-static struct attribute *attributes[] = {
-	&dev_attr_proximity_state.attr,
-	NULL
-};
-
-static const struct attribute_group attribute_group = {
-	.attrs = attributes,
-};
-
 static int goodix_fb_state_chg_callback(struct notifier_block *nb,
 					unsigned long val, void *data)
 {
@@ -625,7 +593,6 @@ static int gf_probe(struct platform_device *pdev)
 #endif
 {
 	struct gf_dev *gf_dev = &gf;
-	struct device *dev = &pdev->dev;
 	int status = -EINVAL;
 	unsigned long minor;
 	int ret;
@@ -667,8 +634,6 @@ static int gf_probe(struct platform_device *pdev)
 	} else {
 		dev_dbg(&gf_dev->spi->dev, "no minor number available!\n");
 		status = -ENODEV;
-		mutex_unlock(&device_list_lock);
-		goto error;
 	}
 
 	if (status == 0) {
@@ -686,7 +651,6 @@ static int gf_probe(struct platform_device *pdev)
 			dev_dbg(&gf_dev->input->dev,
 				"Faile to allocate input device.\n");
 			status = -ENOMEM;
-			goto error;
 		}
 #ifdef AP_CONTROL_CLK
 		pr_info("Get the clk resource.\n");
@@ -703,8 +667,8 @@ static int gf_probe(struct platform_device *pdev)
 		gf_dev->notifier = goodix_noti_block;
 		fb_register_client(&gf_dev->notifier);
 		gf_reg_key_kernel(gf_dev);
-
-		gf_dev->irq = gf_irq_num(gf_dev);
+		
+        gf_dev->irq = gf_irq_num(gf_dev);
 #if 1
 		ret = request_threaded_irq(gf_dev->irq, NULL, gf_irq,
 					   IRQF_TRIGGER_RISING | IRQF_ONESHOT,
@@ -718,14 +682,6 @@ static int gf_probe(struct platform_device *pdev)
 			gf_dev->irq_enabled = 1;
 			enable_irq_wake(gf_dev->irq);
 			gf_disable_irq(gf_dev);
-
-			dev_set_drvdata(dev, gf_dev);
-
-			status = sysfs_create_group(&dev->kobj, &attribute_group);
-			if (status) {
-				dev_err(dev, "could not create sysfs\n");
-				goto error;
-			}
 		}
 		else
 		{
@@ -734,7 +690,7 @@ static int gf_probe(struct platform_device *pdev)
 		wake_lock_init(&gf_dev->ttw_wl, WAKE_LOCK_SUSPEND, "gf_ttw_wl"); //Alan, add wakelock
 	}
 
-	gf_dbg("%s gf_dev->irq_enabled =%d",__func__,gf_dev->irq_enabled);
+gf_dbg("%s gf_dev->irq_enabled =%d",__func__,gf_dev->irq_enabled);
 	return status;
 
 error:

@@ -81,7 +81,6 @@ struct gf_dev {
 	struct regulator *pwr_reg;
 	struct wake_lock ttw_wl; //Alan, add wakelock
 	int key_customer_define; //rerfer from FihtdcCode@AlanHZ, Add for key define by customer
-	int proximity_state; /* 0:far 1:near */
 };
 
 int gf_parse_dts(struct gf_dev* gf_dev);
