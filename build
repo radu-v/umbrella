@@ -4,8 +4,38 @@
 # https://github.com/kdrag0n/proton-clang.git
 # when building under WSL make sure the distro uses WSL 2
 
-# Update submodules
-git submodule update --recursive --init
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+	--skip-update-submodule)
+	SKIPUPDATESUBMODULE=y
+	shift
+	;;
+	--skip-cleanup|--skip-cleanup)
+	SKIPCLEAN=y
+	shift
+	;;
+	--skip-build)
+	SKIPBUILD=y
+	shift
+	;;
+	*)
+	POSITIONAL+=("$1")
+	shift
+	;;
+esac
+done
+set -- "${POSITIONAL[@]}"
+
+if [ -z $SKIPUPDATESUBMODULE ]; then
+	echo "Updating submodules"
+	git submodule update --recursive --init
+else
+	echo "Skipping submodule update"
+fi
 
 export KBUILD_BUILD_USER="user"
 export KBUILD_BUILD_HOST="build"
@@ -19,36 +49,41 @@ export OBJCOPY=llvm-objcopy
 export OBJDUMP=llvm-objdump
 export STRIP=llvm-strip
 
-echo
-echo "Cleanup output dir"
-echo
+if [ -z $SKIPCLEAN ]; then
+	echo "Cleaning output dir"
+	rm -rf out
+	make clean && make mrproper
+	mkdir -p out
+else
+	echo "Skipping cleanup"
+fi
 
-rm -rf out
-make clean && make mrproper
-mkdir -p out
+if [ -z $SKIPBUILD ]; then
+	echo "Build kernel"
 
-echo
-echo "Build kernel"
-echo
+	#Make config
+	make O=out ARCH=arm64 nb1_defconfig
 
-#Make config
-make O=out ARCH=arm64 nb1_defconfig
+	CURRENT_BRANCH=$(git branch --show-current)
+	CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH//_/}
+	CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN// /_}
+	CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN////_}
+	CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN//[^a-zA-Z0-9_]/}
 
-CURRENT_BRANCH=$(git branch --show-current)
-CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH//_/}
-CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN// /_}
-CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN////_}
-CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN//[^a-zA-Z0-9_]/}
+	LAST_COMMIT=$(git rev-parse --verify --short=8 HEAD)
 
-LAST_COMMIT=$(git rev-parse --verify --short=8 HEAD)
+	#Build kernel
+	make -j$(nproc --all) O=out \
+		ARCH=arm64 \
+		CC="ccache clang" \
+		LD=ld.lld AR=llvm-ar NM=llvm-nm STRIP=llvm-strip \
+		OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump OBJSIZE=llvm-size \
+		READELF=llvm-readelf HOSTCC=clang HOSTCXX=clang++ HOSTAR=llvm-ar \
+		CROSS_COMPILE=aarch64-linux-gnu- \
+		CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+		LOCALVERSION=-$CURRENT_BRANCH_CLEAN-$(date +"%d%m%y%H%M")-$LAST_COMMIT $*
+else
+	echo "Skipping kernel build"
+fi
 
-#Build kernel
-make -j$(nproc --all) O=out \
-    ARCH=arm64 \
-    CC="ccache clang" \
-    LD=ld.lld AR=llvm-ar NM=llvm-nm STRIP=llvm-strip \
-    OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump OBJSIZE=llvm-size \
-    READELF=llvm-readelf HOSTCC=clang HOSTCXX=clang++ HOSTAR=llvm-ar \
-    CROSS_COMPILE=aarch64-linux-gnu- \
-    CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
-    LOCALVERSION=-$CURRENT_BRANCH_CLEAN-$(date +"%d%m%y%H%M")-$LAST_COMMIT $*
+echo "Done."

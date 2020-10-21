@@ -14,23 +14,7 @@ jobs:
     - run:
         name: Here we go!
         command: |
-          export KBUILD_BUILD_USER=$CIRCLE_USERNAME
-          make nb1_defconfig O=out
-          CURRENT_BRANCH=$(git branch --show-current)
-          CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH//_/}
-          CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN// /_}
-          CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN////_}
-          CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN//[^a-zA-Z0-9_]/}
-          LAST_COMMIT=$(git rev-parse --verify --short HEAD)
-          make -j$(nproc --all) O=out \
-            ARCH=arm64 \
-            CC="ccache clang" \
-            LD=ld.lld AR=llvm-ar NM=llvm-nm STRIP=llvm-strip \
-            OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump OBJSIZE=llvm-size \
-            READELF=llvm-readelf HOSTCC=clang HOSTCXX=clang++ HOSTAR=llvm-ar \
-            CROSS_COMPILE=aarch64-linux-gnu- \
-            CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
-            LOCALVERSION=-$CURRENT_BRANCH_CLEAN-$LAST_COMMIT
+          ./build --skip-update-submodule --skip-cleanup -s
     - run:
         name: Pack & Upload
         command: |
