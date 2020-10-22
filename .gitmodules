@@ -7,7 +7,3 @@
 [submodule "drivers/staging/qca-wifi-host-cmn"]
 	path = drivers/staging/qca-wifi-host-cmn
 	url = https://github.com/resident-nokia/qca-wifi-host-cmn
-[submodule "net/wireguard"]
-	path = net/wireguard
-	url = https://github.com/WireGuard/wireguard-linux.git
-	branch = stable
