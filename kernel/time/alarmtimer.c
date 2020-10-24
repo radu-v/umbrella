@@ -15,6 +15,7 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
+
 #include <linux/time.h>
 #include <linux/hrtimer.h>
 #include <linux/timerqueue.h>
@@ -48,6 +49,9 @@ static struct alarm_base {
 /* freezer delta & lock used to handle clock_nanosleep triggered wakeups */
 static ktime_t freezer_delta;
 static DEFINE_SPINLOCK(freezer_delta_lock);
+
+static bool wait_for_2sec = false;
+static DEFINE_SPINLOCK(wait_for_2sec_lock);
 
 static struct wakeup_source *ws;
 
@@ -278,13 +282,16 @@ static int alarmtimer_suspend(struct device *dev)
 		if (!next)
 			continue;
 		delta = ktime_sub(next->expires, base->gettime());
-		if (!min || (delta < min))
+		if (!min || (delta < min && delta > 0))
 			min = delta;
 	}
 	if (min == 0)
 		return 0;
 
 	if (ktime_to_ns(min) < 2 * NSEC_PER_SEC) {
+		spin_lock_irqsave(&wait_for_2sec_lock, flags);
+		wait_for_2sec = true;
+		spin_unlock_irqrestore(&wait_for_2sec_lock, flags);
 		__pm_wakeup_event(ws, 2 * MSEC_PER_SEC);
 		return -EBUSY;
 	}
@@ -305,6 +312,13 @@ static int alarmtimer_suspend(struct device *dev)
 		if (ret < 0)
 			__pm_wakeup_event(ws, MSEC_PER_SEC);
 	}
+
+	if (!ret) {
+		spin_lock_irqsave(&wait_for_2sec_lock, flags);
+		wait_for_2sec = false;
+		spin_unlock_irqrestore(&wait_for_2sec_lock, flags);
+	}
+
 	return ret;
 }
 #else
@@ -430,6 +444,10 @@ void alarm_start(struct alarm *alarm, ktime_t start)
 {
 	struct alarm_base *base = &alarm_bases[alarm->type];
 	unsigned long flags;
+
+	if (wait_for_2sec) {
+		return;
+	}
 
 	spin_lock_irqsave(&base->lock, flags);
 	alarm->node.expires = start;
