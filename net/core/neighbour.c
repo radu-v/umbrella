@@ -43,7 +43,6 @@
 #include <linux/inetdevice.h>
 #include <net/addrconf.h>
 
-#define DEBUG
 #define NEIGH_DEBUG 1
 #define neigh_dbg(level, fmt, ...)		\
 do {						\
