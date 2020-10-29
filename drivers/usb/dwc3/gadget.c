@@ -3301,7 +3301,7 @@ static void dwc3_gadget_interrupt(struct dwc3 *dwc,
 	switch (event->type) {
 	case DWC3_DEVICE_EVENT_DISCONNECT:
 #ifdef CONFIG_FIH_NB1
-		dev_err(dwc->dev, "%s:DWC3_DEVICE_EVENT_DISCONNECT\n", __func__);
+		dev_dbg(dwc->dev, "%s:DWC3_DEVICE_EVENT_DISCONNECT\n", __func__);
 #endif
 /* end FIH - NB1-680 */
 		dwc3_gadget_disconnect_interrupt(dwc);
@@ -3309,7 +3309,7 @@ static void dwc3_gadget_interrupt(struct dwc3 *dwc,
 		break;
 	case DWC3_DEVICE_EVENT_RESET:
 #ifdef CONFIG_FIH_NB1
-		dev_err(dwc->dev, "%s:DWC3_DEVICE_EVENT_RESET\n", __func__);
+		dev_dbg(dwc->dev, "%s:DWC3_DEVICE_EVENT_RESET\n", __func__);
 		dumpTypeCSts(dwc);
 #endif
 /* end FIH - NB1-680 */
@@ -3318,7 +3318,7 @@ static void dwc3_gadget_interrupt(struct dwc3 *dwc,
 		break;
 	case DWC3_DEVICE_EVENT_CONNECT_DONE:
 #ifdef CONFIG_FIH_NB1
-		dev_err(dwc->dev, "%s:DWC3_DEVICE_EVENT_CONNECT_DONE\n", __func__);
+		dev_dbg(dwc->dev, "%s:DWC3_DEVICE_EVENT_CONNECT_DONE\n", __func__);
 #endif
 /* end FIH - NB1-680 */
 		dwc3_gadget_conndone_interrupt(dwc);
