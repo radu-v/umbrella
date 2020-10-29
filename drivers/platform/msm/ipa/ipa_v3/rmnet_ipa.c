@@ -404,7 +404,7 @@ static void ipa3_del_dflt_wan_rt_tables(void)
 	rt_rule_entry->status = -1;
 	rt_rule_entry->hdl = rmnet_ipa3_ctx->dflt_v4_wan_rt_hdl;
 
-	IPAWANERR("Deleting Route hdl:(0x%x) with ip type: %d\n",
+	IPAWANDBG("Deleting Route hdl:(0x%x) with ip type: %d\n",
 		rt_rule_entry->hdl, IPA_IP_v4);
 	if (ipa3_del_rt_rule(rt_rule) ||
 			(rt_rule_entry->status)) {
@@ -413,7 +413,7 @@ static void ipa3_del_dflt_wan_rt_tables(void)
 
 	rt_rule->ip = IPA_IP_v6;
 	rt_rule_entry->hdl = rmnet_ipa3_ctx->dflt_v6_wan_rt_hdl;
-	IPAWANERR("Deleting Route hdl:(0x%x) with ip type: %d\n",
+	IPAWANDBG("Deleting Route hdl:(0x%x) with ip type: %d\n",
 		rt_rule_entry->hdl, IPA_IP_v6);
 	if (ipa3_del_rt_rule(rt_rule) ||
 			(rt_rule_entry->status)) {
@@ -987,7 +987,7 @@ int ipa3_wwan_update_mux_channel_prop(void)
 				i);
 			return -ENODEV;
 		}
-		IPAWANERR("dev(%s) has registered to IPA\n",
+		IPAWANDBG("dev(%s) has registered to IPA\n",
 		rmnet_ipa3_ctx->mux_channel[i].vchannel_name);
 		rmnet_ipa3_ctx->mux_channel[i].ul_flt_reg = true;
 	}
@@ -1707,7 +1707,7 @@ static int ipa3_wwan_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 				rmnet_index);
 			/* check if UL filter rules coming*/
 			if (rmnet_ipa3_ctx->num_q6_rules != 0) {
-				IPAWANERR("dev(%s) register to IPA\n",
+				IPAWANDBG("dev(%s) register to IPA\n",
 					extend_ioctl_data.u.rmnet_mux_val.
 					vchannel_name);
 				rc = ipa3_wwan_register_to_ipa(
@@ -2791,7 +2791,7 @@ static int rmnet_ipa3_set_data_quota_modem(
 	data->interface_name[IFNAMSIZ-1] = '\0';
 
 	index = find_vchannel_name_index(data->interface_name);
-	IPAWANERR("iface name %s, quota %lu\n",
+	IPAWANDBG("iface name %s, quota %lu\n",
 		  data->interface_name,
 		  (unsigned long int) data->quota_mbytes);
 
@@ -2821,7 +2821,7 @@ static int rmnet_ipa3_set_data_quota_wifi(struct wan_ioctl_set_data_quota *data)
 	memset(&wifi_quota, 0, sizeof(struct ipa_set_wifi_quota));
 	wifi_quota.set_quota = data->set_quota;
 	wifi_quota.quota_bytes = data->quota_mbytes;
-	IPAWANERR("iface name %s, quota %lu\n",
+	IPAWANDBG("iface name %s, quota %lu\n",
 		  data->interface_name,
 		  (unsigned long int) data->quota_mbytes);
 
@@ -3320,7 +3320,7 @@ void ipa3_broadcast_quota_reach_ind(u32 mux_id,
 		return;
 	}
 
-	IPAWANERR("putting nlmsg: <%s> <%s> <%s>\n",
+	IPAWANDBG("putting nlmsg: <%s> <%s> <%s>\n",
 		alert_msg, iface_name_l, iface_name_m);
 	kobject_uevent_env(&(IPA_NETDEV()->dev.kobj),
 		KOBJ_CHANGE, envp);
@@ -3373,7 +3373,7 @@ static inline bool rmnet_ipa3_check_any_client_inited
 		lan_client[i].client_idx != -1 &&
 		rmnet_ipa3_ctx->tether_device[device_type].
 		lan_client[i].inited) {
-			IPAWANERR("Found client index: %d which is inited\n",
+			IPAWANDBG("Found client index: %d which is inited\n",
 				 i);
 			return true;
 		}
