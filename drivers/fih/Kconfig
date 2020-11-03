@@ -12,11 +12,6 @@ menu "Device Drivers for FIH"
            help
              support fih apr virtual file
 
-  config FIH_NB1_TREBLE
-        bool "Treble support for NB1"
-        depends on FIH_NB1
-        default n
-
   config FIH_DISABLE_REBOOT_EDL
            bool "fih disable reboot edl command"
            default n

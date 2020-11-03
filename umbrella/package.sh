@@ -17,11 +17,6 @@ if [ "$KNAME" = "" ]; then
     KNAME="Umbrella"
 fi
 
-# Check if Treble support is enabled
-if [ -f out/arch/arm64/boot/dts/fih/NB1_treble ]; then
-	KDEVICE="${KDEVICE}_Treble"
-fi
-
 # Copy the template config
 cp -r umbrella/template umbrella/.tmp
 
@@ -35,11 +30,6 @@ cp out/arch/arm64/boot/Image.*-dtb umbrella/.tmp
 
 # Package the zip file
 mkdir -p umbrella/out
-if [ -e "umbrella/out/${KVERSION}.zip" ]; then
-	echo "Removing existing ${KVERSION}.zip"
-	rm umbrella/out/$KVERSION.zip
-fi
-
 cd umbrella/.tmp
 zip -r ../out/$KVERSION.zip .
 cd ../..

@@ -1,6 +1,12 @@
 /* ref: msm8998.dtsi */
 
 / {
+	firmware: firmware {
+		android {
+			boot_devices = "soc/1da4000.ufshc";
+		};
+	};
+
 	reserved-memory {
 		fih_mem: fih_region@a0000000 { /* for FIH feature */
 			compatible = "removed-dma-pool";

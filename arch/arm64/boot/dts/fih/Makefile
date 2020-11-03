@@ -24,14 +24,6 @@ dtb-$(CONFIG_FIH_NB1) += \
   msm8998-mtp_NB1_PVT1_Chile.dtb \
   msm8998-mtp_NB1_PVT1_Chile_SS.dtb
 
-ifeq ($(CONFIG_FIH_NB1_TREBLE),y)
-dtb-$(CONFIG_FIH_NB1) += \
-  NB1_treble.dtb
-else
-dtb-$(CONFIG_FIH_NB1) += \
-  NB1_nontreble.dtb
-endif
-
 always          := $(dtb-y)
 subdir-y        := $(dts-dirs)
 clean-files := *.dtb
