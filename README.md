@@ -11,11 +11,11 @@
 - lzo-rle support for zram
 
 # For building with Treble support provided by [T-Virus](https://github.com/resident-nokia/t-virus)
-- enable config option `CONFIG_FIH_NB1_TREBLE` in `nb1_defconfig`
+- use branch `treble`
 
 # For building under WSL on Windows 10
 1. WSL 2 strongly recommended
-1. if pulling the repo on some NTFS drive:
+1. if pulling the repo on some NTFS drive instead of using WSL home dir:
     - enable case sensitivity for repo directory
         in Powershell:
         ```shell
