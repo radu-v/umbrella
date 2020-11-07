@@ -9044,10 +9044,6 @@ static hdd_context_t *hdd_context_create(struct device *dev)
 
 	hdd_ctx->is_ssr_in_progress = false;
 
-#ifdef WLAN_LOGGING_SOCK_SVC_ENABLE
-	wlan_logging_set_log_to_console(hdd_ctx->config->wlanLoggingToConsole);
-	wlan_logging_set_active(hdd_ctx->config->wlanLoggingEnable);
-#endif
 	/*
 	 * Update QDF trace levels based upon the code. The multicast
 	 * levels of the code need not be set when the logger thread

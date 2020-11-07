@@ -2827,16 +2827,8 @@ static int __wlan_hdd_cfg80211_vendor_scan(struct wiphy *wiphy,
 	ENTER_DEV(wdev->netdev);
 
 	ret = wlan_hdd_validate_context(hdd_ctx);
-	if (ret) {
-		/*
-		 * During SSR, if -EBUSY is returned then OBSS vendor scan is
-		 * not issued immediately.
-		 */
-		if (ret == -EAGAIN)
-			return -EBUSY;
-
+	if (0 != ret)
 		return ret;
-	}
 
 	if (hdd_nla_parse(tb, QCA_WLAN_VENDOR_ATTR_SCAN_MAX, data, data_len,
 			  scan_policy)) {

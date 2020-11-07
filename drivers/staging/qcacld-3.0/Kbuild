@@ -6,8 +6,6 @@ else
 	KERNEL_BUILD := 0
 endif
 
-TARGET_BUILD_VARIANT := user
-
 ifeq ($(CONFIG_CLD_HL_SDIO_CORE), y)
 	CONFIG_QCA_WIFI_SDIO := 1
 endif
@@ -255,11 +253,10 @@ CONFIG_WLAN_SPECTRAL_SCAN := y
 CONFIG_WLAN_FEATURE_APF := y
 
 #Enable WLAN/Power debugfs feature only if debug_fs is enabled
-ifeq ($(CONFIG_ANDROID), y)
+ifeq ($(CONFIG_DEBUG_FS), y)
        # Flag to enable debugfs. Depends on CONFIG_DEBUG_FS in kernel
        # configuration.
        CONFIG_WLAN_DEBUGFS := y
-       CFLAGS_wlan_hdd_debugfs.o += -DCONFIG_DEBUG_FS
 
        CONFIG_WLAN_POWER_DEBUGFS := y
 endif
@@ -1307,11 +1304,9 @@ ifeq ($(CONFIG_WLAN_FEATURE_FIPS), y)
 CDEFINES += -DWLAN_FEATURE_FIPS
 endif
 
-ifneq ($(CONFIG_HIF_USB), 1)
-ifeq ($(BUILD_DEBUG_VERSION), 1)
-CDEFINES += -DWLAN_LOGGING_SOCK_SVC_ENABLE
-endif
-endif
+# ifneq ($(CONFIG_HIF_USB), 1)
+# CDEFINES += -DWLAN_LOGGING_SOCK_SVC_ENABLE
+# endif
 
 ifeq ($(CONFIG_WLAN_FEATURE_FILS),y)
 CDEFINES += -DWLAN_FEATURE_FILS_SK
