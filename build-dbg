@@ -22,6 +22,10 @@ case $key in
 	SKIPBUILD=y
 	shift
 	;;
+	--no-branch)
+	NOBRANCHINTITLE=y
+	shift
+	;;
 	*)
 	POSITIONAL+=("$1")
 	shift
@@ -64,11 +68,15 @@ if [ -z $SKIPBUILD ]; then
 	#Make config
 	make O=out ARCH=arm64 nb1_dbg_defconfig
 
-	CURRENT_BRANCH=$(git branch --show-current)
-	CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH//_/}
-	CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN// /_}
-	CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN////_}
-	CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN//[^a-zA-Z0-9_]/}
+	if [ -z $NOBRANCHINTITLE ]; then
+	    CURRENT_BRANCH=$(git branch --show-current)
+	    CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH//_/}
+	    CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN// /_}
+	    CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN////_}
+	    CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN//[^a-zA-Z0-9_]/}-
+	else
+	    CURRENT_BRANCH_CLEAN=
+	fi
 
 	LAST_COMMIT=$(git rev-parse --verify --short=8 HEAD)
 
@@ -81,7 +89,7 @@ if [ -z $SKIPBUILD ]; then
 		READELF=llvm-readelf HOSTCC=clang HOSTCXX=clang++ HOSTAR=llvm-ar \
 		CROSS_COMPILE=aarch64-linux-gnu- \
 		CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
-		LOCALVERSION=-dbg-$CURRENT_BRANCH_CLEAN-$(date +"%d%m%y%H%M")-$LAST_COMMIT $*
+		LOCALVERSION=-dbg-${CURRENT_BRANCH_CLEAN}$(date +"%d%m%y%H%M")-$LAST_COMMIT $*
 else
 	echo "Skipping kernel build"
 fi
