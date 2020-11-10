@@ -1,7 +1,10 @@
 #!/bin/bash
 
 # this uses the GCC 9 toolchain
+# main toolchain:
 # https://github.com/kdrag0n/aarch64-elf-gcc.git
+# for 32bit cross-compiling:
+# https://github.com/kdrag0n/arm-eabi-gcc.git
 # when building under WSL make sure the distro uses WSL 2
 
 # Update submodules
@@ -12,7 +15,9 @@ export KBUILD_BUILD_HOST="build"
 export ARCH="arm64"
 export SUBARCH="arm64"
 export TRIPLET=$(basename $HOME/aarch64-elf-gcc/bin/*gcc | sed 's|gcc$||g')
+export TRIPLET_ARM32="arm-eabi-"
 export CROSS_COMPILE="$HOME/aarch64-elf-gcc/bin/$TRIPLET"
+export CROSS_COMPILE_ARM32="$HOME/arm-eabi-gcc/bin/$TRIPLET_ARM32"
 export KBUILD_OUTPUT="$(pwd)/out"
 export KBUILD_BUILD_USER="user"
 export KBUILD_BUILD_HOST="build"
