@@ -615,15 +615,15 @@ static int kcal_ctrl_probe(struct platform_device *pdev)
 	platform_set_drvdata(pdev, lut_data);
 
 	lut_data->enable = 0x1;
-	lut_data->red = DEF_PCC;
-	lut_data->green = DEF_PCC;
-	lut_data->blue = DEF_PCC;
+	lut_data->red = 240;
+	lut_data->green = 240;
+	lut_data->blue = 240;
 	lut_data->minimum = 0x23;
 	lut_data->invert = 0x0;
-	lut_data->hue = 0x0;
-	lut_data->sat = DEF_PA;
-	lut_data->val = DEF_PA;
-	lut_data->cont = DEF_PA;
+	lut_data->hue = 1520;
+	lut_data->sat = 275;
+	lut_data->val = 258;
+	lut_data->cont = 258;
 
 	lut_data->queue_changes = false;
 
