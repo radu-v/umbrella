@@ -3151,6 +3151,7 @@ static inline void print_to_console(char *str_buffer)
 }
 #endif
 
+#ifdef WLAN_DEBUG
 #ifdef MULTI_IF_NAME
 static const char *qdf_trace_wlan_modname(void)
 {
@@ -3234,6 +3235,7 @@ void qdf_trace_msg_cmn(unsigned int idx,
 	}
 }
 qdf_export_symbol(qdf_trace_msg_cmn);
+#endif /* WLAN_DEBUG */
 
 QDF_STATUS qdf_print_setup(void)
 {
@@ -3657,6 +3659,7 @@ QDF_STATUS qdf_print_set_category_verbose(unsigned int idx,
 }
 qdf_export_symbol(qdf_print_set_category_verbose);
 
+#ifdef WLAN_DEBUG
 bool qdf_print_is_category_enabled(unsigned int idx, QDF_MODULE_ID category)
 {
 	QDF_TRACE_LEVEL verbose_mask;
@@ -3688,6 +3691,7 @@ bool qdf_print_is_category_enabled(unsigned int idx, QDF_MODULE_ID category)
 		return true;
 }
 qdf_export_symbol(qdf_print_is_category_enabled);
+#endif
 
 bool qdf_print_is_verbose_enabled(unsigned int idx, QDF_MODULE_ID category,
 				  QDF_TRACE_LEVEL verbose)
