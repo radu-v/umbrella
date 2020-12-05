@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2018 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2018, 2020 The Linux Foundation. All rights reserved.
  *
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
@@ -47,6 +47,9 @@
 #include <linux/netdevice.h>
 #include <linux/skbuff.h>
 #include <net/cfg80211.h>
+#ifdef CLD_PM_QOS
+#include <linux/pm_qos.h>
+#endif
 #include <linux/ieee80211.h>
 #include <qdf_list.h>
 #include <qdf_types.h>
@@ -95,6 +98,7 @@
 #include "wlan_hdd_nud_tracking.h"
 #include "wlan_hdd_twt.h"
 #include "wma_sar_public_structs.h"
+#include "wlan_mlme_ucfg_api.h"
 
 /*
  * Preprocessor definitions and constants
@@ -133,6 +137,29 @@ struct hdd_apf_context {
 #else
 #define NUM_TX_QUEUES 4
 #endif
+
+/* HDD_IS_RATE_LIMIT_REQ: Macro helper to implement rate limiting
+ * @flag: The flag to determine if limiting is required or not
+ * @rate: The number of seconds within which if multiple commands come, the
+ *	  flag will be set to true
+ *
+ * If the function in which this macro is used is called multiple times within
+ * "rate" number of seconds, the "flag" will be set to true which can be used
+ * to reject/take appropriate action.
+ */
+#define HDD_IS_RATE_LIMIT_REQ(flag, rate)\
+	do {\
+		static ulong __last_ticks;\
+		ulong __ticks = jiffies;\
+		flag = false; \
+		if (!time_after(__ticks,\
+			__last_ticks + rate * HZ)) {\
+			flag = true; \
+		} \
+		else { \
+			__last_ticks = __ticks;\
+			} \
+	} while (0)
 
 /*
  * API in_compat_syscall() is introduced in 4.6 kernel to check whether we're
@@ -259,6 +286,8 @@ enum hdd_driver_flags {
 /* rcpi request timeout in milli seconds */
 #define WLAN_WAIT_TIME_RCPI 500
 
+#define WLAN_WAIT_PEER_CLEANUP 5000
+
 #define MAX_CFG_STRING_LEN  255
 
 /* Maximum time(ms) to wait for external acs response */
@@ -326,6 +355,17 @@ enum hdd_driver_flags {
 #define hdd_warn(params...) QDF_TRACE_WARN(QDF_MODULE_ID_HDD, params)
 #define hdd_info(params...) QDF_TRACE_INFO(QDF_MODULE_ID_HDD, params)
 #define hdd_debug(params...) QDF_TRACE_DEBUG(QDF_MODULE_ID_HDD, params)
+
+#define hdd_nofl_alert(params...) \
+	QDF_TRACE_FATAL_NO_FL(QDF_MODULE_ID_HDD, params)
+#define hdd_nofl_err(params...) \
+	QDF_TRACE_ERROR_NO_FL(QDF_MODULE_ID_HDD, params)
+#define hdd_nofl_warn(params...) \
+	QDF_TRACE_WARN_NO_FL(QDF_MODULE_ID_HDD, params)
+#define hdd_nofl_info(params...) \
+	QDF_TRACE_INFO_NO_FL(QDF_MODULE_ID_HDD, params)
+#define hdd_nofl_debug(params...) \
+	QDF_TRACE_DEBUG_NO_FL(QDF_MODULE_ID_HDD, params)
 
 #define hdd_alert_rl(params...) QDF_TRACE_FATAL_RL(QDF_MODULE_ID_HDD, params)
 #define hdd_err_rl(params...) QDF_TRACE_ERROR_RL(QDF_MODULE_ID_HDD, params)
@@ -482,6 +522,8 @@ extern struct mutex hdd_init_deinit_lock;
 #endif
 
 #define NUM_TX_RX_HISTOGRAM_MASK (NUM_TX_RX_HISTOGRAM - 1)
+
+#define HDD_NOISE_FLOOR_DBM (-96)
 
 /**
  * enum hdd_auth_key_mgmt - auth key mgmt protocols
@@ -1019,6 +1061,7 @@ enum dhcp_nego_status {
  * @capability: Capability information of current station
  * @support_mode: Max supported mode of a station currently
  * connected to sap
+ * @assoc_req_ies: Assoc request IEs of the peer station
  */
 struct hdd_station_info {
 	bool in_use;
@@ -1064,6 +1107,7 @@ struct hdd_station_info {
 	enum dhcp_nego_status dhcp_nego_status;
 	uint16_t capability;
 	uint8_t support_mode;
+	struct wlan_ies assoc_req_ies;
 };
 
 /**
@@ -1233,6 +1277,8 @@ struct hdd_context;
  * @vdev_lock: lock to protect vdev context access
  * @event_flags: a bitmap of hdd_adapter_flags
  * @acs_complete_event: acs complete event
+ * @last_disconnect_reason: Last disconnected internal reason code
+ *                          as per enum qca_disconnect_reason_codes
  */
 struct hdd_adapter {
 	/* Magic cookie for adapter sanity verification.  Note that this
@@ -1420,7 +1466,7 @@ struct hdd_adapter {
 	bool offloads_configured;
 
 	/* DSCP to UP QoS Mapping */
-	enum sme_qos_wmmuptype dscp_to_up_map[WLAN_HDD_MAX_DSCP + 1];
+	enum sme_qos_wmmuptype dscp_to_up_map[WLAN_MAX_DSCP + 1];
 
 #ifdef WLAN_FEATURE_LINK_LAYER_STATS
 	bool is_link_layer_stats_set;
@@ -1486,6 +1532,21 @@ struct hdd_adapter {
 #ifdef WLAN_DEBUGFS
 	struct hdd_debugfs_file_info csr_file[HDD_DEBUGFS_FILE_ID_MAX];
 #endif /* WLAN_DEBUGFS */
+	enum qca_disconnect_reason_codes last_disconnect_reason;
+
+#ifdef WLAN_FEATURE_PERIODIC_STA_STATS
+	/* Indicate whether to display sta periodic stats */
+	bool is_sta_periodic_stats_enabled;
+	uint16_t periodic_stats_timer_count;
+	uint32_t periodic_stats_timer_counter;
+	qdf_mutex_t sta_periodic_stats_lock;
+#endif /* WLAN_FEATURE_PERIODIC_STA_STATS */
+	qdf_event_t peer_cleanup_done;
+#ifdef FEATURE_OEM_DATA
+	bool oem_data_in_progress;
+	void *cookie;
+	bool response_expected;
+#endif
 };
 
 #define WLAN_HDD_GET_STATION_CTX_PTR(adapter) (&(adapter)->session.station)
@@ -1967,6 +2028,7 @@ struct hdd_context {
 	int radio_index;
 	qdf_work_t sap_pre_cac_work;
 	bool hbw_requested;
+	bool llm_enabled;
 	uint32_t last_nil_scan_bug_report_timestamp;
 	enum RX_OFFLOAD ol_enable;
 #ifdef WLAN_FEATURE_NAN_DATAPATH
@@ -2064,6 +2126,20 @@ struct hdd_context {
 	unsigned long derived_intf_addr_mask;
 	struct wlan_mlme_chain_cfg fw_chain_cfg;
 	struct sar_limit_cmd_params *sar_cmd_params;
+	bool nan_seperate_vdev_supported;
+
+#ifdef SAR_SAFETY_FEATURE
+	qdf_mc_timer_t sar_safety_timer;
+	qdf_mc_timer_t sar_safety_unsolicited_timer;
+	qdf_event_t sar_safety_req_resp_event;
+	qdf_atomic_t sar_safety_req_resp_event_in_progress;
+#endif
+	bool roam_ch_from_fw_supported;
+
+#ifdef CLD_PM_QOS
+	struct pm_qos_request pm_qos_req;
+#endif
+	bool ll_stats_per_chan_rx_tx_time;
 };
 
 /**
@@ -2163,24 +2239,132 @@ int hdd_validate_channel_and_bandwidth(struct hdd_adapter *adapter,
 
 const char *hdd_device_mode_to_string(uint8_t device_mode);
 
+/**
+ * hdd_get_front_adapter() - Get the first adapter from the adapter list
+ * @hdd_ctx: pointer to the HDD context
+ * @current_adapter: pointer to the current adapter
+ * @out_adapter: double pointer to pass the next adapter
+ *
+ * Return: QDF_STATUS
+ */
 QDF_STATUS hdd_get_front_adapter(struct hdd_context *hdd_ctx,
 				 struct hdd_adapter **out_adapter);
 
+/**
+ * hdd_get_next_adapter() - Get the next adapter from the adapter list
+ * @hdd_ctx: pointer to the HDD context
+ * @current_adapter: pointer to the current adapter
+ * @out_adapter: double pointer to pass the next adapter
+ *
+ * Return: QDF_STATUS
+ */
 QDF_STATUS hdd_get_next_adapter(struct hdd_context *hdd_ctx,
 				struct hdd_adapter *current_adapter,
 				struct hdd_adapter **out_adapter);
 
+/**
+ * hdd_get_front_adapter_no_lock() - Get the first adapter from the adapter list
+ * This API doesnot use any lock in it's implementation. It is the caller's
+ * directive to ensure concurrency safety.
+ * @hdd_ctx: pointer to the HDD context
+ * @out_adapter: double pointer to pass the next adapter
+ *
+ * Return: QDF_STATUS
+ */
+QDF_STATUS hdd_get_front_adapter_no_lock(struct hdd_context *hdd_ctx,
+					 struct hdd_adapter **out_adapter);
+
+/**
+ * hdd_get_next_adapter_no_lock() - Get the next adapter from the adapter list
+ * This API doesnot use any lock in it's implementation. It is the caller's
+ * directive to ensure concurrency safety.
+ * @hdd_ctx: pointer to the HDD context
+ * @current_adapter: pointer to the current adapter
+ * @out_adapter: double pointer to pass the next adapter
+ *
+ * Return: QDF_STATUS
+ */
+QDF_STATUS hdd_get_next_adapter_no_lock(struct hdd_context *hdd_ctx,
+					struct hdd_adapter *current_adapter,
+					struct hdd_adapter **out_adapter);
+
+/**
+ * hdd_remove_adapter() - Remove the adapter from the adapter list
+ * @hdd_ctx: pointer to the HDD context
+ * @adapter: pointer to the adapter to be removed
+ *
+ * Return: QDF_STATUS
+ */
 QDF_STATUS hdd_remove_adapter(struct hdd_context *hdd_ctx,
 			      struct hdd_adapter *adapter);
 
+/**
+ * hdd_remove_front_adapter() - Remove the first adapter from the adapter list
+ * @hdd_ctx: pointer to the HDD context
+ * @out_adapter: pointer to the adapter to be removed
+ *
+ * Return: QDF_STATUS
+ */
 QDF_STATUS hdd_remove_front_adapter(struct hdd_context *hdd_ctx,
 				    struct hdd_adapter **out_adapter);
 
+/**
+ * hdd_add_adapter_back() - Add an adapter to the adapter list
+ * @hdd_ctx: pointer to the HDD context
+ * @adapter: pointer to the adapter to be added
+ *
+ * Return: QDF_STATUS
+ */
 QDF_STATUS hdd_add_adapter_back(struct hdd_context *hdd_ctx,
 				struct hdd_adapter *adapter);
 
+/**
+ * hdd_add_adapter_front() - Add an adapter to the head of the adapter list
+ * @hdd_ctx: pointer to the HDD context
+ * @adapter: pointer to the adapter to be added
+ *
+ * Return: QDF_STATUS
+ */
 QDF_STATUS hdd_add_adapter_front(struct hdd_context *hdd_ctx,
 				 struct hdd_adapter *adapter);
+
+/**
+ * typedef hdd_adapter_iterate_cb() – Iteration callback function
+ * @adapter: current adapter of interest
+ * @context: user context supplied to the iterator
+ *
+ * This specifies the type of a callback function to supply to
+ * hdd_adapter_iterate().
+ *
+ * Return:
+ * * QDF_STATUS_SUCCESS if further iteration should continue
+ * * QDF_STATUS_E_ABORTED if further iteration should be aborted
+ */
+typedef QDF_STATUS (*hdd_adapter_iterate_cb)(struct hdd_adapter *adapter,
+					     void *context);
+
+/**
+ * hdd_adapter_iterate() – Safely iterate over all adapters
+ * @cb: callback function to invoke for each adapter
+ * @context: user-supplied context to pass to @cb
+ *
+ * This function will iterate over all of the adapters known to the system in
+ * a safe manner, invoking the callback function for each adapter.
+ * The callback function will be invoked in the same context/thread as the
+ * caller without any additional locks in force.
+ * Iteration continues until either the callback has been invoked for all
+ * adapters or a callback returns a value of QDF_STATUS_E_ABORTED to indicate
+ * that further iteration should cease.
+ *
+ * Return:
+ * * QDF_STATUS_E_ABORTED if any callback function returns that value
+ * * QDF_STATUS_E_FAILURE if the callback was not invoked for all adapters due
+ * to concurrency (i.e. adapter was deleted while iterating)
+ * * QDF_STATUS_SUCCESS if @cb was invoked for each adapter and none returned
+ * an error
+ */
+QDF_STATUS hdd_adapter_iterate(hdd_adapter_iterate_cb cb,
+			       void *context);
 
 /**
  * hdd_for_each_adapter - adapter iterator macro
@@ -2191,6 +2375,76 @@ QDF_STATUS hdd_add_adapter_front(struct hdd_context *hdd_ctx,
 	for (hdd_get_front_adapter(hdd_ctx, &adapter); \
 	     adapter; \
 	     hdd_get_next_adapter(hdd_ctx, adapter, &adapter))
+
+/**
+ * __hdd_take_ref_and_fetch_front_adapter - Helper macro to lock, fetch front
+ * adapter, take ref and unlock.
+ * @hdd_ctx: the global HDD context
+ * @adapter: an hdd_adapter pointer to use as a cursor
+ */
+#define __hdd_take_ref_and_fetch_front_adapter(hdd_ctx, adapter) \
+	qdf_spin_lock_bh(&hdd_ctx->hdd_adapter_lock), \
+	hdd_get_front_adapter_no_lock(hdd_ctx, &adapter), \
+	(adapter) ? dev_hold(adapter->dev) : (false), \
+	qdf_spin_unlock_bh(&hdd_ctx->hdd_adapter_lock)
+
+/**
+ * __hdd_take_ref_and_fetch_next_adapter - Helper macro to lock, fetch next
+ * adapter, take ref and unlock.
+ * @hdd_ctx: the global HDD context
+ * @adapter: an hdd_adapter pointer to use as a cursor
+ */
+#define __hdd_take_ref_and_fetch_next_adapter(hdd_ctx, adapter) \
+	qdf_spin_lock_bh(&hdd_ctx->hdd_adapter_lock), \
+	hdd_get_next_adapter_no_lock(hdd_ctx, adapter, &adapter), \
+	(adapter) ? dev_hold(adapter->dev) : (false), \
+	qdf_spin_unlock_bh(&hdd_ctx->hdd_adapter_lock)
+
+/**
+ * __hdd_is_adapter_valid - Helper macro to return true/false for valid adapter.
+ * @adapter: an hdd_adapter pointer to use as a cursor
+ */
+#define __hdd_is_adapter_valid(_adapter) !!_adapter
+
+/**
+ * hdd_for_each_adapter_dev_held - Adapter iterator with dev_hold called
+ * @hdd_ctx: the global HDD context
+ * @adapter: an hdd_adapter pointer to use as a cursor
+ *
+ * This iterator will take the reference of the netdev associated with the
+ * given adapter so as to prevent it from being removed in other context.
+ * If the control goes inside the loop body then the dev_hold has been invoked.
+ *
+ *                           ***** NOTE *****
+ * Before the end of each iteration, dev_put(adapter->dev) must be
+ * called. Not calling this will keep hold of a reference, thus preventing
+ * unregister of the netdevice.
+ *
+ * Usage example:
+ *                 hdd_for_each_adapter_dev_held(hdd_ctx, adapter) {
+ *                         <work involving adapter>
+ *                         <some more work>
+ *                         dev_put(adapter->dev)
+ *                 }
+ */
+#define hdd_for_each_adapter_dev_held(hdd_ctx, adapter) \
+	for (__hdd_take_ref_and_fetch_front_adapter(hdd_ctx, adapter); \
+	     __hdd_is_adapter_valid(adapter); \
+	     __hdd_take_ref_and_fetch_next_adapter(hdd_ctx, adapter))
+
+/**
+ * wlan_hdd_get_adapter_by_vdev_id_from_objmgr() - Fetch adapter from objmgr
+ * using vdev_id.
+ * @hdd_ctx: the global HDD context
+ * @adapter: an hdd_adapter double pointer to store the address of the adapter
+ * @vdev: the vdev whose corresponding adapter has to be fetched
+ *
+ * Return: QDF_STATUS
+ */
+QDF_STATUS
+wlan_hdd_get_adapter_by_vdev_id_from_objmgr(struct hdd_context *hdd_ctx,
+					    struct hdd_adapter **adapter,
+					    struct wlan_objmgr_vdev *vdev);
 
 struct hdd_adapter *hdd_open_adapter(struct hdd_context *hdd_ctx,
 				     uint8_t session_type,
@@ -2207,6 +2461,31 @@ QDF_STATUS hdd_reset_all_adapters(struct hdd_context *hdd_ctx);
 QDF_STATUS hdd_start_all_adapters(struct hdd_context *hdd_ctx);
 struct hdd_adapter *hdd_get_adapter_by_vdev(struct hdd_context *hdd_ctx,
 				       uint32_t vdev_id);
+
+/**
+ * hdd_adapter_get_by_reference() - Return adapter with the given reference
+ * @hdd_ctx: hdd context
+ * @reference: reference for the adapter to get
+ *
+ * This function is used to get the adapter with provided reference.
+ * The adapter reference will be held until being released by calling
+ * hdd_adapter_put().
+ *
+ * Return: adapter pointer if found
+ *
+ */
+struct hdd_adapter *hdd_adapter_get_by_reference(struct hdd_context *hdd_ctx,
+						 struct hdd_adapter *reference);
+
+/**
+ * hdd_adapter_put() - Release reference to adapter
+ * @adapter: adapter reference
+ *
+ * Release reference to adapter previously acquired via
+ * hdd_adapter_get_*() function
+ */
+void hdd_adapter_put(struct hdd_adapter *adapter);
+
 struct hdd_adapter *hdd_get_adapter_by_macaddr(struct hdd_context *hdd_ctx,
 					  tSirMacAddr macAddr);
 
@@ -2487,6 +2766,7 @@ void hdd_deinit(void);
 int hdd_wlan_startup(struct device *dev);
 void __hdd_wlan_exit(void);
 int hdd_wlan_notify_modem_power_state(int state);
+void hdd_context_destroy(struct hdd_context *hdd_ctx);
 #ifdef QCA_HT_2040_COEX
 /**
  * hdd_wlan_set_ht2040_mode() - notify FW with HT20/HT40 mode
@@ -2755,12 +3035,22 @@ void wlan_hdd_txrx_pause_cb(uint8_t vdev_id,
 	enum netif_action_type action, enum netif_reason_type reason);
 
 int hdd_wlan_dump_stats(struct hdd_adapter *adapter, int value);
-void wlan_hdd_deinit_tx_rx_histogram(struct hdd_context *hdd_ctx);
 void wlan_hdd_display_tx_rx_histogram(struct hdd_context *hdd_ctx);
 void wlan_hdd_clear_tx_rx_histogram(struct hdd_context *hdd_ctx);
 void
 wlan_hdd_display_netif_queue_history(struct hdd_context *hdd_ctx,
 				     enum qdf_stats_verbosity_level verb_lvl);
+
+/**
+ * wlan_hdd_display_adapter_netif_queue_history() - display adapter based netif
+ * queue history
+ * @adapter: hdd adapter
+ *
+ * Return: none
+ */
+void
+wlan_hdd_display_adapter_netif_queue_history(struct hdd_adapter *adapter);
+
 void wlan_hdd_clear_netif_queue_history(struct hdd_context *hdd_ctx);
 const char *hdd_get_fwpath(void);
 void hdd_indicate_mgmt_frame(tSirSmeMgmtFrameInd *frame_ind);
@@ -3769,4 +4059,121 @@ void hdd_psoc_idle_timer_start(struct hdd_context *hdd_ctx);
  * Return: None
  */
 void hdd_psoc_idle_timer_stop(struct hdd_context *hdd_ctx);
+
+#ifdef WLAN_FEATURE_PKT_CAPTURE
+
+/**
+ * wlan_hdd_is_session_type_monitor() - check if session type is MONITOR
+ * @session_type: session type
+ *
+ * Return: True - if session type for adapter is monitor, else False
+ *
+ */
+bool wlan_hdd_is_session_type_monitor(uint8_t session_type);
+
+/**
+ * wlan_hdd_check_mon_concurrency() - check if MONITOR and STA concurrency
+ * is UP when packet capture mode is enabled.
+ *
+ * Return: True - if STA and monitor concurrency is there, else False
+ *
+ */
+bool wlan_hdd_check_mon_concurrency(void);
+
+/**
+ * wlan_hdd_add_monitor_check() - check for monitor intf and add if needed
+ * @hdd_ctx: pointer to hdd context
+ * @adapter: output pointer to hold created monitor adapter
+ * @name: name of the interface
+ * @rtnl_held: True if RTNL lock is held
+ * @name_assign_type: the name of assign type of the netdev
+ *
+ * Return: 0 - on success
+ *         err code - on failure
+ */
+int wlan_hdd_add_monitor_check(struct hdd_context *hdd_ctx,
+			       struct hdd_adapter **adapter,
+			       const char *name, bool rtnl_held,
+			       unsigned char name_assign_type);
+
+/**
+ * wlan_hdd_del_monitor() - delete monitor interface
+ * @hdd_ctx: pointer to hdd context
+ * @adapter: adapter to be deleted
+ * @rtnl_held: rtnl lock held
+ *
+ * This function is invoked to delete monitor interface.
+ *
+ * Return: None
+ */
+void wlan_hdd_del_monitor(struct hdd_context *hdd_ctx,
+			  struct hdd_adapter *adapter, bool rtnl_held);
+#else
+static inline
+bool wlan_hdd_is_session_type_monitor(uint8_t session_type)
+{
+	return false;
+}
+
+static inline
+bool wlan_hdd_check_mon_concurrency(void)
+{
+	return false;
+}
+
+static inline
+int wlan_hdd_add_monitor_check(struct hdd_context *hdd_ctx,
+			       struct hdd_adapter **adapter,
+			       const char *name, bool rtnl_held,
+			       unsigned char name_assign_type)
+{
+	return 0;
+}
+
+static inline
+void wlan_hdd_del_monitor(struct hdd_context *hdd_ctx,
+			  struct hdd_adapter *adapter, bool rtnl_held)
+{
+}
+#endif /* WLAN_FEATURE_PKT_CAPTURE */
+
+/**
+ * hdd_send_update_owe_info_event - Send update OWE info event
+ * @adapter: Pointer to adapter
+ * @sta_addr: MAC address of peer STA
+ * @owe_ie: OWE IE
+ * @owe_ie_len: Length of OWE IE
+ *
+ * Send update OWE info event to hostapd
+ *
+ * Return: none
+ */
+#ifdef CFG80211_EXTERNAL_DH_UPDATE_SUPPORT
+void hdd_send_update_owe_info_event(struct hdd_adapter *adapter,
+				    uint8_t sta_addr[],
+				    uint8_t *owe_ie,
+				    uint32_t owe_ie_len);
+#else
+static inline void hdd_send_update_owe_info_event(struct hdd_adapter *adapter,
+						  uint8_t sta_addr[],
+						  uint8_t *owe_ie,
+						  uint32_t owe_ie_len)
+{
+}
+#endif
+
+#if defined(CLD_PM_QOS) && defined(WLAN_FEATURE_LL_MODE)
+/**
+ * hdd_beacon_latency_event_cb() - Callback function to get latency level
+ * @latency_level: latency level received from firmware
+ *
+ * Return: None
+ */
+void hdd_beacon_latency_event_cb(uint32_t latency_level);
+#else
+static inline void hdd_beacon_latency_event_cb(uint32_t latency_level)
+{
+}
+#endif
+
 #endif /* end #if !defined(WLAN_HDD_MAIN_H) */

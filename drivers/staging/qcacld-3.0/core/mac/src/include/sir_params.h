@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2019 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2020 The Linux Foundation. All rights reserved.
  *
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
@@ -401,6 +401,7 @@ struct sir_mgmt_msg {
 #define SIR_HAL_TDLS_LINK_TEARDOWN         (SIR_HAL_ITC_MSG_TYPES_BEGIN + 137)
 #endif
 #define SIR_HAL_ROAM_SCAN_OFFLOAD_REQ      (SIR_HAL_ITC_MSG_TYPES_BEGIN + 138)
+#define SIR_HAL_ROAM_PRE_AUTH_STATUS_IND   (SIR_HAL_ITC_MSG_TYPES_BEGIN + 139)
 
 #define SIR_HAL_TRAFFIC_STATS_IND          (SIR_HAL_ITC_MSG_TYPES_BEGIN + 141)
 
@@ -697,6 +698,8 @@ struct sir_mgmt_msg {
 #define SIR_HAL_GET_ISOLATION               (SIR_HAL_ITC_MSG_TYPES_BEGIN + 412)
 
 #define SIR_HAL_SET_ROAM_TRIGGERS           (SIR_HAL_ITC_MSG_TYPES_BEGIN + 413)
+
+#define SIR_HAL_ROAM_SCAN_CH_REQ           (SIR_HAL_ITC_MSG_TYPES_BEGIN + 414)
 
 #define SIR_HAL_MSG_TYPES_END               (SIR_HAL_MSG_TYPES_BEGIN + 0x1FF)
 
