@@ -643,6 +643,7 @@ static int __pktlog_release(struct inode *i, struct file *f)
 		qdf_print("%s: Invalid scn context", __func__);
 		ASSERT(0);
 		return -EINVAL;
+	}
 
 	pl_dev = get_pktlog_handle();
 
@@ -881,23 +882,6 @@ __pktlog_read(struct file *file, char *buf, size_t nbytes, loff_t *ppos)
 					PDE_DATA(file->f_path.dentry->d_inode);
 	if (!pl_info)
 		return 0;
-
-	qdf_spin_lock_bh(&pl_info->log_lock);
-	log_buf = pl_info->buf;
-
-	if (log_buf == NULL) {
-		qdf_spin_unlock_bh(&pl_info->log_lock);
-		return 0;
-	}
-
-	if (pl_info->log_state) {
-		/* Read is not allowed when write is going on
-		 * When issuing cat command, ensure to send
-		 * pktlog disable command first.
-		 */
-		qdf_spin_unlock_bh(&pl_info->log_lock);
-		return -EINVAL;
-	}
 
 	qdf_spin_lock_bh(&pl_info->log_lock);
 	log_buf = pl_info->buf;
