@@ -456,6 +456,7 @@ QDF_STATUS wma_roam_scan_offload_mode(tp_wma_handle wma_handle,
 	params->vdev_id = vdev_id;
 	if (roam_req) {
 		params->is_roam_req_valid = 1;
+
 		params->min_delay_btw_roam_scans =
 				roam_req->min_delay_btw_roam_scans;
 		params->roam_trigger_reason_bitmask =
@@ -2484,10 +2485,13 @@ static int wma_fill_roam_synch_buffer(tp_wma_handle wma,
 	chan = (wmi_channel *) param_buf->chan;
 	roam_synch_ind_ptr->chan_freq = chan->mhz;
 	key = (wmi_key_material *) param_buf->key;
+	key_ft = param_buf->key_ext;
 	if (key) {
+		roam_synch_ind_ptr->kck_len = SIR_KCK_KEY_LEN;
 		qdf_mem_copy(roam_synch_ind_ptr->kck, key->kck,
 			     SIR_KCK_KEY_LEN);
 		roam_synch_ind_ptr->kek_len = SIR_KEK_KEY_LEN;
+		qdf_mem_copy(roam_synch_ind_ptr->kek, key->kek,
 			     SIR_KEK_KEY_LEN);
 		qdf_mem_copy(roam_synch_ind_ptr->replay_ctr,
 			     key->replay_counter, SIR_REPLAY_CTR_LEN);

@@ -792,6 +792,7 @@ static void lim_process_mlm_join_req(tpAniSirGlobal mac_ctx, uint32_t *msg)
 		/* Hold onto Join request parameters */
 
 		session->pLimMlmJoinReq = (tpLimMlmJoinReq) msg;
+		lim_process_mlm_post_join_suspend_link(mac_ctx,
 				QDF_STATUS_SUCCESS, (uint32_t *)session);
 		return;
 	} else {
@@ -813,6 +814,10 @@ error:
 	mlmjoin_cnf.resultCode = eSIR_SME_RESOURCES_UNAVAILABLE;
 	mlmjoin_cnf.sessionId = sessionid;
 	mlmjoin_cnf.protStatusCode = eSIR_MAC_UNSPEC_FAILURE_STATUS;
+	lim_post_sme_message(mac_ctx, LIM_MLM_JOIN_CNF,
+		(uint32_t *)&mlmjoin_cnf);
+
+}
 
 /**
  * lim_is_auth_req_expected() - check if auth request is expected

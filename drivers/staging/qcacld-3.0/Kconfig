@@ -8,14 +8,6 @@ config QCA_CLD_WLAN
 
 if QCA_CLD_WLAN != n
 
-config QCA_CLD_WLAN_PROFILE
-	string "Configuration profile for Qualcomm Atheros CLD WLAN module"
-	default "default"
-	help
-	  Specify which configuration profile to be used for building
-	  this module.
-	  Profiles are located at drivers/staging/qcacld-3.0/configs.
-
 config QCACLD_WLAN_LFR3
 	bool "Enable the WLAN Legacy Fast Roaming feature Version 3"
 	default n

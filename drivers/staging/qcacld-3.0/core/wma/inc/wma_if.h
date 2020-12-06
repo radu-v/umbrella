@@ -1333,6 +1333,22 @@ struct del_sta_self_rsp_params {
  */
 typedef struct sP2pPsParams {
 	uint8_t opp_ps;
+	uint32_t ctWindow;
+	uint8_t count;
+	uint32_t duration;
+	uint32_t interval;
+	uint32_t single_noa_duration;
+	uint8_t psSelection;
+	uint8_t sessionId;
+} tP2pPsParams, *tpP2pPsParams;
+
+/**
+ * struct tTdlsLinkEstablishParams - TDLS Link establish parameters
+ * @staIdx: station index
+ * @isResponder: responder flag
+ * @uapsdQueues: uapsd queue
+ * @maxSp: max SP period
+ * @isBufsta: is station flag
  * @isOffChannelSupported: offchannel supported or not
  * @peerCurrOperClass: peer current operating class
  * @selfCurrOperClass: self current operating class
