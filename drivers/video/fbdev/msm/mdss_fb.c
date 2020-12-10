@@ -4163,7 +4163,7 @@ static int mdss_fb_set_par(struct fb_info *info)
 {
 	struct msm_fb_data_type *mfd = (struct msm_fb_data_type *)info->par;
 	struct fb_var_screeninfo *var = &info->var;
-	int old_imgType, old_format;
+	int old_imgType, old_format, out_format;
 	int ret = 0;
 
 	ret = mdss_fb_pan_idle(mfd);
