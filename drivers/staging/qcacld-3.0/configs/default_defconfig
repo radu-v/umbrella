@@ -346,7 +346,7 @@ endif
 # Feature flags which are not (currently) configurable via Kconfig
 
 #Whether to build debug version
-BUILD_DEBUG_VERSION := y
+BUILD_DEBUG_VERSION := n
 
 #Enable this flag to build driver in diag version
 BUILD_DIAG_VERSION := n
@@ -654,7 +654,7 @@ CONFIG_CHANNEL_HOPPING_ALL_BANDS := y
 endif
 
 ifneq ($(CONFIG_HIF_USB), y)
-CONFIG_WLAN_LOGGING_SOCK_SVC := y
+CONFIG_WLAN_LOGGING_SOCK_SVC := n
 endif
 
 ifneq ($(TARGET_BUILD_VARIANT),user)
