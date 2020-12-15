@@ -50,7 +50,7 @@
 			enable-method = "psci";
 			next-level-cache = <&L2_0>;
 			qcom,ea = <&ea0>;
-			efficiency = <1024>;
+			efficiency = <635>;
 			sched-energy-costs = <&CPU_COST_0 &CLUSTER_COST_0>;
 			L2_0: l2-cache {
 			      compatible = "arm,arch-cache";
@@ -79,7 +79,7 @@
 			enable-method = "psci";
 			next-level-cache = <&L2_0>;
 			qcom,ea = <&ea1>;
-			efficiency = <1024>;
+			efficiency = <635>;
 			sched-energy-costs = <&CPU_COST_0 &CLUSTER_COST_0>;
 			L1_I_1: l1-icache {
 				compatible = "arm,arch-cache";
@@ -103,7 +103,7 @@
 			enable-method = "psci";
 			next-level-cache = <&L2_0>;
 			qcom,ea = <&ea2>;
-			efficiency = <1024>;
+			efficiency = <635>;
 			sched-energy-costs = <&CPU_COST_0 &CLUSTER_COST_0>;
 			L1_I_2: l1-icache {
 				compatible = "arm,arch-cache";
@@ -127,7 +127,7 @@
 			enable-method = "psci";
 			next-level-cache = <&L2_0>;
 			qcom,ea = <&ea3>;
-			efficiency = <1024>;
+			efficiency = <635>;
 			sched-energy-costs = <&CPU_COST_0 &CLUSTER_COST_0>;
 			L1_I_3: l1-icache {
 				compatible = "arm,arch-cache";
@@ -151,7 +151,7 @@
 			enable-method = "psci";
 			next-level-cache = <&L2_1>;
 			qcom,ea = <&ea4>;
-			efficiency = <1536>;
+			efficiency = <1024>;
 			sched-energy-costs = <&CPU_COST_1 &CLUSTER_COST_1>;
 			L2_1: l2-cache {
 				compatible = "arm,arch-cache";
@@ -179,7 +179,7 @@
 			enable-method = "psci";
 			next-level-cache = <&L2_1>;
 			qcom,ea = <&ea5>;
-			efficiency = <1536>;
+			efficiency = <1024>;
 			sched-energy-costs = <&CPU_COST_1 &CLUSTER_COST_1>;
 			L1_I_101: l1-icache {
 				compatible = "arm,arch-cache";
@@ -203,7 +203,7 @@
 			enable-method = "psci";
 			next-level-cache = <&L2_1>;
 			qcom,ea = <&ea6>;
-			efficiency = <1536>;
+			efficiency = <1024>;
 			sched-energy-costs = <&CPU_COST_1 &CLUSTER_COST_1>;
 			L1_I_102: l1-icache {
 				compatible = "arm,arch-cache";
@@ -227,7 +227,7 @@
 			enable-method = "psci";
 			next-level-cache = <&L2_1>;
 			qcom,ea = <&ea7>;
-			efficiency = <1536>;
+			efficiency = <1024>;
 			sched-energy-costs = <&CPU_COST_1 &CLUSTER_COST_1>;
 			L1_I_103: l1-icache {
 				compatible = "arm,arch-cache";
@@ -280,30 +280,32 @@
 			};
 		};
 		energy-costs {
+			compatible = "sched-energy";
+
 			CPU_COST_0: core-cost0 {
 				busy-cost-data = <
-					 80  487
-					 97  494
-					118  480
-					138  454
-					159  416
-					180  439
-					200  462
-					221  428
-					237  394
-					257  420
-					278  404
-					293  416
-					314  444
-					335  448
-					355  470
-					376  500
-					397  550
-					417  630
-					448  710
-					469  726
-					490  814
-					510  805
+					78   23
+					94   28
+					114   41
+					134   33
+					154   43
+					174   38
+					194   39
+					213   55
+					228   61
+					248   52
+					268   76
+					283   64
+					303   70
+					323   75
+					342   85
+					362   95
+					382  124
+					402  108
+					432  136
+					452  145
+					472  159
+					491  185
 				>;
 				idle-cost-data = <
 					4 4 0 0
@@ -311,36 +313,37 @@
 			};
 			CPU_COST_1: core-cost1 {
 				busy-cost-data = <
-					129  518
-					149  413
-					182  481
-					215  522
-					249  538
-					282  566
-					315  642
-					349  708
-					390  766
-					424  759
-					457  768
-					490  764
-					515  751
-					549  750
-					582  820
-					615  939
-					649  1020
-					682  1040
-					715  1061
-					749  1206
-					782  1318
-					815  1374
-					849  1658
-					882  1716
-					915  1914
-					957  2164
-					982  2420
-					1007 2554
-					1023 2598
-					1024 2616
+					125   59
+					144   56
+					176   57
+					208   66
+					240   91
+					272  104
+					304  102
+					336  123
+					376  121
+					408  131
+					440  162
+					472  154
+					496  161
+					527  180
+					560  187
+					592  218
+					624  278
+					656  267
+					688  293
+					720  303
+					752  334
+					783  375
+					816  478
+					847  498
+					880  551
+					943  588
+					975  716
+					1007  787
+					1016  822
+					1024  775
+					1023  861
 				>;
 				idle-cost-data = <
 					10 10 0 0
@@ -348,28 +351,28 @@
 			};
 			CLUSTER_COST_0: cluster-cost0 {
 				busy-cost-data = <
-					 80  17
-					 97  18
-					118  18
-					138  20
-					159  21
-					180  22
-					200  23
-					221  24
-					237  27
-					257  29
-					278  30
-					293  32
-					314  33
-					335  35
-					355  38
-					376  39
-					397  42
-					417  46
-					448  48
-					469  53
-					490  59
-					510  66
+					78   17
+					94   18
+					114   18
+					134   20
+					154   21
+					174   22
+					194   23
+					213   24
+					228   27
+					248   29
+					268   30
+					283   32
+					303   33
+					323   35
+					342   38
+					362   39
+					382   42
+					402   46
+					432   48
+					452   53
+					472   59
+					491   66
 				>;
 				idle-cost-data = <
 					31 31 31 0
@@ -377,36 +380,36 @@
 			};
 			CLUSTER_COST_1: cluster-cost1 {
 				busy-cost-data = <
-					129  24
-					149  25
-					182  26
-					215  29
-					249  30
-					282  33
-					315  35
-					349  37
-					390  38
-					424  40
-					457  43
-					490  44
-					515  46
-					549  50
-					582  54
-					615  60
-					649  63
-					682  70
-					715  74
-					749  80
-					782  87
-					815  96
-					849  104
-					882  120
-					915  130
-					957  171
-					982  178
-					1007 200
-					1023 202
-					1024 203
+					125   24
+					144   25
+					176   26
+					208   29
+					240   30
+					272   33
+					304   35
+					336   37
+					376   38
+					408   40
+					440   43
+					472   44
+					496   46
+					527   50
+					560   54
+					592   60
+					624   63
+					656   70
+					688   74
+					720   80
+					752   87
+					783   96
+					816  104
+					847  120
+					880  130
+					943  171
+					975  178
+					1007  200
+					1016  202
+					1024  203
 				>;
 				idle-cost-data = <
 					50 50 50 0
