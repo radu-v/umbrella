@@ -327,6 +327,7 @@ void qdf_vtrace_msg(QDF_MODULE_ID module, QDF_TRACE_LEVEL level,
 	qdf_trace_msg_cmn(qdf_pidx, module, level, str_format, val);
 }
 qdf_export_symbol(qdf_vtrace_msg);
+#endif
 
 #define ROW_SIZE 16
 /* Buffer size = data bytes(2 hex chars plus space) + NULL */
@@ -370,8 +371,6 @@ void qdf_trace_hex_dump(QDF_MODULE_ID module, QDF_TRACE_LEVEL level,
 	}
 }
 qdf_export_symbol(qdf_trace_hex_dump);
-
-#endif
 
 #ifdef TRACE_RECORD
 /**
