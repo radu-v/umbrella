@@ -5,7 +5,7 @@
 [Umbrella kernel](https://github.com/resident-nokia/umbrella) with some patches and additions.
 
 - KCal support
-- HW button backlight as notification LEDs
+- HW button backlight as notification LEDs (not working in Android 11 ROMs)
 - Energy Aware Scheduling
 - schedutil, blu_schedutil and pwrutilx CPU governors
 - lzo-rle support for zram
