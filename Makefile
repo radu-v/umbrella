@@ -1137,7 +1137,7 @@ define filechk_utsrelease.h
 endef
 
 define filechk_version.h
-	if [ $(SUBLEVEL) -gt 255 ]; then                                 \
+	(if [ $(SUBLEVEL) -gt 255 ]; then                                 \
 		echo \#define LINUX_VERSION_CODE $(shell                 \
 		expr $(VERSION) \* 65536 + 0$(PATCHLEVEL) \* 256 + 255); \
 	else                                                             \
@@ -1145,7 +1145,13 @@ define filechk_version.h
 		expr $(VERSION) \* 65536 + 0$(PATCHLEVEL) \* 256 + $(SUBLEVEL)); \
 	fi;                                                              \
 	echo '#define KERNEL_VERSION(a,b,c) (((a) << 16) + ((b) << 8) +  \
-	((c) > 255 ? 255 : (c)))'
+	((c) > 255 ? 255 : (c)))';                                       \
+	echo \#define LINUX_VERSION_CODE2 $(shell                        \
+	expr $(VERSION) \* 16777216 + 0$(PATCHLEVEL) \* 65536 + 0$(SUBLEVEL)); \
+	echo \#define LINUX_VERSION_MAJOR $(VERSION);                    \
+	echo \#define LINUX_VERSION_PATCHLEVEL $(PATCHLEVEL);            \
+	echo \#define LINUX_VERSION_SUBLEVEL $(SUBLEVEL);                \
+	echo '#define KERNEL_VERSION2(a,b,c) (((a) << 24) + ((b) << 16) + (c))')
 endef
 
 $(version_h): $(srctree)/Makefile FORCE
