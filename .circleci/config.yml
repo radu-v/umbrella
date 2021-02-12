@@ -14,7 +14,7 @@ jobs:
     - run:
         name: Here we go!
         command: |
-          ./build --skip-update-submodule --skip-cleanup --no-branch -s
+          ./build --skip-update-submodule --skip-cleanup --no-branch
     - run:
         name: Pack & Upload
         command: |
