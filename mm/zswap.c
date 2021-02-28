@@ -57,7 +57,7 @@ static atomic_t zswap_stored_pages = ATOMIC_INIT(0);
  * certain event is occurring.
 */
 
-#ifndef CONFIG_VNSWAP
+#ifndef CONFIG_VBSWAP
 /* Pool limit was hit (see zswap_max_pool_percent) */
 static u64 zswap_pool_limit_hit;
 /* Pages written back when pool limit was reached */
@@ -112,7 +112,7 @@ static struct kernel_param_ops zswap_zpool_param_ops = {
 };
 module_param_cb(zpool, &zswap_zpool_param_ops, &zswap_zpool_type, 0644);
 
-#ifndef CONFIG_VNSWAP
+#ifndef CONFIG_VBSWAP
 /* The maximum percentage of memory that the compressed pool can occupy */
 static unsigned int zswap_max_pool_percent = 20;
 module_param_named(max_pool_percent, zswap_max_pool_percent, uint, 0644);
@@ -158,7 +158,7 @@ struct zswap_entry {
 	unsigned long handle;
 };
 
-#ifndef CONFIG_VNSWAP
+#ifndef CONFIG_VBSWAP
 struct zswap_header {
 	swp_entry_t swpentry;
 };
@@ -197,13 +197,13 @@ static bool zswap_init_failed;
 	pr_debug("%s pool %s/%s\n", msg, (p)->tfm_name,		\
 		 zpool_get_type((p)->zpool))
 
-#ifndef CONFIG_VNSWAP
+#ifndef CONFIG_VBSWAP
 static int zswap_writeback_entry(struct zpool *pool, unsigned long handle);
 #endif
 static int zswap_pool_get(struct zswap_pool *pool);
 static void zswap_pool_put(struct zswap_pool *pool);
 
-#ifndef CONFIG_VNSWAP
+#ifndef CONFIG_VBSWAP
 static const struct zpool_ops zswap_zpool_ops = {
 	.evict = zswap_writeback_entry
 };
@@ -519,7 +519,7 @@ static struct zswap_pool *zswap_pool_current_get(void)
 	return pool;
 }
 
-#ifndef CONFIG_VNSWAP
+#ifndef CONFIG_VBSWAP
 static struct zswap_pool *zswap_pool_last_get(void)
 {
 	struct zswap_pool *pool, *last = NULL;
@@ -573,7 +573,7 @@ static struct zswap_pool *zswap_pool_create(char *type, char *compressor)
 	/* unique name for each pool specifically required by zsmalloc */
 	snprintf(name, 38, "zswap%x", atomic_inc_return(&zswap_pools_count));
 
-#ifdef CONFIG_VNSWAP
+#ifdef CONFIG_VBSWAP
 	pool->zpool = zpool_create_pool(type, name, gfp, NULL);
 #else
 	pool->zpool = zpool_create_pool(type, name, gfp, &zswap_zpool_ops);
@@ -813,7 +813,7 @@ enum zswap_get_swap_ret {
 	ZSWAP_SWAPCACHE_FAIL,
 };
 
-#ifndef CONFIG_VNSWAP
+#ifndef CONFIG_VBSWAP
 /*
  * zswap_get_swap_cache_page
  *
@@ -994,7 +994,7 @@ static int zswap_frontswap_store(unsigned type, pgoff_t offset,
 	unsigned long handle;
 	char *buf;
 	u8 *src, *dst;
-#ifndef CONFIG_VNSWAP
+#ifndef CONFIG_VBSWAP
 	unsigned int len;
 	struct zswap_header *zhdr;
 #endif
@@ -1005,7 +1005,7 @@ static int zswap_frontswap_store(unsigned type, pgoff_t offset,
 		goto reject;
 	}
 
-#ifndef CONFIG_VNSWAP
+#ifndef CONFIG_VBSWAP
 	/* reclaim space if needed */
 	if (zswap_is_full()) {
 		zswap_pool_limit_hit++;
@@ -1054,7 +1054,7 @@ static int zswap_frontswap_store(unsigned type, pgoff_t offset,
 	}
 
 	/* store */
-#ifdef CONFIG_VNSWAP
+#ifdef CONFIG_VBSWAP
 	if (dlen > PAGE_SIZE)
 		dlen = PAGE_SIZE;
 	ret = zpool_malloc(entry->pool->zpool, dlen,
@@ -1073,7 +1073,7 @@ static int zswap_frontswap_store(unsigned type, pgoff_t offset,
 		goto put_dstmem;
 	}
 
-#ifdef CONFIG_VNSWAP
+#ifdef CONFIG_VBSWAP
 	buf = (u8 *)zpool_map_handle(entry->pool->zpool, handle, ZPOOL_MM_RW);
 	if (dlen == PAGE_SIZE) {
 		src = kmap_atomic(page);
@@ -1145,7 +1145,7 @@ static int zswap_frontswap_load(unsigned type, pgoff_t offset,
 
 	/* decompress */
 	dlen = PAGE_SIZE;
-#ifdef CONFIG_VNSWAP
+#ifdef CONFIG_VBSWAP
 	src = (u8 *)zpool_map_handle(entry->pool->zpool, entry->handle,
 			ZPOOL_MM_RO);
 	dst = kmap_atomic(page);
@@ -1266,7 +1266,7 @@ static int __init zswap_debugfs_init(void)
 	if (!zswap_debugfs_root)
 		return -ENOMEM;
 
-#ifndef CONFIG_VNSWAP
+#ifndef CONFIG_VBSWAP
 	debugfs_create_u64("pool_limit_hit", S_IRUGO,
 			zswap_debugfs_root, &zswap_pool_limit_hit);
 	debugfs_create_u64("reject_reclaim_fail", S_IRUGO,
@@ -1278,7 +1278,7 @@ static int __init zswap_debugfs_init(void)
 			zswap_debugfs_root, &zswap_reject_kmemcache_fail);
 	debugfs_create_u64("reject_compress_poor", S_IRUGO,
 			zswap_debugfs_root, &zswap_reject_compress_poor);
-#ifndef CONFIG_VNSWAP
+#ifndef CONFIG_VBSWAP
 	debugfs_create_u64("written_back_pages", S_IRUGO,
 			zswap_debugfs_root, &zswap_written_back_pages);
 #endif
