@@ -857,8 +857,8 @@ enum Tfa98xx_Error tfaRunWriteRegister(Tfa98xx_handle_t handle, nxpTfaRegpatch_t
 /*
  * return the bitfield
  */
-nxpTfaBitfield_t tfaContDsc2Bf(nxpTfaDescPtr_t dsc) {
-	uint32_t *ptr = (uint32_t *) (&dsc);
+nxpTfaBitfield_t tfaContDsc2Bf(nxpTfaDescPtr_t *dsc) {
+	uint32_t *ptr = (uint32_t *) (dsc);
 	union {
 	nxpTfaBitfield_t bf;
 	uint32_t num;
