@@ -560,7 +560,7 @@ static int ptrace_sethbpregs(struct task_struct *tsk, long num,
 	} else {
 		/* Control */
 		decode_ctrl_reg(user_val, &ctrl);
-		ret = arch_bp_generic_fields(ctrl, &gen_len, &gen_type);
+		ret = arch_bp_generic_fields(&ctrl, &gen_len, &gen_type);
 		if (ret)
 			goto out;
 
