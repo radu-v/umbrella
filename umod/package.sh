@@ -14,25 +14,25 @@ if [ "$KDEVICE" = "" ]; then
     fi
 fi
 if [ "$KNAME" = "" ]; then
-    KNAME="Umbrella"
+    KNAME="Umod"
 fi
 
 # Copy the template config
-cp -r umbrella/template umbrella/.tmp
+cp -r umod/template umod/.tmp
 
 # Update the variables
-echo "Version: $KVERSION" > umbrella/.tmp/version
-sed -i "s/{DEVICE}/$KDEVICE/g" umbrella/.tmp/anykernel.sh
-sed -i "s/{NAME}/$KNAME/g" umbrella/.tmp/anykernel.sh
+echo "Version: $KVERSION" > umod/.tmp/version
+sed -i "s/{DEVICE}/$KDEVICE/g" umod/.tmp/anykernel.sh
+sed -i "s/{NAME}/$KNAME/g" umod/.tmp/anykernel.sh
 
 # Copy the kernel
-cp out/arch/arm64/boot/Image.*-dtb umbrella/.tmp
+cp out/arch/arm64/boot/Image.*-dtb umod/.tmp
 
 # Package the zip file
-mkdir -p umbrella/out
-cd umbrella/.tmp
+mkdir -p umod/out
+cd umod/.tmp
 zip -r ../out/$KVERSION.zip .
 cd ../..
 
 # Clean up
-rm -r umbrella/.tmp
+rm -r umod/.tmp
