@@ -2492,7 +2492,7 @@ void FIH_chg_reEnable(struct smb_charger *chg) {
 	int rc = 0;
 	int retry = 0;
 
-	smblib_err(chg, "Try to do the FIH_chg_reEnable\n");
+	smblib_dbg(chg, PR_MISC, "Try to do the FIH_chg_reEnable\n");
 
 	for(retry = 1; retry <= RETRY_TIMES; retry++) {
 		rc = smblib_masked_write(chg, CHARGING_ENABLE_CMD_REG, CHARGING_ENABLE_CMD_BIT, 0);
@@ -2519,7 +2519,7 @@ void FIH_USBIN_reEnable(struct smb_charger *chg) {
 	int rc = 0;
 	int retry = 0;
 
-	smblib_err(chg, "Try to do the FIH_USBIN_reEnable\n");
+	smblib_dbg(chg, PR_MISC, "Try to do the FIH_USBIN_reEnable\n");
 
 	for(retry = 1; retry <= RETRY_TIMES; retry++) {
 		rc = smblib_masked_write(chg, USBIN_CMD_IL_REG, USBIN_SUSPEND_BIT, USBIN_SUSPEND_BIT);
