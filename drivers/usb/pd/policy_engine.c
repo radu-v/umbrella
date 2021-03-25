@@ -1030,7 +1030,7 @@ static void usbpd_set_state(struct usbpd *pd, enum usbpd_state next_state)
 	if (pd->hard_reset_recvd) /* let usbpd_sm handle it */
 		return;
 
-	usbpd_info(&pd->dev, "%s -> %s\n",
+	usbpd_dbg(&pd->dev, "%s -> %s\n",
 			usbpd_state_strings[pd->current_state],
 			usbpd_state_strings[next_state]);
 	/* end FIH - NB1-680 */
