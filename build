@@ -55,8 +55,8 @@ export STRIP=llvm-strip
 
 if [ -z $SKIPCLEAN ]; then
 	echo "Cleaning output dir"
+	make ARCH=arm64 O=out clean && make ARCH=arm64 O=out mrproper
 	rm -rf out
-	make clean && make mrproper
 	mkdir -p out
 else
 	echo "Skipping cleanup"
