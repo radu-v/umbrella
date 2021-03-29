@@ -34,6 +34,7 @@
 static LIST_HEAD(clk_list);
 static DEFINE_MUTEX(clk_list_lock);
 
+#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_COMMON_CLK_MSM)
 static struct dentry *debugfs_base;
 
 //CORE-PK-SuspendLog-00*[
@@ -43,6 +44,7 @@ static u32 debug_suspend = 0x1; /* Show clock info when suspend as default */
 static u32 debug_suspend;
 #endif
 //CORE-PK-SuspendLog-00*]
+#endif /* defined(CONFIG_DEBUG_FS) && defined(CONFIG_COMMON_CLK_MSM) */
 
 static int clock_debug_rate_set(void *data, u64 val)
 {
@@ -544,7 +546,7 @@ static const struct file_operations clock_print_hw_fops = {
 	.release	= seq_release,
 };
 
-
+#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_COMMON_CLK_MSM)
 static void clock_measure_add(struct clk *clock)
 {
 	if (IS_ERR_OR_NULL(measure))
@@ -557,7 +559,6 @@ static void clock_measure_add(struct clk *clock)
 				&clock_measure_fops);
 }
 
-#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_COMMON_CLK_MSM)
 static int clock_debug_add(struct clk *clock)
 {
 	char temp[50], *ptr;
