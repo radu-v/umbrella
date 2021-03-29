@@ -493,6 +493,7 @@ static const struct file_operations clock_parent_fops = {
 	.write		= clock_parent_write,
 };
 
+#ifdef CONFIG_DEBUG_FS
 void clk_debug_print_hw(struct clk *clk, struct seq_file *f)
 {
 	void __iomem *base;
@@ -521,6 +522,7 @@ void clk_debug_print_hw(struct clk *clk, struct seq_file *f)
 		base = clk->ops->list_registers(clk, j, &regs, &size);
 	}
 }
+#endif
 
 static int print_hw_show(struct seq_file *m, void *unused)
 {
@@ -555,6 +557,7 @@ static void clock_measure_add(struct clk *clock)
 				&clock_measure_fops);
 }
 
+#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_COMMON_CLK_MSM)
 static int clock_debug_add(struct clk *clock)
 {
 	char temp[50], *ptr;
@@ -695,3 +698,4 @@ void clock_debug_print_enabled(void)
 
 	clock_debug_print_enabled_clocks(NULL);
 }
+#endif
