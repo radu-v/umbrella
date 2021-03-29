@@ -192,9 +192,6 @@ static void fg_encode_default(struct fg_sram_param *sp,
 	enum fg_sram_param_id id, int val, u8 *buf);
 
 static struct fg_irq_info fg_irqs[FG_IRQ_MAX];
-#ifdef BBS_LOG
-static int fg_get_cycle_count(struct fg_chip *chip);
-#endif
 
 #define PARAM(_id, _addr_word, _addr_byte, _len, _num, _den, _offset,	\
 	      _enc, _dec)						\
@@ -876,11 +873,6 @@ static bool is_batt_empty(struct fg_chip *chip)
 		pr_warn("batt_soc_rt_sts: %x vbatt: %d uV msoc:%d\n", status,
 			vbatt_uv, msoc);
 
-	#ifdef BBS_LOG
-	if(vbatt_uv < chip->dt.cutoff_volt_mv * 1000)
-		QPNPFG_BATTERY_VOLTAGE_LOW;
-	#endif
-
 	return ((vbatt_uv < chip->dt.cutoff_volt_mv * 1000) ? true : false);
 }
 
@@ -1062,15 +1054,6 @@ static int fg_get_batt_profile(struct fg_chip *chip)
 		pr_err("Error in getting batt_id rc:%d\n", rc);
 		return rc;
 	}
-
-/*
-	chip->batt_id_ohms = batt_id;
-	batt_id /= 1000;
-	chip->batt_id_ohms = batt_id;
-*/
-#ifdef BBS_LOG
-	printk("BBox::UPD;0::%d\n", chip->batt_id_ohms/1000);
-#endif
 /* DY-FixMergeConflict*] */
 
 	batt_node = of_find_node_by_name(node, "qcom,battery-data");
@@ -1566,7 +1549,6 @@ static int fg_load_learned_cap_from_sram(struct fg_chip *chip)
 {
 	int rc, act_cap_mah;
 	int64_t delta_cc_uah, pct_nom_cap_uah;
-	int aging_cc;
 
 	rc = fg_get_sram_prop(chip, FG_SRAM_ACT_BATT_CAP, &act_cap_mah);
 	if (rc < 0) {
@@ -1602,21 +1584,6 @@ static int fg_load_learned_cap_from_sram(struct fg_chip *chip)
 
 	fg_dbg(chip, FG_CAP_LEARN, "learned_cc_uah:%lld nom_cap_uah: %lld\n",
 		chip->cl.learned_cc_uah, chip->cl.nom_cap_uah);
-
-#ifdef BBS_LOG
-	printk("BBox::UPD;49::%lld\n", (chip->cl.nom_cap_uah)/1000);
-
-	if(chip->cl.learned_cc_uah < chip->cl.nom_cap_uah)
-	{
-		aging_cc = div64_s64((chip->cl.learned_cc_uah*100),
-					chip->cl.nom_cap_uah);
-		if(aging_cc < 70) {
-			printk("BBox::UEC;49::2\n");
-			printk("BBox::UPD;50::%d::%lld\n", fg_get_cycle_count(chip), (chip->cl.learned_cc_uah)/1000);
-		}
-
-	}
-#endif
 
 	return 0;
 }
@@ -3201,10 +3168,6 @@ static int __fg_restart(struct fg_chip *chip)
 		pr_err("Error in getting capacity, rc=%d\n", rc);
 		return rc;
 	}
-
-	#ifdef BBS_LOG
-	printk("BBox::UPD;72::\n");
-	#endif
 
 	chip->last_soc = msoc;
 	chip->fg_restarting = true;

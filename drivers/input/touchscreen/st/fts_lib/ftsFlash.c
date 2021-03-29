@@ -23,7 +23,7 @@
 #include "ftsTest.h"
 #include "ftsTime.h"
 #include "ftsTool.h"
-#include "../fts.h"					//needed for including the define FW_H_FILE  
+#include "../fts.h"					//needed for including the define FW_H_FILE
 
 #include <linux/init.h>
 #include <linux/errno.h>
@@ -1150,7 +1150,6 @@ start:
     if (res < 0)
     {
         logError(1, "%s flash_burn: Unable to retrieve Chip INFO! ERROR %02X\n", tag, ERROR_FLASH_BURN_FAILED);
-        printk("BBox::UEC;7::6\n");
         return (res | ERROR_FLASH_BURN_FAILED);
     }
 

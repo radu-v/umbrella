@@ -161,7 +161,6 @@ int32_t VL53L0_write_multi(VL53L0_DEV dev, uint8_t index, uint8_t *pdata,
 #endif
 	/* MM-AL-AddBBSLog-00+{ */
 	if ((count + 1) > VL53L0_MAX_I2C_XFER_SIZE) {
-		BBOX_TOF_I2C_WRITE_FAIL
 		return STATUS_FAIL;
 	}
 	/* MM-AL-AddBBSLog-00+} */
@@ -169,11 +168,6 @@ int32_t VL53L0_write_multi(VL53L0_DEV dev, uint8_t index, uint8_t *pdata,
 	buffer[0] = index;
 	memcpy(&buffer[1], pdata, count);
 	status = VL53L0_I2CWrite(dev, buffer, (count+1));
-
-	/* MM-AL-AddBBSLog-00+{ */
-	if (status != STATUS_OK)
-		BBOX_TOF_I2C_WRITE_FAIL
-	/* MM-AL-AddBBSLog-00+} */
 
 	return status;
 }
@@ -192,7 +186,6 @@ int32_t VL53L0_read_multi(VL53L0_DEV dev, uint8_t index, uint8_t *pdata,
 
 	/* MM-AL-AddBBSLog-00+{ */
 	if ((count + 1) > VL53L0_MAX_I2C_XFER_SIZE) {
-		BBOX_TOF_I2C_READ_FAIL
 		return STATUS_FAIL;
 	}
 	/* MM-AL-AddBBSLog-00+} */
@@ -215,11 +208,6 @@ int32_t VL53L0_read_multi(VL53L0_DEV dev, uint8_t index, uint8_t *pdata,
 
 	trace_i2c("Read  reg : 0x%04X, Val : 0x%s\n", index, value_as_str);
 #endif
-
-	/* MM-AL-AddBBSLog-00+{ */
-	if (status != STATUS_OK)
-		BBOX_TOF_I2C_READ_FAIL
-	/* MM-AL-AddBBSLog-00+} */
 
 	return status;
 }

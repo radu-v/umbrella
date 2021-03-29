@@ -416,7 +416,6 @@ static long gf_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		break;
 	case GF_IOC_RESET:
 		pr_info("%s GF_IOC_RESET. \n", __func__);
-		BBOX_FP_RESET_CHIP_FAIL
 		gf_hw_reset(gf_dev, 3);
 		break;
 	case GF_IOC_INPUT_KEY_EVENT:
@@ -798,7 +797,6 @@ error_hw:
 	gf_cleanup(gf_dev);
 	gf_dev->device_available = 0;
 
-	BBOX_FP_PROB_FAIL
 	return status;
 }
 

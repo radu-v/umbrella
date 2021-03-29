@@ -57,7 +57,7 @@ extern void siw_touch_free_sysfs(struct siw_ts *ts);
 
 extern int siw_touch_parse_data(struct siw_ts *ts);
 
-extern int tp_probe_success; 
+extern int tp_probe_success;
 
 
 /* Original
@@ -785,7 +785,6 @@ static void siw_touch_upgrade_work_func(struct work_struct *work)
 			t_dev_err(dev, "FW upgrade skipped\n");
 		} else {
 			t_dev_err(dev, "FW upgrade halted, %d\n", ret);
-			printk("BBox::UEC;7::6\n");//SW8-DH-fw_upgrade-fail
 		}
 	//	siw_touch_qd_init_work_now(ts);
 	//	atomic_set(&ts->state.core, CORE_NORMAL);
@@ -1375,7 +1374,6 @@ static struct siw_touch_pdata *_siw_touch_do_probe_common(struct siw_ts *ts)
 	ret = siw_ops_probe(ts);
 	if (ret) {
 		t_dev_err(dev, "failed to probe, %d\n", ret);
-		printk("BBox::UEC;7::0\n");//SW8-DH-lg4946_probe_fail
 		goto out_ops_probe;
 	}
 
@@ -1530,7 +1528,7 @@ static int siw_touch_do_probe_normal(void *data)
 	if (ret < 0) {
 		goto out_probe_late;
 	}
-	
+
 	t_dev_info(dev, "probe(normal) done\n");
 	tp_probe_success = 1;
 

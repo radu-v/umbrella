@@ -1415,7 +1415,6 @@ static int configfs_composite_bind(struct usb_gadget *gadget,
 err_purge_funcs:
 	purge_configs_funcs(gi);
 err_comp_cleanup:
-	printk("BBox::UEC;3::2\n");
 	composite_dev_cleanup(cdev);
 	return ret;
 }

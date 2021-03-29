@@ -159,7 +159,6 @@ static int siw_touch_spi_do_read(struct spi_device *spi,
 	if (ret < 0)
 	{
 		siw_touch_spi_err_dump(spi, &x, 1, 1);
-		printk("BBox::UEC;7::8\n");
 	}
 
 	return ret;
@@ -208,7 +207,6 @@ int siw_touch_spi_do_write(struct spi_device *spi,
 	if (ret < 0)
 	{
 		siw_touch_spi_err_dump(spi, &x, 1, 0);
-		printk("BBox::UEC;7::9\n");
 	}
 
 	return ret;

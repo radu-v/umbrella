@@ -75,7 +75,7 @@ extern int siw_hal_sysfs(struct device *dev, int on_off);
 
 //SW8-DH-TP_Selftest-00+[
 struct device *g_dev;
-extern void prd_show_sd_fih(void); 
+extern void prd_show_sd_fih(void);
 extern void prd_show_lpwg_sd_fih(void); //Add for U0 test
 extern int touch_selftest_result_read(void);
 //SW8-DH-TP_Selftest-00+]
@@ -91,7 +91,7 @@ extern int fih_get_glance(void);//SW8-DH-AllPowerOff
 extern int fih_get_aod_timeout(void);//SW8-DH-AllPowerOff
 
 
-static unsigned int double_tap_enable = LPWG_DOUBLE_TAP; 
+static unsigned int double_tap_enable = LPWG_DOUBLE_TAP;
 static unsigned int prox_status = PROX_FAR;
 static unsigned int touch_down_count = 0;
 static unsigned int RTC_CLK_enable = 1;
@@ -1588,7 +1588,6 @@ static int siw_hal_do_ic_info(struct device *dev, int prt_on)
 	ret = siw_hal_xfer_msg(dev, ts->xfer);
 	if (ret < 0) {
 		t_dev_err(dev, "ic_info(1): xfer failed, %d\n", ret);
-		printk("BBox::UEC;7::5\n");//SW8-DH-Get_fw_verion_fail
 		return ret;
 	}
 
@@ -1653,7 +1652,7 @@ static int siw_hal_do_ic_info(struct device *dev, int prt_on)
 				fw->chip_id,
 				fw->v.version.major, fw->v.version.minor,
 				version, fw->revision);
-		
+
 	}
 	t_dev_info_sel(dev, prt_on,
 			"[T] product id %s, flash boot %s(%s), crc %s (0x%08X)\n",
@@ -2236,12 +2235,12 @@ out:
 	siwmon_submit_ops_step_chip_wh_name(dev, "%s init done",
 			touch_chip_name(ts), ret);
 
-	//SW8-DH-Touchpanel-Bringup-00+[	
+	//SW8-DH-Touchpanel-Bringup-00+[
 	touch_cb.touch_tpfwver_read = touch_tpfwver_read;
 	touch_cb.touch_selftest = prd_show_sd_fih; //SW8-DH-TP_Selftest-00+
 	touch_cb.touch_selftest_result = touch_selftest_result_read;//SW8-DH-TP_Selftest-00+
 	touch_cb.touch_selftest_U0 = prd_show_lpwg_sd_fih; //SW8-DH-TP_Selftest-01+
-	touch_cb.touch_vendor_id_read = touch_vendor_id_read;//SW8-DH-TP_vendor-00+	
+	touch_cb.touch_vendor_id_read = touch_vendor_id_read;//SW8-DH-TP_vendor-00+
 	//SW8-DH-Touchpanel-Bringup-00+]
 	//SW8-DH-Double_Tap-00+[
 	touch_cb.touch_double_tap_read = touch_double_tap_read;
@@ -4879,7 +4878,7 @@ static int siw_hal_lpwg(struct device *dev, u32 code, void *param)
 {
 	struct device *dev =  g_dev;
 	struct siw_touch_chip *chip = to_touch_chip(dev);
-	struct siw_ts *ts = chip->ts;	
+	struct siw_ts *ts = chip->ts;
 	struct tci_ctrl *tci = &ts->tci;
 	struct active_area *area = &tci->area;
 	struct lpwg_info *lpwg = &ts->lpwg;
@@ -4898,14 +4897,14 @@ static int siw_hal_lpwg(struct device *dev, u32 code, void *param)
 
 	switch (code) {
 	case LPWG_ACTIVE_AREA:
-		
+
 		area->x1 = mode;
 		area->x2 = screen;
 		area->y1 = sensor;
 		area->y2 = qcover;
 		t_dev_info(dev, "LPWG_ACTIVE_AREA: x1[%d], y1[%d], x2[%d], y2[%d]\n",
 				area->x1, area->y1, area->x2, area->y2);
-				
+
 		break;
 
 	case LPWG_TAP_COUNT:
@@ -4935,7 +4934,7 @@ static int siw_hal_lpwg(struct device *dev, u32 code, void *param)
 				lpwg->sensor ? "FAR" : "NEAR",
 				lpwg->qcover ? "CLOSE" : "OPEN");
 
-				
+
 		ret = siw_hal_lpwg_mode(dev);
 
 		break;
@@ -7056,7 +7055,7 @@ int touch_prox_status_write(unsigned int enable)
 	struct siw_touch_chip *chip = to_touch_chip(dev);
 	struct siw_ts *ts = chip->ts;
 	struct lpwg_info *lpwg = &ts->lpwg;
-	
+
 	prox_status = enable;
 	t_dev_dbg(DBG_BASE, dev, "%s, prox_status = %d, Update Prox sensor status", __func__, prox_status);
 	siw_hal_lpwg_FIH(LPWG_UPDATE_ALL, lpwg->mode, lpwg->screen, prox_status, lpwg->qcover);

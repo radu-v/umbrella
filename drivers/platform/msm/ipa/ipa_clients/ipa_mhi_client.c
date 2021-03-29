@@ -412,7 +412,6 @@ const struct file_operations ipa_mhi_dump_host_ch_ctx_ops = {
 	.read = ipa_mhi_debugfs_dump_host_ch_ctx_arr,
 };
 
-
 static void ipa_mhi_debugfs_init(void)
 {
 	const mode_t read_only_mode = S_IRUSR | S_IRGRP | S_IROTH;
@@ -463,8 +462,10 @@ fail:
 }
 
 #else
-static void ipa_mhi_debugfs_init(void) {}
-static void ipa_mhi_debugfs_destroy(void) {}
+static inline void ipa_mhi_debugfs_init(void) {}
+static inline void ipa_mhi_debugfs_destroy(void) {}
+static inline int ipa_mhi_read_write_host(enum ipa_mhi_dma_dir dir, void *dev_addr,
+	u64 host_addr, int size) {}
 #endif /* CONFIG_DEBUG_FS */
 
 static union IpaHwMhiDlUlSyncCmdData_t ipa_cached_dl_ul_sync_info;

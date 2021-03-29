@@ -61,11 +61,6 @@ extern struct fih_touch_cb touch_cb;
 /* Master structure to hold all the information about the DSI/panel */
 static struct mdss_dsi_data *mdss_dsi_res;
 
-/* Black Box */
-#define BBOX_LCM_TE_FAIL do {printk("BBox;%s: TE Request IRQ fail!\n", __func__); printk("BBox::UEC;0::4\n");} while (0);
-#define BBOX_LCM_POWER_STATE_FAIL	do {printk("BBox;%s: Power status abnormal!\n", __func__); printk("BBox::UEC;0::6\n");} while (0);
-
-
 #ifndef CONFIG_AOD_FEATURE
 unsigned int fih_get_panel_id(void){return 0;}
 int fih_set_aod(int enable){return 0;}
@@ -400,7 +395,6 @@ static int mdss_dsi_panel_power_off(struct mdss_panel_data *pdata)
 	if (ret){
 		pr_err("%s: failed to disable vregs for %s\n",
 			__func__, __mdss_dsi_pm_name(DSI_PANEL_PM));
-		BBOX_LCM_POWER_STATE_FAIL
 	}
 #endif
 end:
@@ -434,7 +428,6 @@ static int mdss_dsi_panel_power_on(struct mdss_panel_data *pdata)
 	if (ret) {
 		pr_err("%s: failed to enable vregs for %s\n",
 			__func__, __mdss_dsi_pm_name(DSI_PANEL_PM));
-		BBOX_LCM_POWER_STATE_FAIL
 		return ret;
 	}
 #endif
@@ -3750,7 +3743,6 @@ static int mdss_dsi_ctrl_probe(struct platform_device *pdev)
 			"VSYNC_GPIO", ctrl_pdata);
 		if (rc) {
 			pr_err("%s: TE request_irq failed for ESD\n", __func__);
-			BBOX_LCM_TE_FAIL
 			goto error_shadow_clk_deinit;
 		}
 		te_irq_registered = 1;

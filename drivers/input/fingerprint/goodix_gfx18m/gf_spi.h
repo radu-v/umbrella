@@ -5,11 +5,6 @@
 #include <linux/notifier.h>
 #include <linux/wakelock.h> //KC ref. from D1C: Alan, add wakelock
 
-/*KC ref. from D1C, add BBS log*/
-#define BBOX_FP_PROB_FAIL do {printk("BBox::UEC;39::0\n");} while (0);
-#define BBOX_FP_RESET_FAIL do {printk("BBox::UEC;39::1\n");} while (0);
-#define BBOX_FP_RESET_CHIP_FAIL do {printk("BBox::UEC;39::2\n");} while (0);
-
 /**********************************************************/
 enum FP_MODE{
 	GF_IMAGE_MODE = 0,

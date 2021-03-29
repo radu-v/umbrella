@@ -57,21 +57,6 @@ static int fih_charging_en(struct smb_charger *chg, bool en);
 				__func__, ##__VA_ARGS__);	\
 	} while (0)
 
-
-#define BBS_LOG 0
-#ifdef BBS_LOG
-#define QPNPCHG_CHARGER_FLOATING_CHARGER_ERROR do {pr_info("BBox;%s: Charger floating charger\n", __func__); pr_info("BBox::UEC;3::1\n");} while (0)
-#define QPNPCHG_CHARGER_UNKNOW_CHARGER_TYPE_ERROR do {pr_info("BBox;%s: Charger unknow charger type\n", __func__); pr_info("BBox::UEC;3::5\n");} while (0)
-#define QPNPCHG_BATTERY_MISSING_ERROR do {pr_info("BBox;%s: Battery missing\n", __func__); pr_info("BBox::UEC;11::2\n");} while (0)
-#define CHARGER_READ_ERROR	do {pr_info("BBox;%s: charger read failed\n", __func__); pr_info("BBox::UEC;11::3\n");} while (0)
-#define CHARGER_WRITE_ERROR	do {pr_info("BBox;%s: charger write failed\n", __func__); pr_info("BBox::UEC;11::4\n");} while (0)
-#define CHARGER_WEAK_ERROR	do {pr_info("BBox;%s: charger weak\n", __func__); pr_info("BBox::UEC;11::5\n");} while (0)
-#define CHARGER_OVP_ERROR	do {pr_info("BBox;%s: charger ovp error\n", __func__); pr_info("BBox::UEC;11::6\n");} while (0)
-#define CHARGER_USBIN_UV_ERROR	do {pr_info("BBox;%s: charger usbin uv\n", __func__); pr_info("BBox::UEC;11::7\n");} while (0)
-#define QPNPFG_BATTERY_SHUTDOWN_TEMP do {pr_info("BBox;%s: Battery temp reach shutdown temp\n", __func__); pr_info("BBox::UEC;49::1\n");} while (0)
-#endif
-/* end NB1-105 */
-
 static bool is_secure(struct smb_charger *chg, int addr)
 {
 	if (addr == SHIP_MODE_REG || addr == FREQ_CLK_DIV_REG)
@@ -88,11 +73,6 @@ int smblib_read(struct smb_charger *chg, u16 addr, u8 *val)
 	rc = regmap_read(chg->regmap, addr, &temp);
 	if (rc >= 0)
 		*val = (u8)temp;
-
-#ifdef BBS_LOG
-	if(rc < 0)
-		CHARGER_READ_ERROR;
-#endif
 
 	return rc;
 }
@@ -119,11 +99,6 @@ int smblib_masked_write(struct smb_charger *chg, u16 addr, u8 mask, u8 val)
 unlock:
 	mutex_unlock(&chg->write_lock);
 
-#ifdef BBS_LOG
-	if(rc < 0)
-		CHARGER_WRITE_ERROR;
-#endif
-
 	return rc;
 }
 
@@ -143,11 +118,6 @@ int smblib_write(struct smb_charger *chg, u16 addr, u8 val)
 
 unlock:
 	mutex_unlock(&chg->write_lock);
-
-#ifdef BBS_LOG
-	if(rc < 0)
-		CHARGER_WRITE_ERROR;
-#endif
 
 	return rc;
 }
@@ -3563,23 +3533,8 @@ irqreturn_t smblib_handle_debug(int irq, void *data)
 {
 	struct smb_irq_data *irq_data = data;
 	struct smb_charger *chg = irq_data->parent_data;
-	#if BBS_LOG
-	int value = 0;
-	#endif
 
 	smblib_dbg(chg, PR_INTERRUPT, "IRQ: %s\n", irq_data->name);
-
-	#if BBS_LOG
-		if (!strcmp(irq_data->name, "aicl-done")) {
-			value = get_effective_result(chg->usb_icl_votable);
-			value = value / 1000;
-			if(value <= 700 && (chg->usb_psy_desc.type != POWER_SUPPLY_TYPE_USB))
-				pr_info("BBox::UPD;51::%d::DCP\n", value);
-		} else if (!strcmp(irq_data->name, "usbin-collapse"))
-			CHARGER_WEAK_ERROR;
-		else if (!strcmp(irq_data->name, "usbin-ov"))
-			CHARGER_OVP_ERROR;
-	#endif
 
 	return IRQ_HANDLED;
 }
@@ -3662,7 +3617,6 @@ irqreturn_t smblib_handle_batt_temp_changed(int irq, void *data)
 {
 	struct smb_irq_data *irq_data = data;
 	struct smb_charger *chg = irq_data->parent_data;
-	union power_supply_propval val = {0, };
 	// int rc;
 	/* end NB1O-1214 */
 
@@ -3682,12 +3636,6 @@ irqreturn_t smblib_handle_batt_temp_changed(int irq, void *data)
 	#endif
 	/* end NB1O-1214 */
 
-	#ifdef BBS_LOG
-	smblib_get_prop_batt_temp(chg, &val);
-	if(val.intval >= 600)
-		QPNPFG_BATTERY_SHUTDOWN_TEMP;
-	#endif
-
 	rerun_election(chg->fcc_votable);
 	power_supply_changed(chg->batt_psy);
 	return IRQ_HANDLED;
@@ -3700,11 +3648,6 @@ irqreturn_t smblib_handle_batt_psy_changed(int irq, void *data)
 
 	pr_debug("%s: %s: IRQ: %s\n", chg->name, __func__, irq_data->name);
 	/* end FIH - NB1-680 */
-
-	#ifdef BBS_LOG
-	if(strstr(irq_data->name, "bat-therm-or-id-missing") != NULL)
-		QPNPCHG_BATTERY_MISSING_ERROR;
-	#endif
 
 	power_supply_changed(chg->batt_psy);
 	return IRQ_HANDLED;
@@ -3731,11 +3674,6 @@ irqreturn_t smblib_handle_usbin_uv(int irq, void *data)
 	/* end FIH - NB1-680 */
 	if (!chg->irq_info[SWITCH_POWER_OK_IRQ].irq_data)
 		return IRQ_HANDLED;
-
-	#ifdef BBS_LOG
-	if(strstr(irq_data->name, "usbin-uv") != NULL)
-		CHARGER_USBIN_UV_ERROR;
-	#endif
 
 	wdata = &chg->irq_info[SWITCH_POWER_OK_IRQ].irq_data->storm_data;
 	reset_storm_count(wdata);
@@ -4249,9 +4187,6 @@ irqreturn_t smblib_handle_usb_source_change(int irq, void *data)
 	struct smb_charger *chg = irq_data->parent_data;
 	int rc = 0;
 	u8 stat;
-	#ifdef BBS_LOG
-	const struct apsd_result *apsd_result;
-	#endif
 
 	pr_debug("%s: %s: IRQ: %s\n", chg->name, __func__, irq_data->name);
 	/* end FIH - NB1-680 */
@@ -4296,17 +4231,6 @@ irqreturn_t smblib_handle_usb_source_change(int irq, void *data)
 	smblib_hvdcp_adaptive_voltage_change(chg);
 
 	power_supply_changed(chg->usb_psy);
-
-	#ifdef BBS_LOG
-	if(!((bool)(stat & APSD_DTC_STATUS_DONE_BIT))) {
-		QPNPCHG_CHARGER_UNKNOW_CHARGER_TYPE_ERROR;
-	}
-
-	apsd_result = smblib_get_apsd_result(chg);
-	if((apsd_result->bit & FLOAT_CHARGER_BIT)) {
-		QPNPCHG_CHARGER_FLOATING_CHARGER_ERROR;
-	}
-	#endif
 
 	rc = smblib_read(chg, APSD_STATUS_REG, &stat);
 	if (rc < 0) {

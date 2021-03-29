@@ -69,12 +69,6 @@ void tfa9887_ops(struct tfa_device_ops *ops);
 static int tfa98xx_runtime_verbose;
 static int tfa98xx_trace_level;
 
-/*MM-JohnHCChiang-BBS log-01+{ */
-#define BBOX_SMARTAMP_POWER_ON_FAIL  do {printk("BBox::UEC;50::4\n");} while (0);
-#define BBOX_SMARTAMP_POWER_OFF_FAIL  do {printk("BBox::UEC;50::5\n");} while (0);
-#define BBOX_SMARTAMP_IMPEDANCE_FAIL  do {printk("BBox::UEC;50::6\n");} while (0);
-/*MM-JohnHCChiang-BBS log-01+} */
-
 /* 4 possible I2C addresses
  */
 #define MAX_HANDLES 4
@@ -2615,10 +2609,6 @@ enum Tfa98xx_Error tfaRunSpeakerCalibration(Tfa98xx_handle_t handle, int __attri
 	if(err != Tfa98xx_Error_Ok) {
 		if ((tfa98xx_dev_family(handle) == 2 && TFA_GET_BF(handle, REFCKSEL) == 0)) {
 			pr_err("tfa98xx: %s() Unable to calibrate the device with the internal clock! \n", __func__);
-			/*MM-JohnHCChiang-BBS log-01+{ */
-			printk("BBox;SmartAmp impedance fail\n");
-			BBOX_SMARTAMP_IMPEDANCE_FAIL;
-			/*MM-JohnHCChiang-BBS log-01+} */
 		}
 	}
 
@@ -2630,8 +2620,7 @@ enum Tfa98xx_Error tfaRunSpeakerCalibration(Tfa98xx_handle_t handle, int __attri
 			if( handles_local[handle].mohm[0] < 6000 || handles_local[handle].mohm[0] > 9000)
 			{
 				/*MM-JohnHCChiang-BBS log-01+{ */
-				printk("BBox;SmartAmp impedance out of range\n");
-				BBOX_SMARTAMP_IMPEDANCE_FAIL;
+				printk("FIH: SmartAmp impedance out of range\n");
 				/*MM-JohnHCChiang-BBS log-01+} */
 			}
 		} else {
@@ -3035,10 +3024,6 @@ enum tfa_error tfa_start(int next_profile, int *vstep)
 		}
 
 		if (err!=Tfa98xx_Error_Ok){
-			/*MM-JohnHCChiang-BBS log-01+{ */
-			printk("BBox;SmartAmp power on fail\n");
-			BBOX_SMARTAMP_POWER_ON_FAIL;
-			/*MM-JohnHCChiang-BBS log-01+} */
 			goto error_exit;
 		}
 
@@ -3106,10 +3091,6 @@ enum tfa_error tfa_stop(void)
 		/* powerdown CF */
 		err = tfa98xx_powerdown(dev, 1 );
 		if ( err != Tfa98xx_Error_Ok){
-			/*MM-JohnHCChiang-BBS log-01+{ */
-			printk("BBox;SmartAmp power off fail\n");
-			BBOX_SMARTAMP_POWER_OFF_FAIL;
-			/*MM-JohnHCChiang-BBS log-01+} */
 			goto error_exit;
 		}
 

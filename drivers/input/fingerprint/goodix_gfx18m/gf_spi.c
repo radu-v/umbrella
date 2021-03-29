@@ -325,7 +325,6 @@ static long gf_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 #endif
 		break;
 	case GF_IOC_RESET:
-		BBOX_FP_RESET_CHIP_FAIL
 		gf_hw_reset(gf_dev, 70);
 		break;
 	case GF_IOC_COOLBOOT:
@@ -712,7 +711,6 @@ gfspi_probe_clk_init_failed:
 			input_unregister_device(gf_dev->input);
 	}
 
-	BBOX_FP_PROB_FAIL
 	FUNC_EXIT();
 	return status;
 }

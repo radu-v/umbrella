@@ -3967,7 +3967,7 @@ static void fts_suspend_work(struct work_struct *work)
 
     fts_enableInterrupt();
 	logError(0, "%s %s: Enter suspend....-\n", tag, __func__);
-	
+
 }
 
 
@@ -4010,7 +4010,7 @@ static int fts_fb_state_chg_callback(struct notifier_block *nb, unsigned long va
 
             queue_work(info->event_wq, &info->resume_work);
             break;
-         default:           
+         default:
             break;
 
         }
@@ -4297,7 +4297,7 @@ void stm_fts_fih_cmd(void)
     SelfSenseFrame frameSS;
 
     TestToDo todoDefault;
-	
+
 	if(info == NULL)
 		return;
 	else
@@ -4880,11 +4880,11 @@ void fts_fih_tp_rst(void)
 
 		msleep(50);
 
-	    //Resume	
+	    //Resume
 	    logError(0, "%s %s: Resume\n", tag, __func__);
 	    queue_work(g_info->event_wq, &g_info->resume_work);
 		tp_st_count = 0;
-		pr_info("F@TOUCH %s tp_st_count=%ld",__func__,tp_st_count);		
+		pr_info("F@TOUCH %s tp_st_count=%ld",__func__,tp_st_count);
     }
 	else
 	{
@@ -4936,7 +4936,7 @@ static enum hrtimer_restart tpalt_timer_handle(struct hrtimer *hrtimer)
 	{
 		logError(0, "%s %s: F@TOUCH ERROR: g_info is NULL\n", tag, __func__);
 	}
-	
+
     return HRTIMER_RESTART;
 }
 
@@ -5323,7 +5323,6 @@ ProbeErrorExit_1:
 
 ProbeErrorExit_0:
     logError(1, "%s Probe Failed!\n", tag);
-    printk("BBox::UEC;7::0\n");
     return error;
 }
 

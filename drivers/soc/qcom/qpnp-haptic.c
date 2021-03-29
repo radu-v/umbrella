@@ -437,8 +437,6 @@ static int qpnp_hap_read_reg(struct qpnp_hap *hap, u16 addr, u8 *val)
 	else
 		*val = (u8)tmp;
 
-        if(rc < 0) printk("BBox::UEC;19::7\n");
-
 	return rc;
 }
 
@@ -471,8 +469,6 @@ static int qpnp_hap_write_reg(struct qpnp_hap *hap, u16 addr, u8 val)
 	spin_unlock_irqrestore(&hap->bus_lock, flags);
 	if (!rc)
 		pr_debug("wrote: HAP_0x%x = 0x%x\n", addr, val);
-
-        if(rc < 0) printk("BBox::UEC;19::7\n");
 
 	return rc;
 }
@@ -674,7 +670,6 @@ static irqreturn_t qpnp_hap_sc_irq(int irq, void *_hap)
 		rc = qpnp_hap_write_reg(hap, QPNP_HAP_EN_CTL_REG(hap->base),
 			val);
 		pr_err("Haptics disabled permanently due to short circuit\n");
-                printk("BBox::UEC;19::11\n");
 	}
 
 	return IRQ_HANDLED;
@@ -2440,7 +2435,6 @@ static void qpnp_hap_worker(struct work_struct *work)
 		if (rc < 0){
 			pr_err("could not enable vcc_pon regulator rc=%d\n",
 				rc);
-                        printk("BBox::UEC;19::8\n");
                 }
 		else
 			hap->vcc_pon_enabled = true;

@@ -43,14 +43,6 @@
 #define VL53L0_VDD_MIN      2600000
 #define VL53L0_VDD_MAX      3000000
 
-/* MM-AL-AddBBSLog-00+{ */
-/* Black Box */
-#define BBOX_TOF_PROBE_FAIL 			do {printk("BBox::UEC;51::0\n");} while (0);
-#define BBOX_TOF_I2C_READ_FAIL			do {printk("BBox::UEC;51::1\n");} while (0);
-#define BBOX_TOF_I2C_WRITE_FAIL			do {printk("BBox::UEC;51::2\n");} while (0);
-#define BBOX_TOF_CAL_DATA_CHECK_FAIL	do {printk("BBox::UEC;51::3\n");} while (0);
-/* MM-AL-AddBBSLog-00+} */
-
 typedef enum {
 	NORMAL_MODE = 0,
 	OFFSETCALIB_MODE = 1,

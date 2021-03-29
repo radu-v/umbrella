@@ -68,11 +68,6 @@ extern int synaptics_rmi4_disable_irq(void);
 
 DEFINE_LED_TRIGGER(bl_led_trigger);
 
-#define BBOX_LCM_GPIO_FAIL 		do {printk("BBox;%s: LCM GPIO fail\n", __func__); printk("BBox::UEC;0::1\n");} while (0);
-#define BBOX_LCM_DISPLA_ON_FAIL	do {printk("BBox;%s: LCM Display on fail\n", __func__); printk("BBox::UEC;0::2\n");} while (0);
-#define BBOX_LCM_DISPLA_OFF_FAIL	do {printk("BBox;%s: LCM Display off fail\n", __func__); printk("BBox::UEC;0::3\n");} while (0);
-#define BBOX_LCM_INITIAL_FAIL	do {printk("BBox;%s: Panel Command Parse fail!\n", __func__); printk("BBox::UEC;0::7\n");} while (0);
-
 void mdss_dsi_panel_pwm_cfg(struct mdss_dsi_ctrl_pdata *ctrl)
 {
 	if (ctrl->pwm_pmi)
@@ -302,7 +297,6 @@ static int mdss_dsi_request_gpios(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 		if (rc) {
 			pr_err("request disp_en gpio failed, rc=%d\n",
 				       rc);
-			BBOX_LCM_GPIO_FAIL
 			goto disp_en_gpio_err;
 		}
 	}
@@ -310,7 +304,6 @@ static int mdss_dsi_request_gpios(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 	if (rc) {
 		pr_err("request reset gpio failed, rc=%d\n",
 			rc);
-		BBOX_LCM_GPIO_FAIL
 		goto rst_gpio_err;
 	}
 
@@ -329,7 +322,6 @@ static int mdss_dsi_request_gpios(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 		if (rc) {
 			pr_err("request dsc/dual mode gpio failed,rc=%d\n",
 								rc);
-			BBOX_LCM_GPIO_FAIL
 			goto lcd_mode_sel_gpio_err;
 		}
 	}
@@ -1120,7 +1112,6 @@ end:
 	return 0;
 
 cmds_fail:
-	BBOX_LCM_DISPLA_ON_FAIL
 	return res;
 }
 
@@ -1258,7 +1249,6 @@ end:
 	return 0;
 
 cmds_fail:
-	BBOX_LCM_DISPLA_OFF_FAIL
 	return res;
 }
 
@@ -3279,7 +3269,6 @@ static int mdss_panel_parse_dt(struct device_node *np,
 	return 0;
 
 error:
-	BBOX_LCM_INITIAL_FAIL
 	return -EINVAL;
 }
 

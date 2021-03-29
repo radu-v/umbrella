@@ -154,12 +154,6 @@ MODULE_PARM_DESC(cpe_debug_mode, "boot cpe in debug mode");
 
 #define MAX_ON_DEMAND_SUPPLY_NAME_LENGTH    64
 
-#ifdef CONFIG_FIH_NB1
-/*MM-JohnHCChiang-BBS log-00+{ */
-#define BBOX_WCD_PROBE_FAILED do {printk("BBox::UEC;2::3\n");} while(0);
-/*MM-JohnHCChiang-BBS log-00+} */
-#endif
-
 static char on_demand_supply_name[][MAX_ON_DEMAND_SUPPLY_NAME_LENGTH] = {
 	"cdc-vdd-mic-bias",
 };
@@ -14512,12 +14506,6 @@ static int tasha_probe(struct platform_device *pdev)
 	if (ret) {
 		dev_err(&pdev->dev, "%s: Codec registration failed, ret = %d\n",
 			__func__, ret);
-#ifdef CONFIG_FIH_NB1
-		/*MM-JohnHCChiang-BBS log-00+{ */
-		printk("BBox;snd_soc_register_codec failed\n");
-		BBOX_WCD_PROBE_FAILED;
-		/*MM-JohnHCChiang-BBS log-00+} */
-#endif
 		goto err_cdc_reg;
 	}
 	/* Update codec register default values */

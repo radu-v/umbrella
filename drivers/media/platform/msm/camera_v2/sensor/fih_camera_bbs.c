@@ -120,7 +120,7 @@ GetId:
         case FIH_BBS_CAMERA_ERRORCODE_UNKOWN: strcpy(error_cause, "unknow error"); break;
         default: strcpy(error_cause, "Unknown"); break;
     }
-    printk("BBox::UPD;88::%s::%s\n",module_name,error_cause);
+    SERR("%s: %s\n", module_name, error_cause);
 
     //UEC
     switch (position) {
@@ -155,7 +155,7 @@ GetId:
         default:
             break;
     }
-    printk("BBox::UEC;%d::%d\n", bbs_id, bbs_err);
+    SERR("bbs_id = %d, bbs_err = %d\n", module_name, error_cause);
 }
 EXPORT_SYMBOL(fih_camera_bbs_by_cci);
 

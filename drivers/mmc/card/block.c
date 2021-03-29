@@ -1647,23 +1647,17 @@ static int mmc_blk_cmd_error(struct request *req, const char *name, int error,
 			"%s: response CRC error sending %s command, card status %#x\n",
 			req->rq_disk->disk_name,
 			name, status);
-		pr_err("BBox;%s: %s sending %s command, card status %#x\n",
-			req->rq_disk->disk_name, "response CRC error",
-			name, status);
 		return ERR_RETRY;
 
 	case -ETIMEDOUT:
 		pr_err_ratelimited(
 			"%s: timed out sending %s command, card status %#x\n",
 			req->rq_disk->disk_name, name, status);
-		pr_err("BBox;%s: %s sending %s command, card status %#x\n",
-			req->rq_disk->disk_name, "timed out", name, status);
 
 		/* If the status cmd initially failed, retry the r/w cmd */
 		if (!status_valid) {
 			pr_err_ratelimited("%s: status not valid, retrying timeout\n",
 				req->rq_disk->disk_name);
-			pr_err("BBox;%s: status not valid, retrying timeout\n", req->rq_disk->disk_name);	
 			return ERR_RETRY;
 		}
 		/*
@@ -1675,7 +1669,6 @@ static int mmc_blk_cmd_error(struct request *req, const char *name, int error,
 			pr_err_ratelimited(
 				"%s: command error, retrying timeout\n",
 				req->rq_disk->disk_name);
-			pr_err("BBox;%s: command error, retrying timeout\n", req->rq_disk->disk_name);
 			return ERR_RETRY;
 		}
 
@@ -1683,15 +1676,12 @@ static int mmc_blk_cmd_error(struct request *req, const char *name, int error,
 		pr_err_ratelimited(
 			"%s: not retrying timeout\n",
 			req->rq_disk->disk_name);
-		pr_err("BBox;%s: not retrying timeout\n", req->rq_disk->disk_name);	
 		return ERR_ABORT;
 
 	default:
 		/* We don't understand the error code the driver gave us */
 		pr_err_ratelimited(
 			"%s: unknown error %d sending read/write command, card status %#x\n",
-		       req->rq_disk->disk_name, error, status);
-		pr_err("BBox;%s: unknown error %d sending read/write command, card status %#x\n",
 		       req->rq_disk->disk_name, error, status);
 		return ERR_ABORT;
 	}
@@ -1740,8 +1730,6 @@ static int mmc_blk_cmd_recovery(struct mmc_card *card, struct request *req,
 
 		prev_cmd_status_valid = false;
 		pr_err_ratelimited("%s: error %d sending status command, %sing\n",
-		       req->rq_disk->disk_name, err, retry ? "retry" : "abort");
-		pr_err("BBox;%s: error %d sending status command, %sing\n",
 		       req->rq_disk->disk_name, err, retry ? "retry" : "abort");
 	}
 
@@ -1812,10 +1800,7 @@ static int mmc_blk_cmd_recovery(struct mmc_card *card, struct request *req,
 	pr_info("%s: error %d sending stop command, original cmd response %#x, card status %#x\n",
 	       req->rq_disk->disk_name, brq->stop.error,
 	       brq->cmd.resp[0], status);
-	pr_err("BBox;%s: error %d sending stop command, original cmd response %#x, card status %#x\n",
-	       req->rq_disk->disk_name, brq->stop.error,
-	       brq->cmd.resp[0], status);
-		   
+
 	/*
 	 * Subsitute in our own stop status as this will give the error
 	 * state which happened during the execution of the r/w command.
@@ -2278,8 +2263,6 @@ static int mmc_blk_err_check(struct mmc_card *card,
 	if (brq->cmd.resp[0] & CMD_ERRORS) {
 		pr_err("%s: r/w command failed, status = %#x\n",
 		       req->rq_disk->disk_name, brq->cmd.resp[0]);
-		pr_err("BBox;%s: r/w command failed, status = %#x\n",
-		       req->rq_disk->disk_name, brq->cmd.resp[0]);
 		return MMC_BLK_ABORT;
 	}
 
@@ -2320,11 +2303,6 @@ static int mmc_blk_err_check(struct mmc_card *card,
 			return MMC_BLK_RETRY;
 		}
 		pr_err("%s: error %d transferring data, sector %u, nr %u, cmd response %#x, card status %#x\n",
-		       req->rq_disk->disk_name, brq->data.error,
-		       (unsigned)blk_rq_pos(req),
-		       (unsigned)blk_rq_sectors(req),
-		       brq->cmd.resp[0], brq->stop.resp[0]);
-		pr_err("BBox;%s: error %d transferring data, sector %u, nr %u, cmd response %#x, card status %#x\n",
 		       req->rq_disk->disk_name, brq->data.error,
 		       (unsigned)blk_rq_pos(req),
 		       (unsigned)blk_rq_sectors(req),
@@ -4755,10 +4733,6 @@ static int mmc_blk_probe(struct mmc_card *card)
 	pr_info("%s: %s %s %s %s\n",
 		md->disk->disk_name, mmc_card_id(card), mmc_card_name(card),
 		cap_str, md->read_only ? "(ro)" : "");
-
-	if(strncmp(md->disk->disk_name, "mmcblk0", 7) == 0) {
-		printk("BBox::UPD;68::%llu::%u::%s\n", (u64)get_capacity(md->disk)*(u64)512, mmc_card_manfid(card), mmc_card_name(card));
-	}
 
 	if (mmc_blk_alloc_parts(card, md))
 		goto out;

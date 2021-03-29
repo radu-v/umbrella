@@ -110,7 +110,6 @@ int fts_readCmd(u8* cmd, int cmdLength, u8* outBuf, int byteToRead)
     if (ret < 0)
     {
         logError(1,"%s fts_readCmd: ERROR %02X\n", tag, ERROR_I2C_R);
-        printk("BBox::UEC;7::1\n");
         return ERROR_I2C_R;
     }
     return OK;
@@ -138,7 +137,6 @@ int fts_writeCmd(u8 *cmd, int cmdLength)
     if (ret < 0)
     {
         logError(1,"%s fts_writeCmd: ERROR %02X\n", tag, ERROR_I2C_W);
-        printk("BBox::UEC;7::2\n");
         return ERROR_I2C_W;
     }
     return OK;

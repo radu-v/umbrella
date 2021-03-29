@@ -858,8 +858,6 @@ static void handle_critical_trips(struct thermal_zone_device *tz,
 		dev_emerg(&tz->device,
 			  "critical temperature reached(%d C),shutting down\n",
 			  tz->temperature / 1000);
-		printk("BBox;%s:(%d:%d)\n", __func__, tz->id, tz->temperature);
-		printk("BBox::UEC;22::9\n");
 		orderly_poweroff(true);
 	}
 }
@@ -930,7 +928,7 @@ int thermal_zone_get_temp(struct thermal_zone_device *tz, int *temp)
 		if (!ret && *temp < crit_temp)
 			*temp = tz->emul_temperature;
 	}
- 
+
 	mutex_unlock(&tz->lock);
 exit:
 	return ret;
@@ -2643,7 +2641,7 @@ void quick_get_cooling_device_freq(unsigned int *curr)
 			ret = sys_cdev[i]->ops->get_cur_state(sys_cdev[i], &state);
 			if (!ret) {
 			//	printk("cluster %u cooling device : %ld\n", i, state);
-				curr[i] = (unsigned int)state;	
+				curr[i] = (unsigned int)state;
 			}
 		}
 	}

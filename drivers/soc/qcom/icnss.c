@@ -1136,7 +1136,6 @@ vreg_off:
 	icnss_vreg_off(priv);
 out:
 	clear_bit(ICNSS_POWER_ON, &priv->state);
-	printk("BBox::UEC;13::0\n"); //BBox Power-on failure
 	return ret;
 }
 
@@ -1341,7 +1340,6 @@ fail_unwind:
 	memset(&penv->mem_region[0], 0, sizeof(penv->mem_region[0]) * i);
 out:
 	penv->stats.msa_info_err++;
-	printk("BBox::UEC;13::9\n"); //BBox Get memory fail
 	ICNSS_QMI_ASSERT();
 	return ret;
 }
@@ -1438,7 +1436,6 @@ static int wlfw_ind_register_send_sync_msg(void)
 				WLFW_TIMEOUT_MS);
 	if (ret < 0) {
 		icnss_pr_err("Send indication register req failed %d\n", ret);
-		printk("BBox::UEC;13::10\n"); //BBox Request firmware fail
 		goto out;
 	}
 
@@ -1523,7 +1520,6 @@ static int wlfw_cap_send_sync_msg(void)
 		     penv->fw_build_id);
 
 	sprintf(ChipID, "%x", penv->chip_info.chip_id);
-	printk("BBox::UPD;100::%s\n", ChipID);
 
 	return 0;
 
@@ -2164,7 +2160,6 @@ static int icnss_driver_event_server_arrive(void *data)
 				     WLFW_SERVICE_INS_ID_V01);
 	if (ret < 0) {
 		icnss_pr_err("QMI WLAN Service not found : %d\n", ret);
-		printk("BBox::UEC;13::7\n"); //BBox SMD command channel open fail
 		goto fail;
 	}
 
@@ -2413,7 +2408,6 @@ static int icnss_driver_event_register_driver(void *data)
 	if (!test_bit(ICNSS_FW_READY, &penv->state)) {
 		icnss_pr_info("FW is not ready yet, state: 0x%lx\n",
 			     penv->state);
-		printk("BBox::UEC;13::8\n"); //BBox Invalid firmware status
 		goto out;
 	}
 
@@ -2472,7 +2466,6 @@ static int icnss_fw_crashed(struct icnss_priv *priv,
 			    struct icnss_event_pd_service_down_data *event_data)
 {
 	icnss_pr_dbg("FW crashed, state: 0x%lx\n", priv->state);
-	printk("BBox::UPD;70\n"); //BBox WIFI abnormal
 
 	set_bit(ICNSS_PD_RESTART, &priv->state);
 	clear_bit(ICNSS_FW_READY, &priv->state);
@@ -4857,7 +4850,6 @@ out_smmu_deinit:
 	icnss_smmu_deinit(priv);
 out:
 	dev_set_drvdata(dev, NULL);
-	printk("BBox::UEC;13::5\n"); //BBox Platform driver Probe failure
 
 	return ret;
 }

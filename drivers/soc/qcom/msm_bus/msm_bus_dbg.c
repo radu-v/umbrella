@@ -96,6 +96,14 @@ static struct msm_bus_scale_pdata shell_client = {
 	.name = "test-client",
 };
 
+static inline void trace_bus_update_request(int tv_sec, int tv_nsec,
+		const char *name, int src, int dst, u64 ab, u64 ib)
+{}
+
+static inline void trace_bus_client_status(const char *name,
+			int src, int dst, u64 ab, u64 ib, bool active_only)
+{}
+
 static void msm_bus_dbg_init_vectors(void)
 {
 	init_vectors[0].src = -1;

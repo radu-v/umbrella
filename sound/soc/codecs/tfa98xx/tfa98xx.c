@@ -74,12 +74,6 @@
 
 #define XMEM_TAP_ACK  0x0122
 #define XMEM_TAP_READ 0x010f
-/*MM-JohnHCChiang-BBS log-01+{ */
-#define BBOX_SMARTAMP_READ_ID_FAIL do {printk("BBox::UEC;50::0\n");} while (0);
-#define BBOX_SMARTAMP_PROBE_FAIL  do {printk("BBox::UEC;50::1\n");} while (0);
-#define BBOX_SMARTAMP_BUS_READ_FAIL  do {printk("BBox::UEC;50::2\n");} while (0);
-#define BBOX_SMARTAMP_BUS_WRITE_FAIL  do {printk("BBox::UEC;50::3\n");} while (0);
-/*MM-JohnHCChiang-BBS log-01+} */
 static LIST_HEAD(profile_list); /* list of user selectable profiles */
 
 static int tfa98xx_kmsg_regs = 0;
@@ -1657,10 +1651,6 @@ retry:
 				msleep(I2C_RETRY_DELAY);
 				goto retry;
 			}
-			/*MM-JohnHCChiang-BBS log-01+{ */
-			printk("BBox;SmartAmp I2C write fail\n");
-			BBOX_SMARTAMP_BUS_WRITE_FAIL;
-			/*MM-JohnHCChiang-BBS log-01+} */
 			return Tfa98xx_Error_Fail;
 		}
 		if (tfa98xx_kmsg_regs)
@@ -1704,10 +1694,6 @@ retry:
 				msleep(I2C_RETRY_DELAY);
 				goto retry;
 			}
-			/*MM-JohnHCChiang-BBS log-01+{ */
-			printk("BBox;SmartAmp I2C read fail\n");
-			BBOX_SMARTAMP_BUS_READ_FAIL;
-			/*MM-JohnHCChiang-BBS log-01+} */
 			return Tfa98xx_Error_Fail;
 		}
 		*val = value & 0xffff;
@@ -2367,10 +2353,6 @@ static void tfa98xx_dsp_init(struct tfa98xx *tfa98xx)
 			"tfa98xx: Failed starting device (%d)\n",
 			tfa98xx->init_count);
 			failed = true;
-		/*MM-JohnHCChiang-BBS log-01+{ */
-		printk("BBox;SmartAmp probe fail\n");
-		BBOX_SMARTAMP_PROBE_FAIL;
-		/*MM-JohnHCChiang-BBS log-01+} */
 	}
 	if (reschedule) {
 		/* reschedule this init work for later */
@@ -3082,10 +3064,6 @@ static int tfa98xx_i2c_probe(struct i2c_client *i2c,
 		if (ret < 0) {
 			dev_err(&i2c->dev, "tfa98xx: Failed to read Revision register: %d\n",
 				ret);
-			/*MM-JohnHCChiang-BBS log-01+{ */
-			printk("BBox;SmartAmp I2C read fail\n");
-			BBOX_SMARTAMP_BUS_READ_FAIL;
-			/*MM-JohnHCChiang-BBS log-01+} */
 			return -EIO;
 		}
 		switch (reg & 0xff) {
@@ -3093,10 +3071,6 @@ static int tfa98xx_i2c_probe(struct i2c_client *i2c,
 			pr_info("tfa98xx: TFA9888 detected\n");
 			tfa98xx->flags |= TFA98XX_FLAG_STEREO_DEVICE;
 			tfa98xx->flags |= TFA98XX_FLAG_MULTI_MIC_INPUTS;
-			/*MM-JohnHCChiang-BBS log-01+{ */
-			printk("BBox;SmartAMP read ID failure\n");
-			BBOX_SMARTAMP_READ_ID_FAIL;
-			/*MM-JohnHCChiang-BBS log-01+} */
 			break;
 		case 0x80: /* tfa9890 */
 		case 0x81: /* tfa9890 */
@@ -3104,10 +3078,6 @@ static int tfa98xx_i2c_probe(struct i2c_client *i2c,
 			tfa98xx->flags |= TFA98XX_FLAG_DSP_START_ON_MUTE;
 			tfa98xx->flags |= TFA98XX_FLAG_SKIP_INTERRUPTS;
 			tfa98xx->flags |= TFA98XX_FLAG_TFA9890_FAM_DEV;
-			/*MM-JohnHCChiang-BBS log-01+{ */
-			printk("BBox;SmartAMP read ID failure\n");
-			BBOX_SMARTAMP_READ_ID_FAIL;
-			/*MM-JohnHCChiang-BBS log-01+} */
 			break;
 		case 0x92: /* tfa9891 */
 			pr_info("tfa98xx: TFA9891 detected\n");
@@ -3118,17 +3088,9 @@ static int tfa98xx_i2c_probe(struct i2c_client *i2c,
 			break;
 		case 0x97:
 			pr_info("tfa98xx: TFA98?? detected\n");
-			/*MM-JohnHCChiang-BBS log-01+{ */
-			printk("BBox;SmartAMP read ID failure\n");
-			BBOX_SMARTAMP_READ_ID_FAIL;
-			/*MM-JohnHCChiang-BBS log-01+} */
 			break;
 		default:
 			pr_err("tfa98xx: Unsupported device revision (0x%x)\n", reg & 0xff);
-			/*MM-JohnHCChiang-BBS log-01+{ */
-			printk("BBox;SmartAMP read ID failure\n");
-			BBOX_SMARTAMP_READ_ID_FAIL;
-			/*MM-JohnHCChiang-BBS log-01+} */
 			return -EINVAL;
 		}
 	}

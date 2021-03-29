@@ -43,9 +43,6 @@ enum {
 	QPNP_VREG_DEBUG_OCP		= BIT(5), /* Show VS OCP IRQ events */
 };
 
-#define REGULATOR_READ_ERROR(rc)	do {printk("BBox;%s: read error:%d\n", __func__, rc); printk("BBox::UEC;17::4\n");} while (0)
-#define REGULATOR_WRITE_ERROR(rc)	do {printk("BBox;%s: write error:%d\n", __func__, rc); printk("BBox::UEC;17::5\n");} while (0)
-
 static int qpnp_vreg_debug_mask;
 module_param_named(
 	debug_mask, qpnp_vreg_debug_mask, int, 0600
@@ -561,9 +558,6 @@ static inline int qpnp_vreg_read(struct qpnp_regulator *vreg, u16 addr, u8 *buf,
 			vreg->rdesc.name, vreg->base_addr + addr,
 			to_spmi_device(vreg->pdev->dev.parent)->usid, len,
 			str);
-
-		if (rc)
-			REGULATOR_READ_ERROR(rc);
 	}
 
 	return rc;
@@ -587,9 +581,6 @@ static inline int qpnp_vreg_write(struct qpnp_regulator *vreg, u16 addr,
 	rc = regmap_bulk_write(vreg->regmap, vreg->base_addr + addr, buf, len);
 	if (!rc)
 		vreg->write_count += len;
-
-	if (rc)
-		REGULATOR_WRITE_ERROR(rc);
 
 	return rc;
 }

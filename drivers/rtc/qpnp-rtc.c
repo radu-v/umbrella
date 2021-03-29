@@ -47,13 +47,6 @@
 #define TO_SECS(arr)		(arr[0] | (arr[1] << 8) | (arr[2] << 16) | \
 							(arr[3] << 24))
 
-/* Black Box */
-#define BBOX_RTC_READ_TIME_FAIL do {printk("BBox;%s: Read Time/Alarm fail\n", __func__); printk("BBox::UEC;18::0\n");} while (0);
-#define BBOX_RTC_SET_TIME_FAIL do {printk("BBox;%s: Set Time/Alarm fail\n", __func__); printk("BBox::UEC;18::1\n");} while (0);
-#define BBOX_RTC_PROBE_FAIL do {printk("BBox;%s: Probe fail\n", __func__); printk("BBox::UEC;18::2\n");} while (0);
-#define BBOX_RTC_ENABLE_FAIL do {printk("BBox;%s: Enable fail\n", __func__); printk("BBox::UEC;18::3\n");} while (0);
-#define RTC_READ_ERROR(rc)              do {printk("BBox;%s: read error:%d\n", __func__, rc); printk("BBox::UEC;18::4\n");} while (0)
-#define RTC_WRITE_ERROR(rc)             do {printk("BBox;%s: write error:%d\n", __func__, rc); printk("BBox::UEC;18::5\n");} while (0)
 /* Module parameter to control power-on-alarm */
 bool poweron_alarm;
 EXPORT_SYMBOL(poweron_alarm);
@@ -84,7 +77,6 @@ static int qpnp_read_wrapper(struct qpnp_rtc *rtc_dd, u8 *rtc_val,
 	rc = regmap_bulk_read(rtc_dd->regmap, base, rtc_val, count);
 	if (rc) {
 		dev_err(rtc_dd->rtc_dev, "SPMI read failed\n");
-		RTC_READ_ERROR(rc);
 		return rc;
 	}
 	return 0;
@@ -98,7 +90,6 @@ static int qpnp_write_wrapper(struct qpnp_rtc *rtc_dd, u8 *rtc_val,
 	rc = regmap_bulk_write(rtc_dd->regmap, base, rtc_val, count);
 	if (rc) {
 		dev_err(rtc_dd->rtc_dev, "SPMI write failed\n");
-		RTC_WRITE_ERROR(rc);
 		return rc;
 	}
 
@@ -231,8 +222,6 @@ rtc_rw_fail:
 	if (alarm_enabled)
 		spin_unlock_irqrestore(&rtc_dd->alarm_ctrl_lock, irq_flags);
 
-	if (rc)
-		BBOX_RTC_SET_TIME_FAIL;
 	return rc;
 }
 
@@ -249,7 +238,6 @@ qpnp_rtc_read_time(struct device *dev, struct rtc_time *tm)
 				NUM_8_BIT_RTC_REGS);
 	if (rc) {
 		dev_err(dev, "Read from RTC reg failed\n");
-		BBOX_RTC_READ_TIME_FAIL;
 		return rc;
 	}
 
@@ -261,7 +249,6 @@ qpnp_rtc_read_time(struct device *dev, struct rtc_time *tm)
 				rtc_dd->rtc_base + REG_OFFSET_RTC_READ, 1);
 	if (rc) {
 		dev_err(dev, "Read from RTC reg failed\n");
-		BBOX_RTC_READ_TIME_FAIL;
 		return rc;
 	}
 
@@ -271,7 +258,6 @@ qpnp_rtc_read_time(struct device *dev, struct rtc_time *tm)
 				NUM_8_BIT_RTC_REGS);
 		if (rc) {
 			dev_err(dev, "Read from RTC reg failed\n");
-			BBOX_RTC_READ_TIME_FAIL;
 			return rc;
 		}
 	}
@@ -283,7 +269,6 @@ qpnp_rtc_read_time(struct device *dev, struct rtc_time *tm)
 	rc = rtc_valid_tm(tm);
 	if (rc) {
 		dev_err(dev, "Invalid time read from RTC\n");
-		BBOX_RTC_READ_TIME_FAIL;
 		return rc;
 	}
 
@@ -312,7 +297,6 @@ qpnp_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 	rc = qpnp_rtc_read_time(dev, &rtc_tm);
 	if (rc) {
 		dev_err(dev, "Unable to read RTC time\n");
-		BBOX_RTC_SET_TIME_FAIL;
 		return -EINVAL;
 	}
 
@@ -356,8 +340,6 @@ qpnp_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 			alarm->time.tm_mon, alarm->time.tm_year);
 rtc_rw_fail:
 	spin_unlock_irqrestore(&rtc_dd->alarm_ctrl_lock, irq_flags);
-	if (rc)
-		BBOX_RTC_SET_TIME_FAIL;
 	return rc;
 }
 
@@ -374,7 +356,6 @@ qpnp_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 				NUM_8_BIT_RTC_REGS);
 	if (rc) {
 		dev_err(dev, "Read from ALARM reg failed\n");
-		BBOX_RTC_READ_TIME_FAIL;
 		return rc;
 	}
 
@@ -384,7 +365,6 @@ qpnp_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 	rc = rtc_valid_tm(&alarm->time);
 	if (rc) {
 		dev_err(dev, "Invalid time read from RTC\n");
-		BBOX_RTC_READ_TIME_FAIL;
 		return rc;
 	}
 
@@ -424,7 +404,6 @@ qpnp_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
 			rtc_dd->alarm_base + REG_OFFSET_ALARM_CTRL1, 1);
 	if (rc) {
 		dev_err(dev, "Write to ALARM control reg failed\n");
-		BBOX_RTC_ENABLE_FAIL;
 		goto rtc_rw_fail;
 	}
 
@@ -509,14 +488,12 @@ static int qpnp_rtc_probe(struct platform_device *pdev)
 
 	rtc_dd = devm_kzalloc(&pdev->dev, sizeof(*rtc_dd), GFP_KERNEL);
 	if (rtc_dd == NULL) {
-		BBOX_RTC_PROBE_FAIL;
 		return -ENOMEM;
 	}
 
 	rtc_dd->regmap = dev_get_regmap(pdev->dev.parent, NULL);
 	if (!rtc_dd->regmap) {
 		dev_err(&pdev->dev, "Couldn't get parent's regmap\n");
-		BBOX_RTC_PROBE_FAIL;
 		return -EINVAL;
 	}
 
@@ -526,7 +503,6 @@ static int qpnp_rtc_probe(struct platform_device *pdev)
 	if (rc && rc != -EINVAL) {
 		dev_err(&pdev->dev,
 			"Error reading rtc_write_enable property %d\n", rc);
-		BBOX_RTC_PROBE_FAIL;
 		return rc;
 	}
 
@@ -536,7 +512,6 @@ static int qpnp_rtc_probe(struct platform_device *pdev)
 	if (rc && rc != -EINVAL) {
 		dev_err(&pdev->dev,
 			"Error reading rtc_alarm_powerup property %d\n", rc);
-		BBOX_RTC_PROBE_FAIL;
 		return rc;
 	}
 
@@ -655,8 +630,6 @@ fail_req_irq:
 	rtc_device_unregister(rtc_dd->rtc);
 fail_rtc_enable:
 	dev_set_drvdata(&pdev->dev, NULL);
-	if (rc)
-		BBOX_RTC_PROBE_FAIL;
 
 	return rc;
 }
