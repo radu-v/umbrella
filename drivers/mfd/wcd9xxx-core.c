@@ -835,7 +835,12 @@ static const struct file_operations codec_debug_ops = {
 	.write = codec_debug_write,
 	.read = codec_debug_read
 };
-#endif
+#else /* CONFIG_DEBUG_FS */
+static inline void wcd9xxx_set_reset_pin_state(struct wcd9xxx *wcd9xxx,
+					struct wcd9xxx_pdata *pdata,
+					bool active)
+{}
+#endif /* CONFIG_DEBUG_FS */
 
 static struct wcd9xxx_i2c *wcd9xxx_i2c_get_device_info(struct wcd9xxx *wcd9xxx,
 						u16 reg)
