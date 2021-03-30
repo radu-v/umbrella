@@ -16,6 +16,7 @@ static inline int printk_get_level(const char *buffer)
 		switch (buffer[1]) {
 		case '0' ... '7':
 		case 'd':	/* KERN_DEFAULT */
+		case 'c':	/* KERN_CONT */
 			return buffer[1];
 		}
 	}
@@ -108,11 +109,14 @@ struct va_format {
  * Dummy printk for disabled debugging statements to use whilst maintaining
  * gcc's format checking.
  */
-#define no_printk(fmt, ...)			\
-do {						\
-	if (0)					\
-		printk(fmt, ##__VA_ARGS__);	\
-} while (0)
+#define no_printk(fmt, ...)				\
+({							\
+	do {						\
+		if (0)					\
+			printk(fmt, ##__VA_ARGS__);	\
+	} while (0);					\
+	0;						\
+})
 
 #ifdef CONFIG_EARLY_PRINTK
 extern asmlinkage __printf(1, 2)
@@ -274,10 +278,11 @@ extern asmlinkage void dump_stack(void) __cold;
 	no_printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
 #endif
 
-#include <linux/dynamic_debug.h>
 
 /* If you are writing a driver, please use dev_dbg instead */
 #if defined(CONFIG_DYNAMIC_DEBUG)
+#include <linux/dynamic_debug.h>
+
 /* dynamic_pr_debug() uses pr_fmt() internally so we don't need it here */
 #define pr_debug(fmt, ...) \
 	dynamic_pr_debug(fmt, ##__VA_ARGS__)
@@ -297,20 +302,24 @@ extern asmlinkage void dump_stack(void) __cold;
 #define printk_once(fmt, ...)					\
 ({								\
 	static bool __print_once __read_mostly;			\
+	bool __ret_print_once = !__print_once;			\
 								\
 	if (!__print_once) {					\
 		__print_once = true;				\
 		printk(fmt, ##__VA_ARGS__);			\
 	}							\
+	unlikely(__ret_print_once);				\
 })
 #define printk_deferred_once(fmt, ...)				\
 ({								\
 	static bool __print_once __read_mostly;			\
+	bool __ret_print_once = !__print_once;			\
 								\
 	if (!__print_once) {					\
 		__print_once = true;				\
 		printk_deferred(fmt, ##__VA_ARGS__);		\
 	}							\
+	unlikely(__ret_print_once);				\
 })
 #else
 #define printk_once(fmt, ...)					\
