@@ -2,7 +2,7 @@
 # MSM camera configuration
 #
 
-comment "QTI MSM Camera And Video & AIS"
+comment "QTI MSM Camera And Video"
 
 menuconfig MSM_CAMERA
 	bool "QTI MSM camera and video capture support"
@@ -41,6 +41,5 @@ endif # MSMB_CAMERA
 
 source "drivers/media/platform/msm/vidc/Kconfig"
 source "drivers/media/platform/msm/sde/Kconfig"
-source "drivers/media/platform/msm/ais/Kconfig"
 source "drivers/media/platform/msm/dvb/Kconfig"
 source "drivers/media/platform/msm/broadcast/Kconfig"
