@@ -56,9 +56,6 @@ extern struct fih_touch_cb touch_cb;
 
 #define VSYNC_DELAY msecs_to_jiffies(17)
 
-#ifdef CONFIG_FIH_NB1
-static int previous_bl_level = 0;
-#endif
 //SW5-DH-Disable_touch_irq_before_Display_off+[
 #if defined(CONFIG_FIH_NB1)
 extern int synaptics_rmi4_disable_irq(void);
@@ -999,18 +996,9 @@ static void mdss_dsi_panel_bl_ctrl(struct mdss_panel_data *pdata,
 		break;
 	}
 
-#ifdef CONFIG_FIH_NB1
-	/*Show brightness level when suspend and resume*/
-	if ((bl_level == 0) || ((previous_bl_level == 0) && (bl_level != 0))){
-		pr_err("%s: level=%d\n", __func__, bl_level);
-	}
-	previous_bl_level = bl_level;
-#ifdef CONFIG_AOD_FEATURE
-	mdss_bl_backup(pdata,previous_bl_level);
+#if defined(CONFIG_FIH_NB1) && defined(CONFIG_AOD_FEATURE)
+	mdss_bl_backup(pdata, bl_level);
 #endif
-
-#endif
-
 }
 
 //Resume
