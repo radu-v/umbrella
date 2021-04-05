@@ -18,6 +18,10 @@ case $key in
 	SKIPCLEAN=y
 	shift
 	;;
+	--skip-config)
+	SKIPCONFIG=y
+	shift
+	;;
 	--skip-build)
 	SKIPBUILD=y
 	shift
@@ -53,20 +57,20 @@ export OBJCOPY=llvm-objcopy
 export OBJDUMP=llvm-objdump
 export STRIP=llvm-strip
 
-if [ -z $SKIPCLEAN ]; then
+function clean_output {
 	echo "Cleaning output dir"
 	make ARCH=arm64 O=out clean && make ARCH=arm64 O=out mrproper
 	rm -rf out
 	mkdir -p out
-else
-	echo "Skipping cleanup"
-fi
+}
 
-if [ -z $SKIPBUILD ]; then
-	echo "Build kernel"
-
-	#Make config
+function make_config {
+	echo "Making config"
 	make O=out ARCH=arm64 nb1_defconfig
+}
+
+function make_kernel {
+	echo "Build kernel"
 
 	if [ -z $NOBRANCHINTITLE ]; then
 	    CURRENT_BRANCH=$(git branch --show-current)
@@ -90,8 +94,24 @@ if [ -z $SKIPBUILD ]; then
 		CROSS_COMPILE=aarch64-linux-gnu- \
 		CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
 		LOCALVERSION=-${CURRENT_BRANCH_CLEAN}$(date +"%d%m%y%H%M")-$LAST_COMMIT $*
+}
+
+if [ -z $SKIPCLEAN ]; then
+	clean_output
 else
-	echo "Skipping kernel build"
+	echo "Skipping cleanup"
+fi
+
+if [ -z $SKIPCONFIG ]; then
+	make_config
+else
+	echo "Skipping make config"
+fi
+
+if [ -z $SKIPBUILD ]; then
+	make_kernel $*
+else
+	echo "Skipping make kernel"
 fi
 
 echo "Done."
