@@ -79,7 +79,11 @@ function make_kernel {
 	    CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN////_}
 	    CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN//[^a-zA-Z0-9_]/}-
 	else
-	    CURRENT_BRANCH_CLEAN=
+		if [ -f release ]; then
+			CURRENT_BRANCH_CLEAN=$(cat release)-
+		else
+			CURRENT_BRANCH_CLEAN=
+		fi
 	fi
 
 	LAST_COMMIT=$(git rev-parse --verify --short=8 HEAD)

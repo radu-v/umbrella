@@ -43,9 +43,15 @@ CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN// /_}
 CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN////_}
 CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN//[^a-zA-Z0-9_]/}
 
+if [ -f release ]; then
+	CURRENT_RELEASE=$(cat release)-
+else
+	CURRENT_RELEASE=
+fi
+
 LAST_COMMIT=$(git rev-parse --verify --short=8 HEAD)
 
 #Build kernel
 make -j$(nproc --all) O=out \
     ARCH=arm64 \
-    LOCALVERSION=-gcc-$CURRENT_BRANCH_CLEAN-$LAST_COMMIT $*
+    LOCALVERSION=-gcc-${CURRENT_RELEASE}$CURRENT_BRANCH_CLEAN-$LAST_COMMIT $*
