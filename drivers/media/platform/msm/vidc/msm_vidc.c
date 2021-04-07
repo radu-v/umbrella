@@ -389,7 +389,7 @@ static struct msm_smem *get_same_fd_buffer(struct msm_vidc_inst *inst, int fd)
 				temp->handle[i]->smem_priv) : false;
 			if (ion_hndl_matches && temp->mapped[i])  {
 				temp->same_fd_ref[i]++;
-				pr_info(
+				pr_debug(
 				"Found same fd buffer\n");
 				same_fd_handle = temp->handle[i];
 				break;
@@ -422,7 +422,7 @@ struct buffer_info *device_to_uvaddr(struct msm_vidc_list *buf_list,
 		for (i = 0; i < min(temp->num_planes, VIDEO_MAX_PLANES); i++) {
 			if (!temp->inactive &&
 				temp->device_addr[i] == device_addr)  {
-				pr_info(
+				pr_debug(
 				"Found same fd buffer\n");
 				found = true;
 				break;
