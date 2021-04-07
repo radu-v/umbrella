@@ -267,7 +267,7 @@ static int smb138x_usb_get_prop(struct power_supply *psy,
 	}
 
 	if (rc < 0) {
-		pr_debug("Couldn't get prop %d rc = %d\n", prop, rc);
+		pr_err("Couldn't get prop %d rc = %d\n", prop, rc);
 		return -ENODATA;
 	}
 
