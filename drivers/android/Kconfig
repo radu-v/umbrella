@@ -9,7 +9,7 @@ if ANDROID
 
 config ANDROID_BINDER_IPC
 	bool "Android Binder IPC Driver"
-	depends on MMU && !M68K
+	depends on MMU
 	default n
 	---help---
 	  Binder is used in Android for both communication between processes,
@@ -31,26 +31,29 @@ config ANDROID_BINDER_DEVICES
 	  created. Each binder device has its own context manager, and is
 	  therefore logically separated from the other devices.
 
-config ANDROID_BINDER_IPC_SELFTEST
-	bool "Android Binder IPC Driver Selftest"
-	depends on ANDROID_BINDER_IPC
+config ANDROID_BINDER_IPC_32BIT
+	bool
+	depends on !64BIT && ANDROID_BINDER_IPC
+	default y
 	---help---
-	  This feature allows binder selftest to run.
+	  The Binder API has been changed to support both 32 and 64bit
+	  applications in a mixed environment.
 
-	  Binder selftest checks the allocation and free of binder buffers
-	  exhaustively with combinations of various buffer sizes and
-	  alignments.
+	  Enable this to support an old 32-bit Android user-space (v4.4 and
+	  earlier).
 
-	config ANDROID_SIMPLE_LMK
+	  Note that enabling this will break newer Android user-space.
+
+config ANDROID_SIMPLE_LMK
 	bool "Simple Android Low Memory Killer"
-	depends on !ANDROID_LOW_MEMORY_KILLER && !MEMCG
+	depends on !ANDROID_LOW_MEMORY_KILLER && !MEMCG && !PSI
 	---help---
 	  This is a complete low memory killer solution for Android that is
 	  small and simple. Processes are killed according to the priorities
 	  that Android gives them, so that the least important processes are
 	  always killed first. Processes are killed until memory deficits are
-	  satisfied, as observed from kswapd struggling to free up pages. Simple
-	  LMK stops killing processes when kswapd finally goes back to sleep.
+	  satisfied, as observed from direct reclaim and kswapd reclaim
+	  struggling to free up pages, via VM pressure notifications.
 
 if ANDROID_SIMPLE_LMK
 

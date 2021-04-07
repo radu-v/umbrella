@@ -28,13 +28,9 @@ struct victim_info {
 };
 
 /* Pulled from the Android framework. Lower adj means higher priority. */
-static const short adj_prio[] = {
-	906, /* CACHED_APP_MAX_ADJ */
-	905, /* Cached app */
-	904, /* Cached app */
-	903, /* Cached app */
-	902, /* Cached app */
-	901, /* Cached app */
+static const unsigned short adjs[] = {
+	SHRT_MAX + 1, /* Include all positive adjs in the final range */
+	950, /* CACHED_APP_LMK_FIRST_ADJ */
 	900, /* CACHED_APP_MIN_ADJ */
 	800, /* SERVICE_B_ADJ */
 	700, /* PREVIOUS_APP_ADJ */
@@ -42,9 +38,11 @@ static const short adj_prio[] = {
 	500, /* SERVICE_ADJ */
 	400, /* HEAVY_WEIGHT_APP_ADJ */
 	300, /* BACKUP_APP_ADJ */
+	250, /* PERCEPTIBLE_LOW_APP_ADJ */
 	200, /* PERCEPTIBLE_APP_ADJ */
 	100, /* VISIBLE_APP_ADJ */
-	0    /* FOREGROUND_APP_ADJ */
+	50, /* PERCEPTIBLE_RECENT_FOREGROUND_APP_ADJ */
+	0 /* FOREGROUND_APP_ADJ */
 };
 
 static struct victim_info victims[MAX_VICTIMS];
@@ -86,7 +84,8 @@ static unsigned long get_total_mm_pages(struct mm_struct *mm)
 	return pages;
 }
 
-static unsigned long find_victims(int *vindex, short target_adj)
+static unsigned long find_victims(int *vindex, unsigned short target_adj_min,
+				  unsigned short target_adj_max)
 {
 	unsigned long pages_found = 0;
 	int old_vindex = *vindex;
@@ -95,6 +94,7 @@ static unsigned long find_victims(int *vindex, short target_adj)
 	for_each_process(tsk) {
 		struct signal_struct *sig;
 		struct task_struct *vtsk;
+		short adj;
 
 		/*
 		 * Search for suitable tasks with the targeted importance (adj).
@@ -106,7 +106,8 @@ static unsigned long find_victims(int *vindex, short target_adj)
 		 * trying to lock a task that we locked earlier.
 		 */
 		sig = tsk->signal;
-		if (READ_ONCE(sig->oom_score_adj) != target_adj ||
+		adj = READ_ONCE(sig->oom_score_adj);
+		if (adj < target_adj_min || adj > target_adj_max - 1 ||
 		    sig->flags & (SIGNAL_GROUP_EXIT | SIGNAL_GROUP_COREDUMP) ||
 		    (thread_group_empty(tsk) && tsk->flags & PF_EXITING) ||
 		    vtsk_is_duplicate(*vindex, tsk))
@@ -172,8 +173,8 @@ static void scan_and_kill(unsigned long pages_needed)
 
 	/* Hold an RCU read lock while traversing the global process list */
 	rcu_read_lock();
-	for (i = 0; i < ARRAY_SIZE(adj_prio); i++) {
-		pages_found += find_victims(&nr_found, adj_prio[i]);
+	for (i = 1; i < ARRAY_SIZE(adjs); i++) {
+		pages_found += find_victims(&nr_found, adjs[i], adjs[i - 1]);
 		if (pages_found >= pages_needed || nr_found == MAX_VICTIMS)
 			break;
 	}
@@ -233,7 +234,10 @@ static void scan_and_kill(unsigned long pages_needed)
 	}
 
 	/* Wait until all the victims die or until the timeout is reached */
-	wait_for_completion_timeout(&reclaim_done, RECLAIM_EXPIRES);
+	if (!wait_for_completion_timeout(&reclaim_done, RECLAIM_EXPIRES))
+		pr_info("Timeout hit waiting for victims to die, proceeding\n");
+
+	/* Clean up for future reclaim invocations */
 	write_lock(&mm_free_lock);
 	reinit_completion(&reclaim_done);
 	nr_victims = 0;
@@ -295,7 +299,8 @@ static int simple_lmk_init_set(const char *val, const struct kernel_param *kp)
 	struct task_struct *thread;
 
 	if (!atomic_cmpxchg(&init_done, 0, 1)) {
-		thread = kthread_run(simple_lmk_reclaim_thread, NULL, "simple_lmkd");
+		thread = kthread_run_perf_critical(simple_lmk_reclaim_thread,
+						   NULL, "simple_lmkd");
 		BUG_ON(IS_ERR(thread));
 		BUG_ON(vmpressure_notifier_register(&vmpressure_notif));
 	}
