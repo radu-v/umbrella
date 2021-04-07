@@ -654,11 +654,22 @@ static ssize_t devkmsg_write(struct kiocb *iocb, struct iov_iter *from)
 
 		u = simple_strtoul(line + 1, &endp, 10);
 		if (endp && endp[0] == '>') {
+			endp++;
+
+			if (strncmp("rmt_storage:", endp, 12) == 0) {
+				const char *logLevel = (char*)(endp + 12);
+				if (strncmp("ERR:", logLevel, 4) == 0)
+					u = LOGLEVEL_ERR;
+				else if (strncmp("INFO:", logLevel, 5) == 0)
+					u = LOGLEVEL_INFO;
+			}
+
 			level = LOG_LEVEL(u);
 			if (LOG_FACILITY(u) != 0)
 				facility = LOG_FACILITY(u);
-			endp++;
+
 			len -= endp - line;
+
 			line = endp;
 		}
 	}
