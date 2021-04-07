@@ -657,10 +657,6 @@ static int smb2_usb_set_prop(struct power_supply *psy,
 	int rc = 0;
 
 	mutex_lock(&chg->lock);
-	if (!chg->typec_present) {
-		rc = -EINVAL;
-		goto unlock;
-	}
 
 	switch (psp) {
 	case POWER_SUPPLY_PROP_PD_CURRENT_MAX:
@@ -703,7 +699,6 @@ static int smb2_usb_set_prop(struct power_supply *psy,
 		break;
 	}
 
-unlock:
 	mutex_unlock(&chg->lock);
 	return rc;
 }
