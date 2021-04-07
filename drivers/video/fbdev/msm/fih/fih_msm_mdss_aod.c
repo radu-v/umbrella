@@ -240,19 +240,19 @@ int mdss_dsi_panel_LH530QH1_low_power_config(struct mdss_panel_data *pdata,int e
 		}
 
 		if(pinfo->aod_screen_timeout&& !enable){
-			pr_info("%s: AOD screen timeout leave\n", __func__);
+			pr_debug("%s: AOD screen timeout leave\n", __func__);
 			pinfo->aod_screen_timeout = 0;
 			return 0;
 		}
 
-		pr_info("%s: ctrl=%pK ndx=%d enable=%d\n", __func__, ctrl, ctrl->ndx,
+		pr_debug("%s: ctrl=%pK ndx=%d enable=%d\n", __func__, ctrl, ctrl->ndx,
 			enable);
 		blank = fih_get_blank_mode();
 
 		if(enable){
 			if(pinfo->aod_ready_on)
 			{
-				pr_info("%s: Already initial Glance mode\n", __func__);
+				pr_debug("%s: Already initial Glance mode\n", __func__);
 				msleep(200);
 			}
 			#ifdef CONFIG_TOUCHSCREEN_SIW
@@ -261,15 +261,15 @@ int mdss_dsi_panel_LH530QH1_low_power_config(struct mdss_panel_data *pdata,int e
 			}
 			#endif
 
-			pr_info("%s: Always on display is enable\n", __func__);
+			pr_debug("%s: Always on display is enable\n", __func__);
 #ifdef CONFIG_TOUCHSCREEN_SIW
 			if ((touch_cb.touch_vendor_id_read != NULL) &&(touch_cb.touch_vendor_id_read() == LGD)){
 				//SW8-DH-Double_Tap_workaround+[
 				if(ctrl->ndx == DSI_CTRL_0){
-				pr_info("%s, U3 -> U2 , Step 1 : LPWG setup\n", __func__);
+				pr_debug("%s, U3 -> U2 , Step 1 : LPWG setup\n", __func__);
 				siw_hal_lpwg_FIH(9, 1, 0, 1, 0);
 				//SW8-DH-Double_Tap_workaround+]
-				pr_info("%s, U3 -> U2, Step 2 : Set diplay mode to U2\n", __func__);
+				pr_debug("%s, U3 -> U2, Step 2 : Set diplay mode to U2\n", __func__);
 				}
 			}
 #endif
@@ -280,7 +280,7 @@ int mdss_dsi_panel_LH530QH1_low_power_config(struct mdss_panel_data *pdata,int e
 #ifdef CONFIG_TOUCHSCREEN_SIW
 			if ((touch_cb.touch_vendor_id_read != NULL) &&(touch_cb.touch_vendor_id_read() == LGD)){
 				if(ctrl->ndx == DSI_CTRL_0){
-					pr_info("%s , U3 -> U2, Step 3 : Change lcd_mode to U2 via notifier\n", __func__);
+					pr_debug("%s , U3 -> U2, Step 3 : Change lcd_mode to U2 via notifier\n", __func__);
 					siw_touch_notifier_call_chain(LCD_EVENT_LCD_MODE, (void *)&panel_mode);
 				}
 			}
@@ -293,18 +293,18 @@ int mdss_dsi_panel_LH530QH1_low_power_config(struct mdss_panel_data *pdata,int e
 
 			if(blank!=FB_BLANK_UNBLANK)
 			{
-				pr_info("%s: Still in low power mode\n", __func__);
+				pr_debug("%s: Still in low power mode\n", __func__);
 				msleep(100);
 				goto end;
 			}
 #ifdef CONFIG_TOUCHSCREEN_SIW
 			if ((touch_cb.touch_vendor_id_read != NULL) &&(touch_cb.touch_vendor_id_read() == LGD)){
 				if (ctrl->ndx == DSI_CTRL_0) {
-					pr_info(" %s U2 -> U3, Step 3 : Set diplay mode to U3\n", __func__);
+					pr_debug(" %s U2 -> U3, Step 3 : Set diplay mode to U3\n", __func__);
 				}
 			}
 #endif
-			pr_info("%s: Always on display is disable\n", __func__);
+			pr_debug("%s: Always on display is disable\n", __func__);
 			on_cmds = &ctrl->aod_resume_cmds;
 			#ifdef CONFIG_TOUCHSCREEN_SIW
 			if(ctrl->ndx== DSI_CTRL_0){
@@ -321,7 +321,7 @@ int mdss_dsi_panel_LH530QH1_low_power_config(struct mdss_panel_data *pdata,int e
 #ifdef CONFIG_TOUCHSCREEN_SIW
 			if ((touch_cb.touch_vendor_id_read != NULL) &&(touch_cb.touch_vendor_id_read() == LGD)){
 				if (ctrl->ndx == DSI_CTRL_0) {
-					pr_info("%s U2 -> U3, Step 4 : Change lcd_mode to U3 via notifier \n", __func__);
+					pr_debug("%s U2 -> U3, Step 4 : Change lcd_mode to U3 via notifier \n", __func__);
 					siw_touch_notifier_call_chain(LCD_EVENT_LCD_MODE, (void *)&panel_mode);
 					pr_debug("%s: dsi_on from panel low power state\n", __func__);
 					ctrl->tp_state=4;
@@ -334,7 +334,7 @@ int mdss_dsi_panel_LH530QH1_low_power_config(struct mdss_panel_data *pdata,int e
 			pinfo->aod_ready_on = 0;
 		}
 	/* Any panel specific low power commands/config */
-	pr_info("%s:-\n", __func__);
+	pr_debug("%s:-\n", __func__);
 end:
 	if(ctrl->ndx== DSI_CTRL_1)
 		previous_blank = blank;

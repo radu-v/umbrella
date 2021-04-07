@@ -1162,7 +1162,7 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 	ctrl = container_of(pdata, struct mdss_dsi_ctrl_pdata,
 				panel_data);
 
-	pr_info("%s: ctrl=%pK ndx=%d\n", __func__, ctrl, ctrl->ndx);
+	pr_debug("%s: ctrl=%pK ndx=%d\n", __func__, ctrl, ctrl->ndx);
 
 	if (pinfo->dcs_cmd_by_left) {
 		if (ctrl->ndx != DSI_CTRL_LEFT)
@@ -1173,16 +1173,16 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 	if ((touch_cb.touch_vendor_id_read != NULL) &&(touch_cb.touch_vendor_id_read() == LGD)){
 		//SW8-DH-Double_Tap_workaround+[
 		if(ctrl->ndx == DSI_CTRL_0){
-		pr_info("%s, U3 -> %s , Step 1 : LPWG setup\n", __func__, fih_get_aod()? "U2":"U0");
+		pr_debug("%s, U3 -> %s , Step 1 : LPWG setup\n", __func__, fih_get_aod()? "U2":"U0");
 		siw_hal_lpwg_FIH(9, 1, 0, 1, 0);
 		//SW8-DH-Double_Tap_workaround+]
-		pr_info("%s, U3 -> %s, Step 2 : Set diplay mode to U0\n", __func__, fih_get_aod()? "U2":"U0");
+		pr_debug("%s, U3 -> %s, Step 2 : Set diplay mode to U0\n", __func__, fih_get_aod()? "U2":"U0");
 		}
 	}
 	//SW5-DH-Disable_touch_irq_before_Display_off+[
 	if ((touch_cb.touch_vendor_id_read != NULL) &&(touch_cb.touch_vendor_id_read() == JDI)){
 		if(ctrl->ndx == DSI_CTRL_0){
-			pr_info("%s, Disable touch interrtupt\n", __func__);
+			pr_debug("%s, Disable touch interrtupt\n", __func__);
 			synaptics_rmi4_disable_irq();
 		}
 	}
@@ -1224,7 +1224,7 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 	#ifdef CONFIG_TOUCHSCREEN_SIW
 	if ((touch_cb.touch_vendor_id_read != NULL) &&(touch_cb.touch_vendor_id_read() == LGD)){
 		if(ctrl->ndx == DSI_CTRL_0){
-			pr_info("%s , U3 -> %s, Step 3 : Change lcd_mode to %s via notifier\n", __func__, fih_get_aod()? "U2":"U0", fih_get_aod()? "U2":"U0");
+			pr_debug("%s , U3 -> %s, Step 3 : Change lcd_mode to %s via notifier\n", __func__, fih_get_aod()? "U2":"U0", fih_get_aod()? "U2":"U0");
 			siw_touch_notifier_call_chain(LCD_EVENT_LCD_MODE, (void *)&panel_mode);
 		}
 	}
