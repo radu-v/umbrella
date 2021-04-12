@@ -20,7 +20,7 @@ ifdef CONFIG_ICNSS
 	CONFIG_ROME_IF = snoc
 endif
 
-ifeq ($(CONFIG_CNSS), y)
+ifeq (y,$(findstring y,$(CONFIG_CNSS) $(CONFIG_CNSS2)))
 ifndef CONFIG_ROME_IF
 	#use pci as default interface
 	CONFIG_ROME_IF = pci
@@ -144,7 +144,7 @@ ifeq ($(KERNEL_BUILD), n)
 	endif
 
 	ifneq ($(CONFIG_QCA_CLD_WLAN),)
-		ifeq (y,$(findstring y,$(CONFIG_CNSS) $(CONFIG_ICNSS)))
+		ifeq (y,$(findstring y,$(CONFIG_CNSS) $(CONFIG_CNSS2) $(CONFIG_ICNSS)))
 		#Flag to enable Protected Management Frames (11w) feature
 		CONFIG_WLAN_FEATURE_11W := y
 		#Flag to enable LTE CoEx feature
@@ -514,6 +514,10 @@ ifeq ($(CONFIG_WLAN_FEATURE_DSRC), y)
 HDD_OBJS+=	$(HDD_SRC_DIR)/wlan_hdd_ocb.o
 endif
 
+ifeq ($(CONFIG_QCACLD_FEATURE_GREEN_AP), y)
+HDD_OBJS +=	$(HDD_SRC_DIR)/wlan_hdd_green_ap.o
+endif
+
 ifeq ($(CONFIG_WLAN_FEATURE_LPSS), y)
 HDD_OBJS +=	$(HDD_SRC_DIR)/wlan_hdd_lpass.o
 endif
@@ -535,10 +539,6 @@ HDD_OBJS +=	$(HDD_SRC_DIR)/wlan_hdd_cfg80211.o \
 		$(HDD_SRC_DIR)/wlan_hdd_ext_scan.o \
 		$(HDD_SRC_DIR)/wlan_hdd_stats.o \
 		$(HDD_SRC_DIR)/wlan_hdd_p2p.o
-endif
-
-ifeq ($(CONFIG_QCACLD_FEATURE_GREEN_AP), y)
-HDD_OBJS +=	$(HDD_SRC_DIR)/wlan_hdd_green_ap.o
 endif
 
 ifeq ($(CONFIG_QCACLD_FEATURE_NAN), y)
@@ -1341,11 +1341,13 @@ CDEFINES += -DCONFIG_PLD_PCIE_CNSS
 endif
 endif
 
-ifeq ($(CONFIG_ICNSS), y)
-CDEFINES += -DCONFIG_PLD_SNOC_ICNSS
+ifeq ($(CONFIG_CNSS2), y)
+CDEFINES += -DCONFIG_PLD_PCIE_CNSS
+CDEFINES += -DCONFIG_PLD_PCIE_INIT
 endif
 
 ifeq ($(CONFIG_ICNSS), y)
+CDEFINES += -DCONFIG_PLD_SNOC_ICNSS
 CDEFINES += -DQCA_WIFI_3_0
 endif
 
