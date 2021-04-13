@@ -43,7 +43,7 @@ WLAN_OPEN_SOURCE := n
 # These are configurable via Kconfig for kernel-based builds
 # Need to explicitly configure for Android-based builds
 
-ifeq ($(CONFIG_ICNSS), y)
+ifeq (y,$(findstring y,$(CONFIG_CNSS) $(CONFIG_CNSS2) $(CONFIG_ICNSS)))
 	CONFIG_HELIUMPLUS := y
 	CONFIG_64BIT_PADDR := y
 	CONFIG_FEATURE_TSO := y
