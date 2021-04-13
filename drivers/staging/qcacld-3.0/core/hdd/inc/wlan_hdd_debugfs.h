@@ -19,7 +19,7 @@
 #ifndef _WLAN_HDD_DEBUGFS_H
 #define _WLAN_HDD_DEBUGFS_H
 
-#ifdef WLAN_DEBUGFS
+#if defined(WLAN_OPEN_SOURCE) && defined(WLAN_DEBUGFS)
 QDF_STATUS hdd_debugfs_init(hdd_adapter_t *adapter);
 void hdd_debugfs_exit(hdd_adapter_t *adapter);
 
@@ -59,7 +59,7 @@ void hdd_debugfs_thread_increment(void);
  */
 void hdd_debugfs_thread_decrement(void);
 
-#else
+#else /* defined(WLAN_OPEN_SOURCE) && defined(WLAN_DEBUGFS) */
 static inline QDF_STATUS hdd_debugfs_init(hdd_adapter_t *pAdapter)
 {
 	return QDF_STATUS_SUCCESS;
@@ -119,5 +119,5 @@ void hdd_debugfs_thread_decrement(void)
 {
 }
 
-#endif /* #ifdef WLAN_DEBUGFS */
+#endif /* #if defined(WLAN_OPEN_SOURCE) && defined(WLAN_DEBUGFS) */
 #endif /* #ifndef _WLAN_HDD_DEBUGFS_H */
