@@ -69,8 +69,10 @@ enum tx_status {
 	tx_status_peer_del,
 };
 
+#ifndef REMOVE_PKT_LOG
 static uint8_t gtx_count;
 static uint8_t grx_count;
+#endif
 
 #define LOGGING_TRACE(level, args ...) \
 	QDF_TRACE(QDF_MODULE_ID_HDD, level, ## args)
@@ -552,7 +554,7 @@ static int nl_srv_bcast_host_logs(struct sk_buff *skb)
  *
  * Return: Success if the message is posted to user
  */
-int pktlog_send_per_pkt_stats_to_user(void)
+static int pktlog_send_per_pkt_stats_to_user(void)
 {
 	int ret = -1;
 	struct pkt_stats_msg *pstats_msg;
@@ -1071,6 +1073,7 @@ void wlan_flush_host_logs_for_fatal(void)
 	}
 }
 
+#ifndef REMOVE_PKT_LOG
 /**
  * wlan_get_pkt_stats_free_node() - Get the free node for pkt stats
  *
@@ -1439,5 +1442,9 @@ void wlan_register_txrx_packetdump(void)
 	gtx_count = 0;
 	grx_count = 0;
 }
+#else
+inline void wlan_deregister_txrx_packetdump(void) {}
+inline void wlan_register_txrx_packetdump(void) {}
+#endif /* !REMOVE_PKT_LOG */
 
 #endif /* WLAN_LOGGING_SOCK_SVC_ENABLE */

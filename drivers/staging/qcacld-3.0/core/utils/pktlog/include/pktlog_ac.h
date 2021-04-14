@@ -58,7 +58,7 @@ extern void pktlog_release_buf(struct hif_opaque_softc *scn);
 
 ssize_t pktlog_read_proc_entry(char *buf, size_t nbytes, loff_t *ppos,
 		struct ath_pktlog_info *pl_info, bool *read_complete);
-int pktlog_send_per_pkt_stats_to_user(void);
+
 A_STATUS
 wdi_pktlog_unsubscribe(struct ol_txrx_pdev_t *txrx_pdev, uint32_t log_state);
 
