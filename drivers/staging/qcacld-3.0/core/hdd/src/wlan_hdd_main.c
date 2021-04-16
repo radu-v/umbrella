@@ -2891,6 +2891,29 @@ static void hdd_close_cesium_nl_sock(void)
 	}
 }
 
+void hdd_update_dynamic_mac(hdd_context_t *hdd_ctx,
+			    struct qdf_mac_addr *curr_mac_addr,
+			    struct qdf_mac_addr *new_mac_addr)
+{
+	uint8_t i;
+
+	ENTER();
+
+	for (i = 0; i < QDF_MAX_CONCURRENCY_PERSONA; i++) {
+		if (!qdf_mem_cmp(
+			curr_mac_addr->bytes,
+			&hdd_ctx->dynamic_mac_list[i].dynamic_mac.bytes[0],
+				 sizeof(struct qdf_mac_addr))) {
+			qdf_mem_copy(&hdd_ctx->dynamic_mac_list[i].dynamic_mac,
+				     new_mac_addr->bytes,
+				     sizeof(struct qdf_mac_addr));
+			break;
+		}
+	}
+
+	EXIT();
+}
+
 /**
  * __hdd_set_mac_address() - set the user specified mac address
  * @dev:	Pointer to the net device.
@@ -2941,6 +2964,7 @@ static int __hdd_set_mac_address(struct net_device *dev, void *addr)
 	hdd_info("Changing MAC to " MAC_ADDRESS_STR " of the interface %s ",
 		 MAC_ADDR_ARRAY(mac_addr.bytes), dev->name);
 
+	hdd_update_dynamic_mac(hdd_ctx, &adapter->mac_addr, &mac_addr);
 	memcpy(&adapter->mac_addr, psta_mac_addr->sa_data, ETH_ALEN);
 	memcpy(dev->dev_addr, psta_mac_addr->sa_data, ETH_ALEN);
 
@@ -2972,38 +2996,63 @@ static int hdd_set_mac_address(struct net_device *dev, void *addr)
 
 static uint8_t *wlan_hdd_get_derived_intf_addr(hdd_context_t *hdd_ctx)
 {
-	int i;
+	int i, j;
 
-	for (i = 0; i < hdd_ctx->num_derived_addr; i++) {
-		if (!qdf_atomic_test_and_set_bit(
-					i, &hdd_ctx->derived_intf_addr_mask))
-			break;
-	}
-	if (hdd_ctx->num_derived_addr == i) {
-		hdd_err("No free derived Addresses");
+	i = qdf_ffz(hdd_ctx->derived_intf_addr_mask);
+	if (i < 0 || i >= hdd_ctx->num_derived_addr)
 		return NULL;
-	}
+	qdf_atomic_set_bit(i, &hdd_ctx->derived_intf_addr_mask);
 	hdd_info("Assigning MAC from derived list" MAC_ADDRESS_STR,
 		 MAC_ADDR_ARRAY(hdd_ctx->derived_mac_addr[i].bytes));
-	return &hdd_ctx->derived_mac_addr[i].bytes[0];
+
+	/* Copy the mac in dynamic mac list at first free position */
+	for (j = 0; j < QDF_MAX_CONCURRENCY_PERSONA; j++) {
+		if (qdf_is_macaddr_zero(&hdd_ctx->
+					dynamic_mac_list[j].dynamic_mac))
+			break;
+	}
+	if (j == QDF_MAX_CONCURRENCY_PERSONA) {
+		hdd_err("Max interfaces are up");
+		return NULL;
+	}
+
+	qdf_mem_copy(&hdd_ctx->dynamic_mac_list[j].dynamic_mac.bytes,
+		     &hdd_ctx->derived_mac_addr[i].bytes,
+		     sizeof(struct qdf_mac_addr));
+	hdd_ctx->dynamic_mac_list[j].is_provisioned_mac = false;
+	hdd_ctx->dynamic_mac_list[j].bit_position = i;
+
+	return hdd_ctx->derived_mac_addr[i].bytes;
 }
 
 static uint8_t *wlan_hdd_get_provisioned_intf_addr(hdd_context_t *hdd_ctx)
 {
-	int i;
+	int i, j;
 
-	for (i = 0; i < hdd_ctx->num_provisioned_addr; i++) {
-		if (!qdf_atomic_test_and_set_bit(
-				i, &hdd_ctx->provisioned_intf_addr_mask))
-			break;
-	}
-	if (hdd_ctx->num_provisioned_addr == i) {
-		hdd_err("No free provisioned Addresses");
+	i = qdf_ffz(hdd_ctx->provisioned_intf_addr_mask);
+	if (i < 0 || i >= hdd_ctx->num_provisioned_addr)
 		return NULL;
-	}
+	qdf_atomic_set_bit(i, &hdd_ctx->provisioned_intf_addr_mask);
 	hdd_info("Assigning MAC from provisioned list" MAC_ADDRESS_STR,
 		 MAC_ADDR_ARRAY(hdd_ctx->provisioned_mac_addr[i].bytes));
-	return &hdd_ctx->provisioned_mac_addr[i].bytes[0];
+
+	/* Copy the mac in dynamic mac list at first free position */
+	for (j = 0; j < QDF_MAX_CONCURRENCY_PERSONA; j++) {
+		if (qdf_is_macaddr_zero(&hdd_ctx->
+					dynamic_mac_list[j].dynamic_mac))
+			break;
+	}
+	if (j == QDF_MAX_CONCURRENCY_PERSONA) {
+		hdd_err("Max interfaces are up");
+		return NULL;
+	}
+
+	qdf_mem_copy(&hdd_ctx->dynamic_mac_list[j].dynamic_mac.bytes,
+		     &hdd_ctx->provisioned_mac_addr[i].bytes,
+		     sizeof(struct qdf_mac_addr));
+	hdd_ctx->dynamic_mac_list[j].is_provisioned_mac = true;
+	hdd_ctx->dynamic_mac_list[j].bit_position = i;
+	return hdd_ctx->provisioned_mac_addr[i].bytes;
 }
 
 uint8_t *wlan_hdd_get_intf_addr(hdd_context_t *hdd_ctx,
@@ -3030,42 +3079,43 @@ uint8_t *wlan_hdd_get_intf_addr(hdd_context_t *hdd_ctx,
 void wlan_hdd_release_intf_addr(hdd_context_t *hdd_ctx, uint8_t *releaseAddr)
 {
 	int i;
+	int mac_pos_in_mask;
 
 	for (i = 0; i < hdd_ctx->num_provisioned_addr; i++) {
 		if (!memcmp(releaseAddr,
-			    &hdd_ctx->provisioned_mac_addr[i].bytes[0],
-			    6)) {
-			qdf_atomic_clear_bit(i, &hdd_ctx->
-					     provisioned_intf_addr_mask);
-			hdd_info("Releasing MAC from provisioned list");
-			hdd_info(MAC_ADDRESS_STR,
-				 MAC_ADDR_ARRAY(hdd_ctx->
-					       provisioned_mac_addr[i].bytes));
+			    hdd_ctx->dynamic_mac_list[i].dynamic_mac.bytes,
+			    QDF_MAC_ADDR_SIZE)) {
+			mac_pos_in_mask =
+				hdd_ctx->dynamic_mac_list[i].bit_position;
+			if (hdd_ctx->dynamic_mac_list[i].is_provisioned_mac) {
+				qdf_atomic_clear_bit(
+						mac_pos_in_mask,
+						&hdd_ctx->
+						   provisioned_intf_addr_mask);
+				hdd_info("Releasing MAC from provisioned list");
+				hdd_info(
+					MAC_ADDRESS_STR,
+					MAC_ADDR_ARRAY(releaseAddr));
+			} else {
+				qdf_atomic_clear_bit(
+						mac_pos_in_mask, &hdd_ctx->
+						derived_intf_addr_mask);
+				hdd_info("Releasing MAC from derived list");
+				hdd_info(MAC_ADDRESS_STR,
+					 MAC_ADDR_ARRAY(releaseAddr));
+			}
+			qdf_zero_macaddr(&hdd_ctx->
+					    dynamic_mac_list[i].dynamic_mac);
+			hdd_ctx->dynamic_mac_list[i].is_provisioned_mac =
+									false;
+			hdd_ctx->dynamic_mac_list[i].bit_position = 0;
 			break;
 		}
 	}
 
-	if (i == hdd_ctx->num_provisioned_addr) {
-		for (i = 0; i < hdd_ctx->num_derived_addr; i++) {
-			if (!memcmp(releaseAddr,
-				    &hdd_ctx->derived_mac_addr[i].bytes[0],
-				    6)) {
-				qdf_atomic_clear_bit(
-						i, &hdd_ctx->
-						derived_intf_addr_mask);
-				hdd_info("Releasing MAC from derived list");
-				hdd_info(MAC_ADDRESS_STR,
-					 MAC_ADDR_ARRAY(
-						hdd_ctx->
-						derived_mac_addr[i].bytes));
-				break;
-			}
-		}
-		if (i == hdd_ctx->num_derived_addr) {
-			hdd_err("Releasing non existing MAC" MAC_ADDRESS_STR,
-				MAC_ADDR_ARRAY(releaseAddr));
-		}
-	}
+	if (i == QDF_MAX_CONCURRENCY_PERSONA)
+		hdd_err("Releasing non existing MAC" MAC_ADDRESS_STR,
+			MAC_ADDR_ARRAY(releaseAddr));
 }
 
 #ifdef WLAN_FEATURE_PACKET_FILTERING
@@ -4447,6 +4497,36 @@ static void hdd_init_completion(hdd_adapter_t *adapter)
 	hdd_tdls_init_completion(adapter);
 }
 
+static void hdd_reset_locally_admin_bit(hdd_context_t *hdd_ctx,
+					tSirMacAddr macAddr)
+{
+	int i;
+	/*
+	 * Reset locally administered bit for dynamic_mac_list
+	 * also as while releasing the MAC address for any
+	 * interface mac will be compared with dynamic mac list
+	 */
+	for (i = 0; i < QDF_MAX_CONCURRENCY_PERSONA; i++) {
+		if (!qdf_mem_cmp(
+			macAddr,
+			 &hdd_ctx->
+				dynamic_mac_list[i].dynamic_mac.bytes[0],
+				sizeof(struct qdf_mac_addr))) {
+			WLAN_HDD_RESET_LOCALLY_ADMINISTERED_BIT(
+				hdd_ctx->
+					dynamic_mac_list[i].dynamic_mac.bytes);
+			break;
+		}
+	}
+	/*
+	 * Reset locally administered bit if the device mode is
+	 * STA
+	 */
+	WLAN_HDD_RESET_LOCALLY_ADMINISTERED_BIT(macAddr);
+	hdd_debug("locally administered bit reset in sta mode: "
+		 MAC_ADDRESS_STR, MAC_ADDR_ARRAY(macAddr));
+}
+
 /**
  * hdd_open_adapter() - open and setup the hdd adatper
  * @hdd_ctx: global hdd context
@@ -4499,25 +4579,8 @@ hdd_adapter_t *hdd_open_adapter(hdd_context_t *hdd_ctx, uint8_t session_type,
 	switch (session_type) {
 	case QDF_STA_MODE:
 		if (!hdd_ctx->config->mac_provision) {
-			/* Reset locally administered bit if the device mode is
-			 * STA
-			 */
-			WLAN_HDD_RESET_LOCALLY_ADMINISTERED_BIT(macAddr);
-			hdd_debug("locally administered bit reset in sta mode: "
-				 MAC_ADDRESS_STR, MAC_ADDR_ARRAY(macAddr));
-			/*
-			 * After resetting locally administered bit
-			 * again check if the new mac address is already
-			 * exists.
-			 */
-			status = hdd_check_for_existing_macaddr(hdd_ctx,
-								macAddr);
-			if (QDF_STATUS_E_FAILURE == status) {
-				hdd_err("Duplicate MAC addr: " MAC_ADDRESS_STR
-					" already exists",
-					MAC_ADDR_ARRAY(macAddr));
-				return NULL;
-			}
+			if (!hdd_ctx->config->mac_provision)
+			hdd_reset_locally_admin_bit(hdd_ctx, macAddr);
 		}
 	/* fall through */
 	case QDF_P2P_CLIENT_MODE:
@@ -9419,7 +9482,28 @@ wlan_hdd_add_monitor_check(hdd_context_t *hdd_ctx, hdd_adapter_t **adapter,
 static int hdd_open_interfaces(hdd_context_t *hdd_ctx, bool rtnl_held)
 {
 	hdd_adapter_t *adapter;
+	enum tQDF_GLOBAL_CON_MODE curr_mode;
 	int ret;
+
+	curr_mode = hdd_get_conparam();
+	/* open monitor mode adapter if con_mode is monitor mode */
+	if (curr_mode == QDF_GLOBAL_MONITOR_MODE ||
+	    curr_mode == QDF_GLOBAL_FTM_MODE) {
+		uint8_t session_type = (curr_mode == QDF_GLOBAL_MONITOR_MODE) ?
+					QDF_MONITOR_MODE : QDF_FTM_MODE;
+
+		adapter = hdd_open_adapter(hdd_ctx, session_type, "wlan%d",
+					   wlan_hdd_get_intf_addr(
+								hdd_ctx,
+								session_type),
+					   NET_NAME_UNKNOWN, rtnl_held);
+		if (!adapter) {
+			hdd_err("open adapter failed");
+			return -ENOSPC;
+		}
+
+		return 0;
+	}
 
 	if (hdd_ctx->config->dot11p_mode == WLAN_HDD_11P_STANDALONE)
 		/* Create only 802.11p interface */
@@ -9436,7 +9520,7 @@ static int hdd_open_interfaces(hdd_context_t *hdd_ctx, bool rtnl_held)
 	if (strlen(hdd_ctx->config->enableConcurrentSTA) != 0) {
 		ret = hdd_open_concurrent_interface(hdd_ctx, rtnl_held);
 		if (ret)
-			pr_err("Cannot create concurrent STA interface");
+			hdd_err("Cannot create concurrent STA interface");
 	}
 
 	ret = hdd_open_p2p_interface(hdd_ctx, rtnl_held);
@@ -10106,8 +10190,10 @@ static int hdd_platform_wlan_mac(hdd_context_t *hdd_ctx)
 
 	addr = hdd_get_platform_wlan_mac_buff(dev, &no_of_mac_addr);
 
-	if (no_of_mac_addr == 0 || !addr)
+	if (no_of_mac_addr == 0 || !addr) {
+		hdd_err("No mac configured from platform driver");
 		return -EINVAL;
+	}
 
 	hdd_free_mac_address_lists(hdd_ctx);
 
@@ -10122,7 +10208,6 @@ static int hdd_platform_wlan_mac(hdd_context_t *hdd_ctx)
 		hdd_info("provisioned MAC Addr [%d]" MAC_ADDRESS_STR, iter,
 			 MAC_ADDR_ARRAY(buf));
 	}
-
 
 	hdd_ctx->num_provisioned_addr = no_of_mac_addr;
 
@@ -10205,6 +10290,18 @@ static int hdd_initialize_mac_address(hdd_context_t *hdd_ctx)
 	int ret;
 	bool update_mac_addr_to_fw = true;
 
+	ret = hdd_platform_wlan_mac(hdd_ctx);
+	if (hdd_ctx->config->mac_provision || !ret) {
+		hdd_info("using MAC address from platform driver");
+		return ret;
+	}
+
+	status = hdd_update_mac_config(hdd_ctx);
+	if (QDF_IS_STATUS_SUCCESS(status)) {
+		hdd_info("using MAC address from wlan_mac.bin");
+		return 0;
+	}
+
 	hdd_info("using default MAC address");
 
 	/* Use fw provided MAC */
@@ -10226,27 +10323,9 @@ static int hdd_initialize_mac_address(hdd_context_t *hdd_ctx)
 
 	if (update_mac_addr_to_fw) {
 		ret = hdd_update_mac_addr_to_fw(hdd_ctx);
-		if (!ret) {
-			hdd_info("using fw generated MAC address");
-			return 0;
-		}
-	} else {
-		hdd_info("using fw provided MAC address");
-		return 0;
+		if (ret)
+			hdd_err("MAC address out-of-sync, ret:%d", ret);
 	}
-
-	ret = hdd_platform_wlan_mac(hdd_ctx);
-	if (hdd_ctx->config->mac_provision || !ret) {
-		hdd_info("using MAC address from platform driver");
-		return ret;
-	}
-
-	status = hdd_update_mac_config(hdd_ctx);
-	if (QDF_IS_STATUS_SUCCESS(status)) {
-		hdd_info("using MAC address from wlan_mac.bin");
-		return 0;
-	}
-
 	return ret;
 }
 

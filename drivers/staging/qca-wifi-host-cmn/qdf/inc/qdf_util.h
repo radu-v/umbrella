@@ -83,6 +83,14 @@
 #define QDF_MIN(_x, _y) (((_x) < (_y)) ? (_x) : (_y))
 
 /**
+ * qdf_ffz() - find first (least significant) zero bit
+ * @mask: the bitmask to check
+ *
+ * Return: The zero-based index of the first zero bit, or -1 if none are found
+ */
+#define qdf_ffz(mask) __qdf_ffz(mask)
+
+/**
  * qdf_status_to_os_return - returns the status to OS.
  * @status: enum QDF_STATUS
  *

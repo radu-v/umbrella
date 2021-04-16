@@ -1959,6 +1959,22 @@ enum hdd_thermal_states {
 };
 
 /**
+ * struct hdd_dynamic_mac - hdd structure to handle dynamic mac address changes
+ * @dynamic_mac: Dynamicaly configured mac, this contains the mac on which
+ * current interface is up
+ * @is_provisioned_mac: is this mac from provisioned list
+ * @bit_position: holds the bit mask position from where this mac is assigned,
+ * if mac is assigned from provisioned this field contains the position from
+ * provisioned_intf_addr_mask else contains the position from
+ * derived_intf_addr_mask
+ */
+struct hdd_dynamic_mac {
+	struct qdf_mac_addr dynamic_mac;
+	bool is_provisioned_mac;
+	uint8_t bit_position;
+};
+
+/**
  * struct hdd_context_s
  * @adapter_nodes: an array of adapter nodes for keeping track of hdd adapters
  */
@@ -2268,6 +2284,7 @@ struct hdd_context_s {
 	struct qdf_mac_addr hw_macaddr;
 	struct qdf_mac_addr provisioned_mac_addr[QDF_MAX_CONCURRENCY_PERSONA];
 	struct qdf_mac_addr derived_mac_addr[QDF_MAX_CONCURRENCY_PERSONA];
+	struct hdd_dynamic_mac dynamic_mac_list[QDF_MAX_CONCURRENCY_PERSONA];
 	uint32_t num_provisioned_addr;
 	uint32_t num_derived_addr;
 	unsigned long provisioned_intf_addr_mask;
@@ -3337,4 +3354,21 @@ void hdd_sched_scan_results(struct wiphy *wiphy, uint64_t reqid);
  * Return: QDF_STATUS_SUCCESS on success and failure status on failure
  */
 QDF_STATUS hdd_set_nth_beacon_offload(hdd_adapter_t *adapter, uint16_t value);
+
+/**
+ * hdd_update_dynamic_mac() - Updates the dynamic MAC list
+ * @hdd_ctx: Pointer to HDD context
+ * @curr_mac_addr: Current interface mac address
+ * @new_mac_addr: New mac address which needs to be updated
+ *
+ * This function updates newly configured MAC address to the
+ * dynamic MAC address list corresponding to the current
+ * adapter MAC address
+ *
+ * Return: None
+ */
+void hdd_update_dynamic_mac(hdd_context_t *hdd_ctx,
+			    struct qdf_mac_addr *curr_mac_addr,
+			    struct qdf_mac_addr *new_mac_addr);
+
 #endif /* end #if !defined(WLAN_HDD_MAIN_H) */

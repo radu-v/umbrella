@@ -191,6 +191,8 @@ static inline bool __qdf_is_macaddr_equal(struct qdf_mac_addr *mac_addr1,
 #define __qdf_min(_a, _b)         ((_a) < (_b) ? _a : _b)
 #define __qdf_max(_a, _b)         ((_a) > (_b) ? _a : _b)
 
+#define __qdf_ffz(mask) (~(mask) == 0 ? -1 : ffz(mask))
+
 #define MEMINFO_KB(x)  ((x) << (PAGE_SHIFT - 10))   /* In kilobytes */
 
 /**
