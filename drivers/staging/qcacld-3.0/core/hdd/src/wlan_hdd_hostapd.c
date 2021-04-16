@@ -550,6 +550,7 @@ QDF_STATUS hdd_set_sap_ht2040_mode(hdd_adapter_t *pHostapdAdapter,
  *
  * Return: 0 for success, non zero for failure
  */
+#ifndef CONFIG_FIH_NB1
 static int __hdd_hostapd_set_mac_address(struct net_device *dev, void *addr)
 {
 	struct sockaddr *psta_mac_addr = addr;
@@ -596,12 +597,15 @@ static int __hdd_hostapd_set_mac_address(struct net_device *dev, void *addr)
 	hdd_info("Changing MAC to " MAC_ADDRESS_STR " of interface %s ",
 		 MAC_ADDR_ARRAY(mac_addr.bytes),
 		 dev->name);
+
 	hdd_update_dynamic_mac(hdd_ctx, &adapter->mac_addr, &mac_addr);
 	memcpy(&adapter->mac_addr, psta_mac_addr->sa_data, ETH_ALEN);
 	memcpy(dev->dev_addr, psta_mac_addr->sa_data, ETH_ALEN);
+
 	EXIT();
 	return 0;
 }
+#endif /* !CONFIG_FIH_NB1 */
 
 /**
  * hdd_hostapd_set_mac_address() - set mac address
@@ -614,10 +618,13 @@ static int hdd_hostapd_set_mac_address(struct net_device *dev, void *addr)
 {
 	int ret;
 
+#ifdef CONFIG_FIH_NB1
+	return 0;
+#else
 	cds_ssr_protect(__func__);
 	ret = __hdd_hostapd_set_mac_address(dev, addr);
 	cds_ssr_unprotect(__func__);
-
+#endif
 	return ret;
 }
 
