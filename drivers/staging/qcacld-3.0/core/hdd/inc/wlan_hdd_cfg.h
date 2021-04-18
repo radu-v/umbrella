@@ -10854,7 +10854,7 @@ enum restart_beaconing_on_ch_avoid_rule {
 #define CFG_ENABLE_5G_BAND_PREF_NAME             "enable_5g_band_pref"
 #define CFG_ENABLE_5G_BAND_PREF_MIN              (0)
 #define CFG_ENABLE_5G_BAND_PREF_MAX              (1)
-#define CFG_ENABLE_5G_BAND_PREF_DEFAULT          (0)
+#define CFG_ENABLE_5G_BAND_PREF_DEFAULT          (1)
 
 /*
  * <ini>
