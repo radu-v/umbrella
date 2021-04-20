@@ -582,6 +582,7 @@ enum QDF_GLOBAL_MODE {
 
 #define  QDF_IS_EPPING_ENABLED(mode) (mode == QDF_GLOBAL_EPPING_MODE)
 
+#ifdef QDF_ENABLE_TRACING
 /**
  * qdf_trace_msg()- logging API
  * @module: Module identifier. A member of the QDF_MODULE_ID enumeration that
@@ -603,6 +604,7 @@ enum QDF_GLOBAL_MODE {
  */
 void __printf(3, 4) qdf_trace_msg(QDF_MODULE_ID module, QDF_TRACE_LEVEL level,
 		   char *str_format, ...);
+
 /**
  * qdf_vtrace_msg() - the va_list version of qdf_trace_msg
  * @module: the calling module's Id
@@ -614,6 +616,7 @@ void __printf(3, 4) qdf_trace_msg(QDF_MODULE_ID module, QDF_TRACE_LEVEL level,
  */
 void qdf_vtrace_msg(QDF_MODULE_ID module, QDF_TRACE_LEVEL level,
 		    char *str_format, va_list val);
+#endif
 
 #ifdef CONFIG_MCL
 #define qdf_print(args...) \

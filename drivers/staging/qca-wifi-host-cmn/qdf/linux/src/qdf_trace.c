@@ -294,7 +294,6 @@ void qdf_snprintf(char *str_buffer, unsigned int size, char *str_format, ...)
 qdf_export_symbol(qdf_snprintf);
 
 #ifdef QDF_ENABLE_TRACING
-
 /**
  * qdf_trace_msg() - externally called trace function
  * @module: Module identifier a member of the QDF_MODULE_ID
@@ -327,6 +326,7 @@ void qdf_vtrace_msg(QDF_MODULE_ID module, QDF_TRACE_LEVEL level,
 	qdf_trace_msg_cmn(qdf_pidx, module, level, str_format, val);
 }
 qdf_export_symbol(qdf_vtrace_msg);
+#endif /* QDF_ENABLE_TRACING */
 
 #define ROW_SIZE 16
 /* Buffer size = data bytes(2 hex chars plus space) + NULL */
@@ -370,8 +370,6 @@ void qdf_trace_hex_dump(QDF_MODULE_ID module, QDF_TRACE_LEVEL level,
 	}
 }
 qdf_export_symbol(qdf_trace_hex_dump);
-
-#endif
 
 #ifdef TRACE_RECORD
 /**

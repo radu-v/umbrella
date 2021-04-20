@@ -187,7 +187,7 @@ static inline void __qdf_trace_noop(QDF_MODULE_ID module, char *format, ...) { }
 #define QDF_TRACE_DEBUG_RL_NO_FL(params...) __qdf_trace_noop(params)
 #endif
 
-#define QDF_ENABLE_TRACING
+// #define QDF_ENABLE_TRACING
 #define qdf_scnprintf scnprintf
 
 #ifdef QDF_ENABLE_TRACING
@@ -210,7 +210,7 @@ static inline void __qdf_trace_noop(QDF_MODULE_ID module, char *format, ...) { }
 	} while (0)
 #endif /* WLAN_WARN_ON_ASSERT */
 
-#else
+#else /* QDF_ENABLE_TRACING */
 
 /* This code will be used for compilation if tracing is to be compiled out */
 /* of the code so these functions/macros are 'do nothing' */
