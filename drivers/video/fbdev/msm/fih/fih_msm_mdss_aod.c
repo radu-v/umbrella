@@ -124,8 +124,6 @@ int fih_set_glance(int enable)
 }
 int fih_get_glance(void)
 {
-	pr_info("***%s: Glance enabled(%d)***\n", __func__,glance_option);
-
 	return glance_option;
 }
 //SW8-DH-AllPowerOff+[
