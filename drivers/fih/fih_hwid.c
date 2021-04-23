@@ -4,9 +4,7 @@
 #include <linux/io.h>
 
 #include <fih/hwid.h>
-
-#define FIH_HWID_ADDR  0xA0A80000
-#define FIH_HWID_SIZE  64
+#include "fih_ramtable.h"
 
 /* FIH_HWID_DEVELOP is used to condition the load hwid_table
  * 0 = load hwid table from memory which lk write
@@ -40,7 +38,7 @@ void fih_hwid_setup(void)
 	pr_info("%s: setup hwid table by default coded for development\n", __func__);
 	memcpy(&fih_hwid_table, &def_hwid_table, sizeof(struct st_hwid_table));
 #else
-	struct st_hwid_table *mem_hwid_table = (struct st_hwid_table *)ioremap(FIH_HWID_ADDR, sizeof(struct st_hwid_table));
+	struct st_hwid_table *mem_hwid_table = (struct st_hwid_table *)ioremap(FIH_HWCFG_MEM_ADDR, sizeof(struct st_hwid_table));
 	if (mem_hwid_table == NULL) {
 		pr_err("%s: setup hwid table by default coded because load fail\n", __func__);
 		memcpy(&fih_hwid_table, &def_hwid_table, sizeof(struct st_hwid_table));

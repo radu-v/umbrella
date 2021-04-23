@@ -18,6 +18,13 @@ menu "Device Drivers for FIH"
            help
              support fih disable reboot edl command
 
+  config FIH_RAMTABLE
+	bool "fih enable procfs for dumping ramtable"
+	default n
+
+  config FIH_SENSORDATA
+	bool "fih enable procfs for sensordata"
+	default n
 
   config FIH_INFO
 	  bool "fih info"
