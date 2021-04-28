@@ -26,6 +26,10 @@ case $key in
 	SKIPBUILD=y
 	shift
 	;;
+	--skip-pack)
+	SKIPPACK=y
+	shift
+	;;
 	--no-branch)
 	NOBRANCHINTITLE=y
 	shift
@@ -100,6 +104,11 @@ function make_kernel {
 		LOCALVERSION=-${CURRENT_BRANCH_CLEAN}$(date +"%d%m%y%H%M")-$LAST_COMMIT $*
 }
 
+function pack_kernel {
+	echo "Packaging kernel"
+	umod/package.sh
+}
+
 if [ -z $SKIPCLEAN ]; then
 	clean_output
 else
@@ -116,6 +125,12 @@ if [ -z $SKIPBUILD ]; then
 	make_kernel $*
 else
 	echo "Skipping make kernel"
+fi
+
+if [ -z $SKIPPACK ]; then
+	pack_kernel
+else
+	echo "Skipping packaging kernel"
 fi
 
 echo "Done."
