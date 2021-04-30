@@ -1,0 +1,129 @@
+#!/bin/bash
+
+# this uses the EVA gcc toolchain
+# https://forum.xda-developers.com/t/gcc-toolchain-eva-gcc-calling-all-kernel-devs.4221409/
+# https://github.com/mvaisakh/gcc-arm64
+# https://github.com/mvaisakh/gcc-arm
+# when building under WSL make sure the distro uses WSL 2
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+	--skip-update-submodule)
+	SKIPUPDATESUBMODULE=y
+	shift
+	;;
+	--skip-cleanup|--skip-cleanup)
+	SKIPCLEAN=y
+	shift
+	;;
+	--skip-config)
+	SKIPCONFIG=y
+	shift
+	;;
+	--skip-build)
+	SKIPBUILD=y
+	shift
+	;;
+	--skip-pack)
+	SKIPPACK=y
+	shift
+	;;
+	--no-branch)
+	NOBRANCHINTITLE=y
+	shift
+	;;
+	*)
+	POSITIONAL+=("$1")
+	shift
+	;;
+esac
+done
+set -- "${POSITIONAL[@]}"
+
+if [ -z $SKIPUPDATESUBMODULE ]; then
+	echo "Updating submodules"
+	git submodule update --recursive --init
+else
+	echo "Skipping submodule update"
+fi
+
+export KBUILD_BUILD_USER="user"
+export KBUILD_BUILD_HOST="build"
+export PATH="$HOME/gcc-arm64/bin:$HOME/gcc-arm/bin:$PATH"
+export LD_LIBRARY_PATH="$HOME/gcc-arm64/lib:$HOME/gcc-arm/lib:$LD_LIBRARY_PATH"
+
+function clean_output {
+	echo "Cleaning output dir"
+	make ARCH=arm64 O=out clean && make ARCH=arm64 O=out mrproper
+	rm -rf out
+	mkdir -p out
+}
+
+function make_config {
+	echo "Making config"
+	make O=out ARCH=arm64 nb1_defconfig
+}
+
+function make_kernel {
+	echo "Build kernel"
+
+	if [ -z $NOBRANCHINTITLE ]; then
+	    CURRENT_BRANCH=$(git branch --show-current)
+	    CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH//_/}
+	    CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN// /_}
+	    CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN////_}
+	    CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN//[^a-zA-Z0-9_]/}-
+	else
+		if [ -f release ]; then
+			CURRENT_BRANCH_CLEAN=$(cat release)-
+		else
+			CURRENT_BRANCH_CLEAN=
+		fi
+	fi
+
+	LAST_COMMIT=$(git rev-parse --verify --short=8 HEAD)
+
+	#Build kernel
+	make -j$(nproc --all) O=out \
+		ARCH=arm64 \
+		LD=ld.lld \
+		HOSTAR=llvm-ar \
+		CROSS_COMPILE=aarch64-elf- \
+		CROSS_COMPILE_ARM32=arm-eabi- \
+		LOCALVERSION=-${CURRENT_BRANCH_CLEAN}$(date +"%d%m%y%H%M")-$LAST_COMMIT $*
+}
+
+function pack_kernel {
+	echo "Packaging kernel"
+	umod/package.sh
+}
+
+if [ -z $SKIPCLEAN ]; then
+	clean_output
+else
+	echo "Skipping cleanup"
+fi
+
+if [ -z $SKIPCONFIG ]; then
+	make_config
+else
+	echo "Skipping make config"
+fi
+
+if [ -z $SKIPBUILD ]; then
+	make_kernel $*
+else
+	echo "Skipping make kernel"
+fi
+
+if [ -z $SKIPPACK ]; then
+	pack_kernel
+else
+	echo "Skipping packaging kernel"
+fi
+
+echo "Done."
