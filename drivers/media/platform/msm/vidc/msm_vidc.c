@@ -1331,7 +1331,7 @@ void *msm_vidc_open(int core_id, int session_type)
 	}
 
 	pr_debug("Opening video instance: %pK, %d\n",
-		VIDC_MSG_PRIO2STRING(VIDC_INFO), inst, session_type);
+		inst, session_type);
 	mutex_init(&inst->sync_lock);
 	mutex_init(&inst->bufq[CAPTURE_PORT].lock);
 	mutex_init(&inst->bufq[OUTPUT_PORT].lock);
@@ -1507,8 +1507,7 @@ int msm_vidc_destroy(struct msm_vidc_inst *inst)
 
 	msm_vidc_debugfs_deinit_inst(inst);
 
-	pr_debug("Closed video instance: %pK\n",
-			VIDC_MSG_PRIO2STRING(VIDC_INFO), inst);
+	pr_debug("Closed video instance: %pK\n", inst);
 	kfree(inst);
 	return 0;
 }
