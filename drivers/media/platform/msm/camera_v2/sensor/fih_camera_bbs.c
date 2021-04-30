@@ -120,7 +120,7 @@ GetId:
         case FIH_BBS_CAMERA_ERRORCODE_UNKOWN: strcpy(error_cause, "unknow error"); break;
         default: strcpy(error_cause, "Unknown"); break;
     }
-    SERR("%s: %s\n", module_name, error_cause);
+    SERR("%s: %s", module_name, error_cause);
 
     //UEC
     switch (position) {
@@ -155,7 +155,7 @@ GetId:
         default:
             break;
     }
-    SERR("bbs_id = %d, bbs_err = %d\n", module_name, error_cause);
+    SERR("bbs_id = %s, bbs_err = %s", module_name, error_cause);
 }
 EXPORT_SYMBOL(fih_camera_bbs_by_cci);
 
@@ -307,7 +307,7 @@ static ssize_t fih_camera_dev_proc_debug_write(struct file *file, const char __u
 
     if (copy_from_user(tmp, buffer, size))
     {
-        SERR("%s: copy_from_user fail\n", __func__);
+        SERR("%s: copy_from_user fail", __func__);
         return -EFAULT;
     }
 
@@ -349,7 +349,7 @@ static int __init fih_camera_dev_probe(void)
     fsize = sizeof(struct fih_camera_sensor_info)*FIH_BBS_CAMERA_LOCATION_MAX;
     fih_cam_info = kzalloc(fsize, GFP_KERNEL);
     if (!fih_cam_info) {
-        SERR("failed no memory\n");
+        SERR("failed no memory");
         return -ENOMEM;
     }
 
