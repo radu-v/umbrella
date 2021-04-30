@@ -621,8 +621,8 @@ QDF_STATUS wmi_unified_wow_remove_wakeup_pattern_send(void *wmi_hdl,
  * Return: QDF_STATUS_SUCCESS on success and QDF_STATUS_E_FAILURE for failure
  */
 QDF_STATUS wmi_unified_ap_ps_cmd_send(void *wmi_hdl,
-					   uint8_t *peer_addr,
-					   struct ap_ps_params *param)
+				uint8_t peer_addr[IEEE80211_ADDR_LEN],
+				struct ap_ps_params *param)
 {
 	wmi_unified_t wmi_handle = (wmi_unified_t) wmi_hdl;
 
