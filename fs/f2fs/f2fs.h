@@ -220,8 +220,8 @@ static inline struct timespec current_time(struct inode *inode)
 
 	if (unlikely(!inode->i_sb)) {
 		WARN(1, "current_time() called with uninitialized super_block in the inode");
-		return now; 
-	}    
+		return now;
+	}
 
 	return timespec_trunc(now, inode->i_sb->s_time_gran);
 }
@@ -268,7 +268,7 @@ struct cp_control {
 };
 
 /*
- * indicate meta/data type
+ * For CP/NAT/SIT/SSA readahead
  */
 enum {
 	META_CP,

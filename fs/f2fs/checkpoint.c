@@ -876,6 +876,7 @@ static struct page *validate_checkpoint(struct f2fs_sb_info *sbi,
 		f2fs_put_page(cp_page_2, 1);
 		return cp_page_1;
 	}
+
 	f2fs_put_page(cp_page_2, 1);
 invalid_cp:
 	f2fs_put_page(cp_page_1, 1);
