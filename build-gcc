@@ -5,6 +5,7 @@
 # https://github.com/mvaisakh/gcc-arm64
 # https://github.com/mvaisakh/gcc-arm
 # when building under WSL make sure the distro uses WSL 2
+# unbuffer is part of the expect package
 
 POSITIONAL=()
 while [[ $# -gt 0 ]]
@@ -55,6 +56,8 @@ export KBUILD_BUILD_USER="user"
 export KBUILD_BUILD_HOST="build"
 export PATH="$HOME/gcc-arm64/bin:$HOME/gcc-arm/bin:$PATH"
 export LD_LIBRARY_PATH="$HOME/gcc-arm64/lib:$HOME/gcc-arm/lib:$LD_LIBRARY_PATH"
+export ARCH=arm64
+export SUBARCH=arm64
 
 function clean_output {
 	echo "Cleaning output dir"
@@ -88,13 +91,18 @@ function make_kernel {
 	LAST_COMMIT=$(git rev-parse --verify --short=8 HEAD)
 
 	#Build kernel
+	unbuffer \
 	make -j$(nproc --all) O=out \
 		ARCH=arm64 \
-		LD=ld.lld \
-		HOSTAR=llvm-ar \
+		AR=aarch64-elf-ar \
+		NM=llvm-nm \
+		LD=aarch64-elf-ld.gold \
+		OBJDUMP=aarch64-elf-objdump \
+		STRIP=aarch64-elf-strip \
+		OBJCOPY=llvm-objcopy \
 		CROSS_COMPILE=aarch64-elf- \
 		CROSS_COMPILE_ARM32=arm-eabi- \
-		LOCALVERSION=-${CURRENT_BRANCH_CLEAN}$(date +"%d%m%y%H%M")-$LAST_COMMIT $*
+		LOCALVERSION=-${CURRENT_BRANCH_CLEAN}$(date +"%d%m%y%H%M")-$LAST_COMMIT $*  2>&1 | tee error.log
 }
 
 function pack_kernel {
