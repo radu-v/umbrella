@@ -204,6 +204,21 @@ ld-option = $(call try-run, $(LD) $(LDFLAGS) $(1) -v,$(1),$(2),$(3))
 # Important: no spaces around options
 ar-option = $(call try-run, $(AR) rc$(1) "$$TMP",$(1),$(2))
 
+# ld-name
+# Expands to either bfd, gold, or lld
+ifneq (,$(LD))
+	__ld-name = $(shell $(LD) -v 2>&1)
+endif
+ifneq (,$(findstring GNU gold,$(__ld-name)))
+	ld-name = gold
+else
+	ifneq (,$(findstring LLD,$(__ld-name)))
+		ld-name = lld
+	else
+		ld-name = bfd
+	endif
+endif
+
 # ld-version
 # Note this is mainly for HJ Lu's 3 number binutil versions
 ld-version = $(shell $(LD) --version | $(srctree)/scripts/ld-version.sh)
@@ -211,6 +226,14 @@ ld-version = $(shell $(LD) --version | $(srctree)/scripts/ld-version.sh)
 # ld-ifversion
 # Usage:  $(call ld-ifversion, -ge, 22252, y)
 ld-ifversion = $(shell [ $(ld-version) $(1) $(2) ] && echo $(3) || echo $(4))
+
+# bfd-ifversion
+# Usage:  $(call bfd-ifversion, -ge, 227000000, y)
+bfd-ifversion = $(call __ld-ifversion, bfd, $(1), $(2), $(3), $(4))
+
+# gold-ifversion
+# Usage:  $(call gold-ifversion, -ge, 112000000, y)
+gold-ifversion = $(call __ld-ifversion, gold, $(1), $(2), $(3), $(4))
 
 ######
 
