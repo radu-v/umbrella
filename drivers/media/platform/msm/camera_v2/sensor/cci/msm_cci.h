@@ -182,6 +182,9 @@ struct cci_device {
 	struct msm_camera_cci_wait_sync_cfg cci_wait_sync_cfg;
 	uint8_t valid_sync;
 	struct mutex *cci_init_mutex;
+#ifdef CONFIG_FIH_NB1
+	struct mutex mutex_release;/* MM-MC-FixCciCountError-00+ */
+#endif
 };
 
 enum msm_cci_i2c_cmd_type {
