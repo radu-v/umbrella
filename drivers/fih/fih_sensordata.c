@@ -14,7 +14,7 @@ static int fih_sensordata2_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_SENSORDATA2_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
