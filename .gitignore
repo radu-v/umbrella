@@ -125,3 +125,4 @@ Android.bp
 
 # Umod
 out/
+error.log
