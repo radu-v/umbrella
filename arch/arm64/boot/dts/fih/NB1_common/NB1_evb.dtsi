@@ -15,6 +15,9 @@
 /* Memory */
 #include "fih_memmap_nb1_evb.dtsi"
 
+/* Common DT Info */
+#include "common_info_nb1.dtsi"
+
 /* Thermal */
 #include "fih_thermal.dtsi"
 
