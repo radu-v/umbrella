@@ -14,7 +14,7 @@ static int fih_modem_rf_nv_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_MODEM_RF_NV_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -39,7 +39,7 @@ static int fih_modem_cust_nv_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_MODEM_CUST_NV_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -64,7 +64,7 @@ static int fih_modem_default_nv_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_MODEM_DEFAULT_NV_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -89,7 +89,7 @@ static int fih_modem_log_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_MODEM_LOG_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -114,7 +114,7 @@ static int fih_last_alog_main_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_LAST_ALOG_MAIN_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -139,7 +139,7 @@ static int fih_last_alog_events_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_LAST_ALOG_EVENTS_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -164,7 +164,7 @@ static int fih_last_alog_radio_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_LAST_ALOG_RADIO_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -189,7 +189,7 @@ static int fih_last_alog_system_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_LAST_ALOG_SYSTEM_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -214,7 +214,7 @@ static int fih_last_kmsg_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_LAST_KMSG_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -239,7 +239,7 @@ static int fih_last_blog_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_LAST_BLOG_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -264,7 +264,7 @@ static int fih_blog_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_BLOG_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -289,7 +289,7 @@ static int fih_hwid_hwcfg_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_HWID_HWCFG_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -314,7 +314,7 @@ static int fih_secboot_devinfo_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_SECBOOT_DEVINFO_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -339,7 +339,7 @@ static int fih_secboot_unlock_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_SECBOOT_UNLOCK_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -364,7 +364,7 @@ static int fih_sutinfo_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_SUTINFO_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -389,7 +389,7 @@ static int fih_bset_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_BSET_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -414,7 +414,7 @@ static int fih_bat_id_adc_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_BAT_ID_ADC_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -439,7 +439,7 @@ static int fih_apr_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_APR_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -464,7 +464,7 @@ static int fih_mem_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_MEM_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -489,7 +489,7 @@ static int fih_e2p_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_E2P_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -514,7 +514,7 @@ static int fih_cda_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_CDA_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -539,7 +539,7 @@ static int fih_note_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_NOTE_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -564,7 +564,7 @@ static int fih_hwcfg_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_HWCFG_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -589,7 +589,7 @@ static int fih_fver_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_FVER_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -614,7 +614,7 @@ static int fih_sensordata_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_SENSORDATA_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -639,7 +639,7 @@ static int fih_lcmdata_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_LCMDATA_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -664,7 +664,7 @@ static int fih_mem_ddr_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_MEM_DDR_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -689,7 +689,7 @@ static int fih_sensor_tof_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_SENSOR_TOF_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -714,7 +714,7 @@ static int fih_sensor_ssc_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_SENSOR_SSC_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -739,7 +739,7 @@ static int fih_sensordata2_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_SENSORDATA2_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
@@ -764,7 +764,7 @@ static int fih_pstore_show(struct seq_file *m, void *v)
 	void *block = kzalloc(FIH_PSTORE_SIZE, GFP_KERNEL);
 
 	if (!block) {
-		pr_err("%s: could not allocate buffer");
+		pr_err("%s: could not allocate buffer", __func__);
 		return 0;
 	}
 
