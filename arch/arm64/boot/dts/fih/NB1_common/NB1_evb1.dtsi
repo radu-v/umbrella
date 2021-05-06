@@ -15,9 +15,6 @@
 /* Memory */
 #include "fih_memmap_nb1_evb.dtsi"
 
-/* Common DT Info */
-#include "common_info_nb1.dtsi"
-
 /* Thermal */
 #include "fih_thermal.dtsi"
 
@@ -74,6 +71,6 @@
 		qcom,out-strength = <3>; /* QPNP_PIN_OUT_STRENGTH_HIGH */
 		qcom,src-sel = <2>; /* QPNP_PIN_SEL_FUNC_1 */
 		qcom,master-en = <1>;
-	};
+	}; 
 };
 

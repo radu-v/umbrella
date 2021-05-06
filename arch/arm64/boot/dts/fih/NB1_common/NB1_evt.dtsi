@@ -18,9 +18,6 @@
 /* Thermal */
 #include "fih_thermal.dtsi"
 
-/* Common DT Info */
-#include "common_info_nb1.dtsi"
-
 /*PIN ctrl*/
 #include "msm8998-pinctrl-NB1.dtsi"
 

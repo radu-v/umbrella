@@ -1,113 +1,109 @@
 menu "Device Drivers for FIH"
 
-config FIH_NB1
-	bool "FIH NB1 project"
-	default n
-	help
-		support fih NB1 project
+  config FIH_NB1
+  	bool "FIH NB1 project"
+  	default n
+  	help
+  	  support fih NB1 project
 
-config FIH_APR
-	bool "fih apr"
-	default n
-	help
-	support fih apr virtual file
+  config FIH_APR
+           bool "fih apr"
+           default n
+           help
+             support fih apr virtual file
 
-config FIH_DISABLE_REBOOT_EDL
-	bool "fih disable reboot edl command"
-	default n
-	help
-	support fih disable reboot edl command
+  config FIH_DISABLE_REBOOT_EDL
+           bool "fih disable reboot edl command"
+           default n
+           help
+             support fih disable reboot edl command
 
-config FIH_RAMTABLE
+  config FIH_RAMTABLE
 	bool "fih enable procfs for dumping ramtable"
 	default n
 
-config FIH_SENSORDATA
+  config FIH_SENSORDATA
 	bool "fih enable procfs for sensordata"
 	default n
 
-config FIH_INFO
-	bool "fih info"
-	default n
-	help
-	support fih information virtual file
+  config FIH_INFO
+	  bool "fih info"
+	  default n
+	  help
+	    support fih information virtual file
 
-config FIH_E2P
-	bool "fih e2p"
-	default n
-	help
-	support fih e2p virtual file
+  config FIH_E2P
+	  bool "fih e2p"
+	  default n
+	  help
+	    support fih e2p virtual file
 
-config FIH_CPU
-	bool "fih cpu"
-	default n
-	help
-	support fih cpu info virtual file
+  config FIH_CPU
+	  bool "fih cpu"
+	  default n
+	  help
+	    support fih cpu info virtual file
 
-config FIH_DRAM
-	bool "fih DRAM"
-	default n
-	help
-	support fih DRAM info virtual file
+  config FIH_DRAM
+	  bool "fih DRAM"
+	  default n
+	  help
+	    support fih DRAM info virtual file
 
-config FIH_HWID
-	bool "fih hwid"
-	default n
-	help
-	support fih hwid module
+  config FIH_HWID
+	  bool "fih hwid"
+	  default n
+	  help
+	    support fih hwid module
 
-config FIH_DEVICE_TREE_DEBUG
-	bool "FIH Device Tree debug"
-	default n
-
-config FIH_DLOAD
-	bool "fih download mode by bset enable"
-	default n
-	help
-	support fih download mode by bset enable
+  config FIH_DLOAD
+           bool "fih download mode by bset enable"
+           default n
+           help
+             support fih download mode by bset enable
 
 
-menuconfig FIH_DEBUG
-	bool "FIH DEBUG"
-	default n
-	help
-	Turn on this group to enable FIH's DEBUG configurations menu
+        menuconfig FIH_DEBUG
+            bool "FIH DEBUG"
+            default n
+            help
+                Turn on this group to enable FIH's DEBUG configurations menu
 
-if FIH_DEBUG
+        if FIH_DEBUG
 
-	config FIH_RESUME_PERFORMANCE_LOG
-	bool "FIH LOG about resume performance"
-	default n
-	---help---
-		Enable resume performance log
+            config FIH_RESUME_PERFORMANCE_LOG
+                bool "FIH LOG about resume performance"
+                default n
+                ---help---
+                    Enable resume performance log
 
-	config FIH_DUMP_WAKELOCK
-	bool "FIH DUMP WAKELOCK"
-	depends on PM_SLEEP
-	default n
-	---help---
-		Enable to dump wakelock periodically if it active.
+            config FIH_DUMP_WAKELOCK
+                bool "FIH DUMP WAKELOCK"
+                depends on PM_SLEEP
+                default n
+                ---help---
+                    Enable to dump wakelock periodically if it active.
 
-	config FIH_CPU_USAGE
-	bool "fih cpu usage information"
-	default n
-	---help---
-		Support fih cpu usage information
+            config FIH_CPU_USAGE
+                bool "fih cpu usage information"
+                default n
+                ---help---
+                    Support fih cpu usage information
 
 
-endif
+        endif
 
 config FIH_HALL_SENSOR
 	bool "FIH HALL Sensor"
 	default n
 	help
-		support FIH HALL Sensor
+	  support FIH HALL Sensor
 
 
-config FIH_GPIO
-	bool "fih gpio"
-	default n
-	help
-		support fih gpio function
+  config FIH_GPIO
+      bool "fih gpio"
+      default n
+      help
+        support fih gpio function
 
 endmenu
