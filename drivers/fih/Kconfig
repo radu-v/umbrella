@@ -22,10 +22,6 @@ menu "Device Drivers for FIH"
 	bool "fih enable procfs for dumping ramtable"
 	default n
 
-  config FIH_SENSORDATA
-	bool "fih enable procfs for sensordata"
-	default n
-
   config FIH_INFO
 	  bool "fih info"
 	  default n

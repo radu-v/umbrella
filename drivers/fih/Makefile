@@ -12,4 +12,3 @@ obj-$(CONFIG_FIH_DDRTEST) += fih_ddr_test.o
 obj-y += fih_battery.o
 obj-$(CONFIG_FIH_GPIO) += fih_gpio.o
 obj-$(CONFIG_FIH_RAMTABLE) += fih_ramtable.o
-obj-$(CONFIG_FIH_SENSORDATA) += fih_sensordata.o
