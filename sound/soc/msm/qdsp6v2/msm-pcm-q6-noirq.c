@@ -201,12 +201,12 @@ static int msm_pcm_open(struct snd_pcm_substream *substream)
 	ret = snd_pcm_hw_constraint_list(runtime, 0,
 				SNDRV_PCM_HW_PARAM_RATE,
 				&constraints_sample_rates);
-	if (ret)
+	if (ret < 0)
 		pr_info("snd_pcm_hw_constraint_list failed\n");
 
 	ret = snd_pcm_hw_constraint_integer(runtime,
 					    SNDRV_PCM_HW_PARAM_PERIODS);
-	if (ret)
+	if (ret < 0)
 		pr_info("snd_pcm_hw_constraint_integer failed\n");
 
 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
@@ -214,7 +214,7 @@ static int msm_pcm_open(struct snd_pcm_substream *substream)
 			SNDRV_PCM_HW_PARAM_BUFFER_BYTES,
 			SIO_PLAYBACK_MIN_BYTES,
 			SIO_PLAYBACK_MAX_BYTES);
-		if (ret) {
+		if (ret < 0) {
 			pr_info("%s: P buffer bytes minmax constraint ret %d\n",
 			       __func__, ret);
 		}
@@ -223,7 +223,7 @@ static int msm_pcm_open(struct snd_pcm_substream *substream)
 			   SNDRV_PCM_HW_PARAM_BUFFER_BYTES,
 			   SIO_CAPTURE_MIN_BYTES,
 			   SIO_CAPTURE_MAX_BYTES);
-		if (ret) {
+		if (ret < 0) {
 			pr_info("%s: C buffer bytes minmax constraint ret %d\n",
 			       __func__, ret);
 		}
@@ -231,13 +231,13 @@ static int msm_pcm_open(struct snd_pcm_substream *substream)
 
 	ret = snd_pcm_hw_constraint_step(runtime, 0,
 		SNDRV_PCM_HW_PARAM_PERIOD_BYTES, 32);
-	if (ret) {
+	if (ret < 0) {
 		pr_err("%s: Constraint for period bytes step ret = %d\n",
 				__func__, ret);
 	}
 	ret = snd_pcm_hw_constraint_step(runtime, 0,
 		SNDRV_PCM_HW_PARAM_BUFFER_BYTES, 32);
-	if (ret) {
+	if (ret < 0) {
 		pr_err("%s: Constraint for buffer bytes step ret = %d\n",
 				__func__, ret);
 	}
@@ -336,7 +336,7 @@ static int msm_pcm_hw_params(struct snd_pcm_substream *substream,
 	config.bufcnt = params_periods(params);
 
 	ret = q6asm_open_shared_io(prtd->audio_client, &config, dir);
-	if (ret) {
+	if (ret < 0) {
 		pr_err("%s: q6asm_open_write_shared_io failed ret: %d\n",
 		       __func__, ret);
 		return ret;
@@ -367,7 +367,7 @@ static int msm_pcm_hw_params(struct snd_pcm_substream *substream,
 				       prtd->audio_client->perf_mode,
 				       prtd->session_id, substream->stream);
 
-	if (ret) {
+	if (ret < 0) {
 		pr_err("%s: stream reg failed ret:%d\n", __func__, ret);
 		return ret;
 	}
@@ -395,7 +395,7 @@ static int msm_pcm_trigger(struct snd_pcm_substream *substream, int cmd)
 		pr_debug("%s: %s Trigger start\n", __func__,
 			 dir == 0 ? "P" : "C");
 		ret = q6asm_run(prtd->audio_client, 0, 0, 0);
-		if (ret)
+		if (ret < 0)
 			break;
 		atomic_set(&prtd->start, 1);
 		break;
@@ -560,7 +560,7 @@ static int msm_pcm_mmap(struct snd_pcm_substream *substream,
 
 	ret = msm_audio_ion_mmap(ab, vma);
 
-	if (ret)
+	if (ret < 0)
 		prtd->mmap_flag = 0;
 
 	return ret;
@@ -624,7 +624,7 @@ static int msm_pcm_close(struct snd_pcm_substream *substream)
 
 		ret = q6asm_shared_io_free(ac, dir);
 
-		if (ret) {
+		if (ret < 0) {
 			pr_err("%s: Failed to close pull mode, ret %d\n",
 					__func__, ret);
 		}
@@ -826,7 +826,7 @@ static int msm_pcm_add_chmap_control(struct snd_soc_pcm_runtime *rtd)
 				     snd_pcm_std_chmaps,
 				     PCM_FORMAT_MAX_NUM_CHANNEL, 0,
 				     &chmap_info);
-	if (ret)
+	if (ret < 0)
 		return ret;
 
 	kctl = chmap_info->kctl;
@@ -1195,34 +1195,34 @@ static int msm_asoc_pcm_new(struct snd_soc_pcm_runtime *rtd)
 		card->dev->coherent_dma_mask = DMA_BIT_MASK(32);
 
 	ret = msm_pcm_add_chmap_control(rtd);
-	if (ret) {
+	if (ret < 0) {
 		pr_err("%s failed to add chmap cntls\n", __func__);
 		goto exit;
 	}
 	ret = msm_pcm_add_volume_control(rtd, SNDRV_PCM_STREAM_PLAYBACK);
-	if (ret) {
+	if (ret < 0) {
 		pr_err("%s: Could not add pcm playback volume Control %d\n",
 			__func__, ret);
 	}
 	ret = msm_pcm_add_volume_control(rtd, SNDRV_PCM_STREAM_CAPTURE);
-	if (ret) {
+	if (ret < 0) {
 		pr_err("%s: Could not add pcm capture volume Control %d\n",
 			__func__, ret);
 	}
 	ret = msm_pcm_add_fe_topology_control(rtd);
-	if (ret) {
+	if (ret < 0) {
 		pr_err("%s: Could not add pcm topology control %d\n",
 			__func__, ret);
 	}
 
 	ret = msm_pcm_add_app_type_controls(rtd);
-	if (ret) {
+	if (ret < 0) {
 		pr_err("%s: Could not add app type controls failed %d\n",
 			__func__, ret);
 	}
 #ifdef CONFIG_SND_HWDEP
 	ret = msm_pcm_add_hwdep_dev(rtd);
-	if (ret)
+	if (ret < 0)
 		pr_err("%s: Could not add hw dep node\n", __func__);
 #endif
 	pcm->nonatomic = true;
