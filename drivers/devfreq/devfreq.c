@@ -234,7 +234,7 @@ int update_devfreq(struct devfreq *devfreq)
 		int rc = devfreq_update_status(devfreq, freq);
 		if (rc < 0)
 			dev_err(&devfreq->dev,
-				"Couldn't update frequency transition information, freq = %d, rc = %d", freq, rc);
+				"Couldn't update frequency transition information, freq = %ld, rc = %d", freq, rc);
 	}
 
 	devfreq->previous_freq = freq;
