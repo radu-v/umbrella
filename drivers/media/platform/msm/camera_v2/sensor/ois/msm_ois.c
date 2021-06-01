@@ -1295,7 +1295,12 @@ static ssize_t fih_gyro_cal_store(struct device *dev,
 	struct msm_camera_i2c_seq_reg_array *reg_setting = &gyro_cal_reg_setting;
 	unsigned char *pdata = &gyro_cal_reg_setting.reg_data[0];
 
-	if (sscanf(buf, "0x%04hx,%02hhx%02hhx,%02hhx%02hhx", &reg_setting->reg_addr,
+	if (!buf || buf[0] == 0) {
+		reg_setting->reg_addr = 0x0;
+		pdata[0] = pdata[1] = pdata[2] = pdata[3] = 0;
+
+		goto out;
+	} else if (sscanf(buf, "0x%04hx,%02hhx%02hhx,%02hhx%02hhx", &reg_setting->reg_addr,
 				pdata, (pdata + 1), (pdata + 2),
 				(pdata + 3) ) <= 0) {
 		pr_err("Scanned failure string,%s\n", buf);
@@ -1307,8 +1312,9 @@ static ssize_t fih_gyro_cal_store(struct device *dev,
 		return -EINVAL;
 	}
 
-	pr_err("buf string,%s\n", buf);
-	pr_err("Updated reg_addr=%xh, data [0]=%x [1]=%x [2]=%x [3]=%x\n",
+out:
+	pr_info("buf string,%s\n", buf);
+	pr_info("Updated reg_addr=%xh, data [0]=%x [1]=%x [2]=%x [3]=%x\n",
 			reg_setting->reg_addr,
 			pdata[0], pdata[1], pdata[2], pdata[3]);
 	return size;
