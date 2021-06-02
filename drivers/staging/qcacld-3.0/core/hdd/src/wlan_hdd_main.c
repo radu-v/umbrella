@@ -4963,6 +4963,7 @@ QDF_STATUS hdd_init_station_mode(struct hdd_adapter *adapter)
 	if (ret_val)
 		hdd_err("WMI_PDEV_PARAM_BURST_ENABLE set failed %d", ret_val);
 
+#if defined(FEATURE_LRO)
 	/*
 	 * In case of USB tethering, LRO is disabled. If SSR happened
 	 * during that time, then as part of SSR init, do not enable
@@ -4971,6 +4972,7 @@ QDF_STATUS hdd_init_station_mode(struct hdd_adapter *adapter)
 	if (hdd_ctx->config->lro_enable &&
 	    !(qdf_atomic_read(&hdd_ctx->vendor_disable_lro_flag)))
 		adapter->dev->features |= NETIF_F_LRO;
+#endif
 
 	/* rcpi info initialization */
 	qdf_mem_zero(&adapter->rcpi, sizeof(adapter->rcpi));
