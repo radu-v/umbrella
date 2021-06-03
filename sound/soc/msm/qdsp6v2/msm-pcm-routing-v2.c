@@ -11539,6 +11539,7 @@ static struct snd_kcontrol_new msm_voc_session_controls[] = {
 			     msm_voc_session_id_put),
 };
 
+#ifdef CONFIG_SND_SOURCE_TRACKING_CTRLS
 static int msm_sound_focus_info(struct snd_kcontrol *kcontrol,
 				struct snd_ctl_elem_info *uinfo)
 {
@@ -11933,6 +11934,7 @@ static const struct snd_kcontrol_new msm_source_tracking_controls[] = {
 		.get	= msm_audio_source_tracking_get,
 	},
 };
+#endif /* CONFIG_SND_SOURCE_TRACKING_CTRLS */
 
 static int spkr_prot_put_vi_lch_port(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
@@ -16815,8 +16817,11 @@ static int msm_routing_probe(struct snd_soc_platform *platform)
 		msm_routing_be_dai_name_table_mixer_controls,
 		ARRAY_SIZE(msm_routing_be_dai_name_table_mixer_controls));
 
+#ifdef CONFIG_SND_SOURCE_TRACKING_CTRLS
 	snd_soc_add_platform_controls(platform, msm_source_tracking_controls,
 				ARRAY_SIZE(msm_source_tracking_controls));
+#endif
+
 	snd_soc_add_platform_controls(platform, adm_channel_config_controls,
 				ARRAY_SIZE(adm_channel_config_controls));
 
