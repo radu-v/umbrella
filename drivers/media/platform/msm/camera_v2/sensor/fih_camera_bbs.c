@@ -188,7 +188,7 @@ int fih_camera_bbs_set(int subid,int master,unsigned short sid,int module)
     fih_cam_info[i].module_info[module].cci_master = master;
     fih_cam_info[i].module_info[module].sid = sid;
     fih_cam_info[i].module_info[module].save_done=1;
-    SINFO("set %s parameter for camera%d,master=%d,sid=0x%x",FIH_BBS_CAMERA_MODULE_NAME[module],fih_cam_info[i].position,master,sid);
+    SLOW("set %s parameter for camera%d,master=%d,sid=0x%x",FIH_BBS_CAMERA_MODULE_NAME[module],fih_cam_info[i].position,master,sid);
 
     return 0;
 }
