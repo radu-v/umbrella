@@ -37,9 +37,17 @@ static const unsigned int vmpressure_level_med = 60;
 static const unsigned int vmpressure_level_critical = 95;
 
 static unsigned long vmpressure_scale_max = 100;
+#ifndef CONFIG_ANDROID_SIMPLE_LMK
+module_param_named(vmpressure_scale_max, vmpressure_scale_max,
+			ulong, S_IRUGO | S_IWUSR);
+#endif
 
 /* vmpressure values >= this will be scaled based on allocstalls */
 static unsigned long allocstall_threshold = 70;
+#ifndef CONFIG_ANDROID_SIMPLE_LMK
+module_param_named(allocstall_threshold, allocstall_threshold,
+			ulong, S_IRUGO | S_IWUSR);
+#endif
 
 static struct vmpressure global_vmpressure;
 static BLOCKING_NOTIFIER_HEAD(vmpressure_notifier);
