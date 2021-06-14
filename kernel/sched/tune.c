@@ -728,62 +728,6 @@ boost_slots_release(struct schedtune *st)
 }
 #endif // CONFIG_DYNAMIC_STUNE_BOOST
 
-#ifdef CONFIG_STUNE_ASSIST
-#ifdef CONFIG_SCHED_WALT
-static int sched_boost_override_write_wrapper(struct cgroup_subsys_state *css,
-					      struct cftype *cft, u64 override)
-{
-	struct schedtune *st = css_st(css);
-
-	return st->sched_boost;
-}
-
-static int
-sched_boost_write(struct cgroup_subsys_state *css, struct cftype *cft,
-	    s64 sched_boost)
-{
-	struct schedtune *st = css_st(css);
-	st->sched_boost = sched_boost;
-
-	return 0;
-}
-
-static void
-boost_slots_init(struct schedtune *st)
-{
-	int i;
-	struct boost_slot *slot;
-
-	/* Initialize boost slots */
-	INIT_LIST_HEAD(&st->active_boost_slots.list);
-	INIT_LIST_HEAD(&st->available_boost_slots.list);
-
-	/* Populate available_boost_slots */
-	for (i = 0; i < DYNAMIC_BOOST_SLOTS_COUNT; ++i) {
-		slot = kmalloc(sizeof(*slot), GFP_KERNEL);
-		slot->idx = i;
-		list_add_tail(&slot->list, &st->available_boost_slots.list);
-	}
-}
-
-static void
-boost_slots_release(struct schedtune *st)
-{
-	struct boost_slot *slot, *next_slot;
-
-	list_for_each_entry_safe(slot, next_slot,
-				 &st->available_boost_slots.list, list) {
-		list_del(&slot->list);
-		kfree(slot);
-	}
-	list_for_each_entry_safe(slot, next_slot,
-				 &st->active_boost_slots.list, list) {
-		list_del(&slot->list);
-		kfree(slot);
-	}
-}
-#endif // CONFIG_DYNAMIC_STUNE_BOOST
-
 static struct cftype files[] = {
 	{
 		.name = "boost",
@@ -922,6 +866,7 @@ schedtune_init_cgroups(void)
 	schedtune_initialized = true;
 }
 
+#ifdef CONFIG_DYNAMIC_STUNE_BOOST
 static struct schedtune *getSchedtune(char *st_name)
 {
 	int idx;
@@ -932,54 +877,6 @@ static struct schedtune *getSchedtune(char *st_name)
 
 		if (!st) {
 			pr_warn("SCHEDTUNE: Could not find %s\n", st_name);
-			break;
-		}
-
-		cgroup_name(st->css.cgroup, name_buf, sizeof(name_buf));
-		if (strncmp(name_buf, st_name, strlen(st_name)) == 0)
-			return st;
-	}
-
-	return NULL;
-}
-
-int reset_schedtune_boost(char *st_name, int boost)
-{
-	struct schedtune *st = getSchedtune(st_name);
-
-	if (!st)
-		return -EINVAL;
-
-	/* reset schedtune.boost value */
-	boost_write(&st->css, NULL, boost);
-
-	return 0;
-}
-
-int reset_schedtune_prefer_idle(char *st_name, int prefer_idle)
-{
-	struct schedtune *st = getSchedtune(st_name);
-
-	if (!st)
-		return -EINVAL;
-
-	/* reset schedtune.prefer_idle value */
-	prefer_idle_write(&st->css, NULL, prefer_idle);
-
-	return 0;
-}
-
-#ifdef CONFIG_DYNAMIC_STUNE_BOOST
-static struct schedtune *stune_get_by_name(char *st_name)
-{
-	int idx;
-
-	for (idx = 0; idx < BOOSTGROUPS_COUNT; ++idx) {
-		char name_buf[NAME_MAX + 1];
-		struct schedtune *st = allocated_group[idx];
-
-		if (!st) {
-			pr_warn("schedtune: could not find %s\n", st_name);
 			break;
 		}
 
@@ -1044,7 +941,8 @@ static int activate_boost_slot(struct schedtune *st, int boost, int *slot)
 	/* Create new slot with same value at tail of active_boost_slots */
 	curr_slot = kmalloc(sizeof(*curr_slot), GFP_KERNEL);
 	curr_slot->idx = *slot;
-	list_add_tail(&curr_slot->list, &st->active_boost_slots.list);
+	list_add_tail(&curr_slot->list,
+		&st->active_boost_slots.list);
 
 exit:
 	mutex_unlock(&boost_slot_mutex);
@@ -1143,15 +1041,15 @@ int reset_stune_boost(char *st_name, int slot)
 {
 	int ret = 0;
 	int boost = 0;
-	struct schedtune *st = stune_get_by_name(st_name);
+	struct schedtune *st = getSchedtune(st_name);
 
 	if (!st)
 		return -EINVAL;
 
 	ret = deactivate_boost_slot(st, slot);
-	if (ret)
+	if (ret) {
 		return -EINVAL;
-
+	}
 	/* Find next largest active boost or reset to default */
 	boost = max_active_boost(st);
 
@@ -1166,7 +1064,7 @@ int reset_stune_boost(char *st_name, int slot)
 
 int do_stune_sched_boost(char *st_name, int *slot)
 {
-	struct schedtune *st = stune_get_by_name(st_name);
+	struct schedtune *st = getSchedtune(st_name);
 
 	if (!st)
 		return -EINVAL;
@@ -1176,7 +1074,7 @@ int do_stune_sched_boost(char *st_name, int *slot)
 
 int do_stune_boost(char *st_name, int boost, int *slot)
 {
-	struct schedtune *st = stune_get_by_name(st_name);
+	struct schedtune *st = getSchedtune(st_name);
 
 	if (!st)
 		return -EINVAL;
