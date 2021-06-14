@@ -874,4 +874,4 @@ static int __init pwrgov_register(void)
 {
 	return cpufreq_register_governor(&cpufreq_gov_pwrutilx);
 }
-core_initcall(pwrgov_register);
+fs_initcall(pwrgov_register);
