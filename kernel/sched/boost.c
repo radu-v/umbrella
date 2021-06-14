@@ -52,6 +52,20 @@ int sched_set_boost(int type)
 	return ret;
 }
 
+#ifdef CONFIG_DYNAMIC_STUNE_BOOST
+static int boost_slot;
+
+static bool verify_boost_params(int old_val, int new_val)
+{
+	/*
+	 * Boost can only be turned on or off. There is no possiblity of
+	 * switching from one boost type to another or to set the same
+	 * kind of boost several times.
+	 */
+	return !(!!old_val == !!new_val);
+}
+#endif // CONFIG_DYNAMIC_STUNE_BOOST
+
 int sched_boost_handler(struct ctl_table *table, int write,
 		void __user *buffer, size_t *lenp,
 		loff_t *ppos)
@@ -68,12 +82,17 @@ int sched_boost_handler(struct ctl_table *table, int write,
 	if (ret || !write)
 		goto done;
 
+#ifdef CONFIG_DYNAMIC_STUNE_BOOST
 	if (verify_boost_params(old_val, *data)) {
-		_sched_set_boost(old_val, *data);
+		if (*data > 0)
+			do_stune_sched_boost("top-app", &boost_slot);
+		else
+			reset_stune_boost("top-app", boost_slot);
 	} else {
 		*data = old_val;
 		ret = -EINVAL;
 	}
+#endif // CONFIG_DYNAMIC_STUNE_BOOST
 
 done:
 	mutex_unlock(&boost_mutex);
