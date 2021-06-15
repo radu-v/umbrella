@@ -935,7 +935,7 @@ static void update_rq_clock_task(struct rq *rq, s64 delta)
 	rq->clock_task += delta;
 
 #if defined(CONFIG_IRQ_TIME_ACCOUNTING) || defined(CONFIG_PARAVIRT_TIME_ACCOUNTING)
-	if ((irq_delta + steal) && sched_feat(NONTASK_CAPACITY) != 0)
+	if ((irq_delta + steal) && sched_feat(NONTASK_CAPACITY))
 		sched_rt_avg_update(rq, irq_delta + steal);
 #endif
 }
@@ -1180,7 +1180,6 @@ static int migration_cpu_stop(void *data)
 	raw_spin_unlock(&p->pi_lock);
 
 	local_irq_enable();
-
 	return 0;
 }
 
@@ -1194,18 +1193,10 @@ void set_cpus_allowed_common(struct task_struct *p, const struct cpumask *new_ma
 	p->nr_cpus_allowed = cpumask_weight(new_mask);
 }
 
-static const struct cpumask *get_adjusted_cpumask(const struct task_struct *p,
-	const struct cpumask *req_mask)
-{
-	return req_mask;
-}
-
 void do_set_cpus_allowed(struct task_struct *p, const struct cpumask *new_mask)
 {
 	struct rq *rq = task_rq(p);
 	bool queued, running;
-
-	new_mask = get_adjusted_cpumask(p, new_mask);
 
 	lockdep_assert_held(&p->pi_lock);
 
@@ -1247,8 +1238,6 @@ static int __set_cpus_allowed_ptr(struct task_struct *p,
 	struct rq *rq;
 	unsigned int dest_cpu;
 	int ret = 0;
-
-	new_mask = get_adjusted_cpumask(p, new_mask);
 
 	rq = task_rq_lock(p, &flags);
 
@@ -4713,14 +4702,18 @@ again:
 		cpuset_cpus_allowed(p, cpus_allowed);
 		if (!cpumask_subset(new_mask, cpus_allowed)) {
 			/*
-			* We must have raced with a concurrent cpuset
-			* update. Just reset the cpus_allowed to the
-			* cpuset's cpus_allowed
-			*/
+			 * We must have raced with a concurrent cpuset
+			 * update. Just reset the cpus_allowed to the
+			 * cpuset's cpus_allowed
+			 */
 			cpumask_copy(new_mask, cpus_allowed);
 			goto again;
 		}
 	}
+
+	if (!retval && !(p->flags & PF_KTHREAD))
+		cpumask_and(&p->cpus_requested, in_mask, cpu_possible_mask);
+
 out_free_new_mask:
 	free_cpumask_var(new_mask);
 out_free_cpus_allowed:
@@ -6032,7 +6025,7 @@ static int sched_domain_debug_one(struct sched_domain *sd, int cpu, int level,
 		printk(KERN_ERR "ERROR: domain->span does not contain "
 				"CPU%d\n", cpu);
 	}
-	if (!cpumask_test_cpu(cpu, sched_group_span(group))) {
+	if (!cpumask_test_cpu(cpu, sched_group_cpus(group))) {
 		printk(KERN_ERR "ERROR: domain->groups does not contain"
 				" CPU%d\n", cpu);
 	}
@@ -6045,23 +6038,23 @@ static int sched_domain_debug_one(struct sched_domain *sd, int cpu, int level,
 			break;
 		}
 
-		if (!cpumask_weight(sched_group_span(group))) {
+		if (!cpumask_weight(sched_group_cpus(group))) {
 			printk(KERN_CONT "\n");
 			printk(KERN_ERR "ERROR: empty group\n");
 			break;
 		}
 
 		if (!(sd->flags & SD_OVERLAP) &&
-		    cpumask_intersects(groupmask, sched_group_span(group))) {
+		    cpumask_intersects(groupmask, sched_group_cpus(group))) {
 			printk(KERN_CONT "\n");
 			printk(KERN_ERR "ERROR: repeated CPUs\n");
 			break;
 		}
 
-		cpumask_or(groupmask, groupmask, sched_group_span(group));
+		cpumask_or(groupmask, groupmask, sched_group_cpus(group));
 
 		printk(KERN_CONT " %*pbl",
-		       cpumask_pr_args(sched_group_span(group)));
+		       cpumask_pr_args(sched_group_cpus(group)));
 		if (group->sgc->capacity != SCHED_CAPACITY_SCALE) {
 			printk(KERN_CONT " (cpu_capacity = %lu)",
 				group->sgc->capacity);
@@ -6518,7 +6511,7 @@ enum s_alloc {
  */
 static void build_group_mask(struct sched_domain *sd, struct sched_group *sg)
 {
-	const struct cpumask *sg_span = sched_group_span(sg);
+	const struct cpumask *sg_span = sched_group_cpus(sg);
 	struct sd_data *sdd = sd->private;
 	struct sched_domain *sibling;
 	int i;
@@ -6551,7 +6544,7 @@ static void build_group_mask(struct sched_domain *sd, struct sched_group *sg)
  */
 int group_balance_cpu(struct sched_group *sg)
 {
-	return cpumask_first_and(sched_group_span(sg), sched_group_mask(sg));
+	return cpumask_first_and(sched_group_cpus(sg), sched_group_mask(sg));
 }
 
 static int
@@ -6584,7 +6577,7 @@ build_overlap_sched_groups(struct sched_domain *sd, int cpu)
 		if (!sg)
 			goto fail;
 
-		sg_span = sched_group_span(sg);
+		sg_span = sched_group_cpus(sg);
 		if (sibling->child)
 			cpumask_copy(sg_span, sched_domain_span(sibling->child));
 		else
@@ -6690,7 +6683,7 @@ build_sched_groups(struct sched_domain *sd, int cpu)
 				continue;
 
 			cpumask_set_cpu(j, covered);
-			cpumask_set_cpu(j, sched_group_span(sg));
+			cpumask_set_cpu(j, sched_group_cpus(sg));
 		}
 
 		if (!first)
@@ -6721,7 +6714,7 @@ static void init_sched_groups_capacity(int cpu, struct sched_domain *sd)
 	WARN_ON(!sg);
 
 	do {
-		sg->group_weight = cpumask_weight(sched_group_span(sg));
+		sg->group_weight = cpumask_weight(sched_group_cpus(sg));
 		sg = sg->next;
 	} while (sg != sd->groups);
 
@@ -6787,7 +6780,7 @@ static void init_sched_energy(int cpu, struct sched_domain *sd,
 		return;
 	}
 
-	check_sched_energy_data(cpu, fn, sched_group_span(sd->groups));
+	check_sched_energy_data(cpu, fn, sched_group_cpus(sd->groups));
 
 	sd->groups->sge = fn(cpu);
 }
@@ -7848,6 +7841,7 @@ void __init sched_init_smp(void)
 	/* Move init over to a non-isolated CPU */
 	if (set_cpus_allowed_ptr(current, non_isolated_cpus) < 0)
 		BUG();
+	cpumask_copy(&current->cpus_requested, cpu_possible_mask);
 	sched_init_granularity();
 	free_cpumask_var(non_isolated_cpus);
 

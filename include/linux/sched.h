@@ -63,14 +63,6 @@ struct sched_param {
 
 #include <asm/processor.h>
 
-extern bool energy_aware_enable;
-
-#if defined(CONFIG_SCHED_TUNE) && defined(CONFIG_CGROUP_SCHEDTUNE)
-void disable_schedtune_boost(int disable);
-#else
-static inline void disable_schedtune_boost(int disable) { }
-#endif
-
 #define SCHED_ATTR_SIZE_VER0	48	/* sizeof first published struct */
 
 /*
@@ -488,6 +480,7 @@ extern unsigned long
 arch_get_unmapped_area_topdown(struct file *filp, unsigned long addr,
 			  unsigned long len, unsigned long pgoff,
 			  unsigned long flags);
+extern void special_arch_pick_mmap_layout(struct mm_struct *mm);
 #else
 static inline void arch_pick_mmap_layout(struct mm_struct *mm) {}
 #endif
@@ -1579,6 +1572,11 @@ struct task_struct {
 	atomic_t usage;
 	unsigned int flags;	/* per process flags, defined below */
 	unsigned int ptrace;
+	unsigned int kill_flag;
+	struct timespec ttu;
+
+	/* add for fd leak debug */
+	bool dump_fd_leak;
 
 #ifdef CONFIG_SMP
 	struct llist_node wake_entry;
@@ -1625,6 +1623,7 @@ struct task_struct {
 	unsigned int policy;
 	int nr_cpus_allowed;
 	cpumask_t cpus_allowed;
+	cpumask_t cpus_requested;
 
 #ifdef CONFIG_PREEMPT_RCU
 	int rcu_read_lock_nesting;
@@ -2269,9 +2268,6 @@ static inline void put_task_struct(struct task_struct *t)
 	if (atomic_dec_and_test(&t->usage))
 		__put_task_struct(t);
 }
-
-struct task_struct *task_rcu_dereference(struct task_struct **ptask);
-struct task_struct *try_get_task_struct(struct task_struct **ptask);
 
 #ifdef CONFIG_VIRT_CPU_ACCOUNTING_GEN
 extern void task_cputime(struct task_struct *t,
@@ -3545,6 +3541,7 @@ static inline unsigned long rlimit_max(unsigned int limit)
 #define SCHED_CPUFREQ_RT        (1U << 0)
 #define SCHED_CPUFREQ_DL        (1U << 1)
 #define SCHED_CPUFREQ_IOWAIT    (1U << 2)
+#define SCHED_CPUFREQ_INTERCLUSTER_MIG (1U << 3)
 
 #ifdef CONFIG_CPU_FREQ
 struct update_util_data {
@@ -3556,5 +3553,11 @@ void cpufreq_add_update_util_hook(int cpu, struct update_util_data *data,
                                     unsigned int flags));
 void cpufreq_remove_update_util_hook(int cpu);
 #endif /* CONFIG_CPU_FREQ */
+
+#ifdef CONFIG_DYNAMIC_STUNE_BOOST
+int do_stune_boost(char *st_name, int boost, int *slot);
+int do_stune_sched_boost(char *st_name, int *slot);
+int reset_stune_boost(char *st_name, int slot);
+#endif /* CONFIG_DYNAMIC_STUNE_BOOST */
 
 #endif

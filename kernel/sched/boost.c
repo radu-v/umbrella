@@ -8,20 +8,21 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
- * Copyright (C) idkwhoiam322 <snkm1999@gmail.com>.
- *
- * The purpose of this has been modified to simply serve as stub
- * functions to satisfy userspace's demands. Without this,
- * userspace spams a lot in logcat about not being able to write
- * anything.
- *
  */
 
 #include "sched.h"
 
+/*
+ * Scheduler boost is a mechanism to temporarily place tasks on CPUs
+ * with higher capacity than those where a task would have normally
+ * ended up with their load characteristics. Any entity enabling
+ * boost is responsible for disabling it as well.
+ */
+
 unsigned int sysctl_sched_boost;
-static DEFINE_MUTEX(boost_mutex);
+
+#ifdef CONFIG_DYNAMIC_STUNE_BOOST
+static int boost_slot;
 
 static bool verify_boost_params(int old_val, int new_val)
 {
@@ -32,25 +33,7 @@ static bool verify_boost_params(int old_val, int new_val)
 	 */
 	return !(!!old_val == !!new_val);
 }
-
-static void _sched_set_boost(int old_val, int type)
-{
-	/* Do nothing */
-
-	return;
-}
-
-int sched_set_boost(int type)
-{
-	int ret = 0;
-
-	if (verify_boost_params(sysctl_sched_boost, type))
-		_sched_set_boost(sysctl_sched_boost, type);
-	else
-		ret = -EINVAL;
-
-	return ret;
-}
+#endif // CONFIG_DYNAMIC_STUNE_BOOST
 
 int sched_boost_handler(struct ctl_table *table, int write,
 		void __user *buffer, size_t *lenp,
@@ -60,27 +43,27 @@ int sched_boost_handler(struct ctl_table *table, int write,
 	unsigned int *data = (unsigned int *)table->data;
 	unsigned int old_val;
 
-	mutex_lock(&boost_mutex);
-
+	// Backup current sysctl_sched_boost value
 	old_val = *data;
+
+	// Set new sysctl_sched_boost value
 	ret = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
 
 	if (ret || !write)
 		goto done;
 
+#ifdef CONFIG_DYNAMIC_STUNE_BOOST
 	if (verify_boost_params(old_val, *data)) {
-		_sched_set_boost(old_val, *data);
+		if (*data > 0)
+			do_stune_sched_boost("top-app", &boost_slot);
+		else
+			reset_stune_boost("top-app", boost_slot);
 	} else {
 		*data = old_val;
 		ret = -EINVAL;
 	}
+#endif // CONFIG_DYNAMIC_STUNE_BOOST
 
 done:
-	mutex_unlock(&boost_mutex);
 	return ret;
-}
-
-int sched_boost(void)
-{
-	return sysctl_sched_boost;
 }
