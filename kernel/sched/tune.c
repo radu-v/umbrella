@@ -25,6 +25,8 @@ extern struct target_nrg schedtune_target_nrg;
 #define DYNAMIC_BOOST_SLOTS_COUNT 5
 static DEFINE_MUTEX(boost_slot_mutex);
 static DEFINE_MUTEX(stune_boost_mutex);
+static struct schedtune *getSchedtune(char *st_name);
+static int dynamic_boost(struct schedtune *st, int boost);
 struct boost_slot {
 	struct list_head list;
 	int idx;
@@ -289,12 +291,14 @@ static void
 schedtune_cpu_update(int cpu)
 {
 	struct boost_groups *bg;
-	int boost_max = INT_MIN;
+	int boost_max;
 	int idx;
 
 	bg = &per_cpu(cpu_boost_groups, cpu);
 
-	for (idx = 0; idx < BOOSTGROUPS_COUNT; ++idx) {
+	/* The root boost group is always active */
+	boost_max = bg->group[0].boost;
+	for (idx = 1; idx < BOOSTGROUPS_COUNT; ++idx) {
 		/*
 		 * A boost group affects a CPU only if it has
 		 * RUNNABLE tasks on that CPU
@@ -304,10 +308,10 @@ schedtune_cpu_update(int cpu)
 
 		boost_max = max(boost_max, bg->group[idx].boost);
 	}
-
-	/* If there are no active boost groups on the CPU, set no boost  */
-	if (boost_max == INT_MIN)
-		boost_max = 0;
+	/* Ensures boost_max is non-negative when all cgroup boost values
+	 * are neagtive. Avoids under-accounting of cpu capacity which may cause
+	 * task stacking and frequency spikes.*/
+	boost_max = max(boost_max, 0);
 	bg->boost_max = boost_max;
 }
 
@@ -366,13 +370,12 @@ schedtune_tasks_update(struct task_struct *p, int cpu, int idx, int task_count)
 	/* Update boosted tasks count while avoiding to make it negative */
 	bg->group[idx].tasks = max(0, tasks);
 
-	/* Boost group activation or deactivation on that RQ */
-	if (tasks == 1 || tasks == 0)
-		schedtune_cpu_update(cpu);
-
 	trace_sched_tune_tasks_update(p, cpu, tasks, idx,
 			bg->group[idx].boost, bg->boost_max);
 
+	/* Boost group activation or deactivation on that RQ */
+	if (tasks == 1 || tasks == 0)
+		schedtune_cpu_update(cpu);
 }
 
 /*
@@ -414,13 +417,6 @@ void schedtune_enqueue_task(struct task_struct *p, int cpu)
 	raw_spin_unlock_irqrestore(&bg->lock, irq_flags);
 }
 
-int schedtune_allow_attach(struct cgroup_subsys_state *css,
-			   struct cgroup_taskset *tset)
-{
-	/* We always allows tasks to be moved between existing CGroups */
-	return 0;
-}
-
 int schedtune_can_attach(struct cgroup_taskset *tset)
 {
 	struct task_struct *task;
@@ -435,6 +431,7 @@ int schedtune_can_attach(struct cgroup_taskset *tset)
 
 	if (!unlikely(schedtune_initialized))
 		return 0;
+
 
 	cgroup_taskset_for_each(task, css, tset) {
 
@@ -699,14 +696,14 @@ boost_slots_init(struct schedtune *st)
 	struct boost_slot *slot;
 
 	/* Initialize boost slots */
-	INIT_LIST_HEAD(&st->active_boost_slots.list);
-	INIT_LIST_HEAD(&st->available_boost_slots.list);
+	INIT_LIST_HEAD(&(st->active_boost_slots.list));
+	INIT_LIST_HEAD(&(st->available_boost_slots.list));
 
 	/* Populate available_boost_slots */
 	for (i = 0; i < DYNAMIC_BOOST_SLOTS_COUNT; ++i) {
 		slot = kmalloc(sizeof(*slot), GFP_KERNEL);
 		slot->idx = i;
-		list_add_tail(&slot->list, &st->available_boost_slots.list);
+		list_add_tail(&(slot->list), &(st->available_boost_slots.list));
 	}
 }
 
@@ -716,13 +713,15 @@ boost_slots_release(struct schedtune *st)
 	struct boost_slot *slot, *next_slot;
 
 	list_for_each_entry_safe(slot, next_slot,
-				 &st->available_boost_slots.list, list) {
+				 &(st->available_boost_slots.list), list) {
 		list_del(&slot->list);
+		pr_info("STUNE: freed!\n");
 		kfree(slot);
 	}
 	list_for_each_entry_safe(slot, next_slot,
-				 &st->active_boost_slots.list, list) {
+				 &(st->active_boost_slots.list), list) {
 		list_del(&slot->list);
+		pr_info("STUNE: freed!\n");
 		kfree(slot);
 	}
 }
@@ -840,7 +839,6 @@ schedtune_css_free(struct cgroup_subsys_state *css)
 struct cgroup_subsys schedtune_cgrp_subsys = {
 	.css_alloc	= schedtune_css_alloc,
 	.css_free	= schedtune_css_free,
-	.allow_attach   = schedtune_allow_attach,
 	.can_attach     = schedtune_can_attach,
 	.cancel_attach  = schedtune_cancel_attach,
 	.legacy_cftypes	= files,
@@ -917,7 +915,7 @@ static int activate_boost_slot(struct schedtune *st, int boost, int *slot)
 	mutex_lock(&boost_slot_mutex);
 
 	/* Check for slots in available_boost_slots */
-	if (list_empty(&st->available_boost_slots.list)) {
+	if (list_empty(&(st->available_boost_slots.list))) {
 		ret = -EINVAL;
 		goto exit;
 	}
@@ -927,7 +925,7 @@ static int activate_boost_slot(struct schedtune *st, int boost, int *slot)
 	 */
 
 	/* Get first slot from available_boost_slots */
-	head = &st->available_boost_slots.list;
+	head = &(st->available_boost_slots.list);
 	curr_slot = list_first_entry(head, struct boost_slot, list);
 
 	/* Store slot value and boost value*/
@@ -941,8 +939,8 @@ static int activate_boost_slot(struct schedtune *st, int boost, int *slot)
 	/* Create new slot with same value at tail of active_boost_slots */
 	curr_slot = kmalloc(sizeof(*curr_slot), GFP_KERNEL);
 	curr_slot->idx = *slot;
-	list_add_tail(&curr_slot->list,
-		&st->active_boost_slots.list);
+	list_add_tail(&(curr_slot->list),
+		&(st->active_boost_slots.list));
 
 exit:
 	mutex_unlock(&boost_slot_mutex);
@@ -963,7 +961,7 @@ static int deactivate_boost_slot(struct schedtune *st, int slot)
 
 	/* Delete slot from active_boost_slots */
 	list_for_each_entry_safe(curr_slot, next_slot,
-				 &st->active_boost_slots.list, list) {
+				 &(st->active_boost_slots.list), list) {
 		if (curr_slot->idx == slot) {
 			st->slot_boost[slot] = 0;
 			list_del(&curr_slot->list);
@@ -972,8 +970,8 @@ static int deactivate_boost_slot(struct schedtune *st, int slot)
 			/* Create same slot at tail of available_boost_slots */
 			curr_slot = kmalloc(sizeof(*curr_slot), GFP_KERNEL);
 			curr_slot->idx = slot;
-			list_add_tail(&curr_slot->list,
-				      &st->available_boost_slots.list);
+			list_add_tail(&(curr_slot->list),
+				      &(st->available_boost_slots.list));
 
 			goto exit;
 		}
@@ -999,12 +997,12 @@ static int max_active_boost(struct schedtune *st)
 	max_boost = st->boost_default;
 
 	/* Check for active boosts */
-	if (list_empty(&st->active_boost_slots.list)) {
+	if (list_empty(&(st->active_boost_slots.list))) {
 		goto exit;
 	}
 
 	/* Get largest boost value */
-	list_for_each_entry(slot, &st->active_boost_slots.list, list) {
+	list_for_each_entry(slot, &(st->active_boost_slots.list), list) {
 		int boost = st->slot_boost[slot->idx];
 		if (boost > max_boost)
 			max_boost = boost;

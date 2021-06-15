@@ -219,7 +219,7 @@ static void sugov_get_util(unsigned long *util, unsigned long *max, u64 time)
 	rt = (rt * max_cap) >> SCHED_CAPACITY_SHIFT;
 
 	*util = boosted_cpu_util(cpu);
-	if (use_pelt())
+	if (likely(use_pelt()))
 		*util = *util + rt;
 
 	*util = min(*util, max_cap);
@@ -744,8 +744,6 @@ static int sugov_exit(struct cpufreq_policy *policy)
 	struct sugov_policy *sg_policy = policy->governor_data;
 	struct sugov_tunables *tunables = sg_policy->tunables;
 	unsigned int count;
-
-	cpufreq_disable_fast_switch(policy);
 
 	mutex_lock(&global_tunables_lock);
 
