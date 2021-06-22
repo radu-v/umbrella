@@ -3689,7 +3689,6 @@ bool qdf_print_is_category_enabled(unsigned int idx, QDF_MODULE_ID category)
 		return true;
 }
 qdf_export_symbol(qdf_print_is_category_enabled);
-#endif
 
 bool qdf_print_is_verbose_enabled(unsigned int idx, QDF_MODULE_ID category,
 				  QDF_TRACE_LEVEL verbose)
@@ -3730,6 +3729,7 @@ bool qdf_print_is_verbose_enabled(unsigned int idx, QDF_MODULE_ID category,
 	return verbose_enabled;
 }
 qdf_export_symbol(qdf_print_is_verbose_enabled);
+#endif /* WLAN_DEBUG */
 
 #ifdef DBG_LVL_MAC_FILTERING
 

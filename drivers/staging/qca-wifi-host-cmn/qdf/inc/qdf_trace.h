@@ -1185,7 +1185,7 @@ struct category_name_info {
  * Return: nothing
  *
  */
-#ifndef WLAN_DEBUG
+#ifdef WLAN_DEBUG
 void qdf_trace_msg_cmn(unsigned int idx,
 			QDF_MODULE_ID category,
 			QDF_TRACE_LEVEL verbose,
@@ -1300,7 +1300,7 @@ QDF_STATUS qdf_print_set_category_verbose(unsigned int idx,
 					  QDF_TRACE_LEVEL verbose,
 					  bool is_set);
 
-#ifndef WLAN_DEBUG
+#ifdef WLAN_DEBUG
 /**
  * qdf_print_is_category_enabled() - Get category information for the
  *                                   print control object
