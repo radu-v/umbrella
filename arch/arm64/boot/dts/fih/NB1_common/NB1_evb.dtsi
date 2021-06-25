@@ -52,6 +52,3 @@
 #include "FP_Goodix_TEE_V0.dtsi"
 /* KC Add for external LDO control */
 #include "fixed-regulator-EVT-v1.dtsi"
-
-/* NFC, NXP PN547 */
-#include "nfc-nxp-pn547-evt1.dtsi"

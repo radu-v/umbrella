@@ -55,9 +55,6 @@
 /* KC Add for external LDO control */
 #include "fixed-regulator-EVT-v1.dtsi"
 
-/* NFC, NXP PN547 */
-#include "nfc-nxp-pn547-evt1.dtsi"
-
 &pm8998_gpios {
 	/* GPIO_14 - DIV_CLK2 */
 	gpio@cd00 {
