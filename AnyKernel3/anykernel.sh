@@ -4,14 +4,14 @@
 ## AnyKernel setup
 # begin properties
 properties() { '
-kernel.string={NAME} Kernel
+kernel.string=umod kernel
 do.devicecheck=1
 do.modules=0
 do.systemless=0
 do.cleanup=1
 do.cleanuponabort=0
-device.name1={DEVICE}
-supported.versions=
+device.name1=NB1
+supported.versions=11
 supported.patchlevels=
 '; } # end properties
 
