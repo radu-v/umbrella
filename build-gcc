@@ -5,7 +5,6 @@
 # https://github.com/mvaisakh/gcc-arm64
 # https://github.com/mvaisakh/gcc-arm
 # when building under WSL make sure the distro uses WSL 2
-# unbuffer is part of the expect package
 
 POSITIONAL=()
 while [[ $# -gt 0 ]]
@@ -13,10 +12,6 @@ do
 key="$1"
 
 case $key in
-	--skip-update-submodule)
-	SKIPUPDATESUBMODULE=y
-	shift
-	;;
 	--skip-cleanup|--skip-cleanup)
 	SKIPCLEAN=y
 	shift
@@ -45,69 +40,93 @@ esac
 done
 set -- "${POSITIONAL[@]}"
 
-if [ -z $SKIPUPDATESUBMODULE ]; then
-	echo "Updating submodules"
-	git submodule update --recursive --init
+if [ -z $NOBRANCHINTITLE ]; then
+	CURRENT_BRANCH=$(git branch --show-current)
+	CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH//_/}
+	CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN// /_}
+	CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN////_}
+	CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN//[^a-zA-Z0-9_]/}-
 else
-	echo "Skipping submodule update"
+	if [ -f release ]; then
+		CURRENT_BRANCH_CLEAN=$(cat release)-
+	else
+		CURRENT_BRANCH_CLEAN=
+	fi
 fi
 
-export KBUILD_BUILD_USER="user"
-export KBUILD_BUILD_HOST="build"
-export PATH="$HOME/gcc-arm64/bin:$HOME/gcc-arm/bin:$PATH"
-export LD_LIBRARY_PATH="$HOME/gcc-arm64/lib:$HOME/gcc-arm/lib:$LD_LIBRARY_PATH"
-export ARCH=arm64
-export SUBARCH=arm64
+LAST_COMMIT=$(git rev-parse --verify --short=8 HEAD)
+LOCALVERSION=-${CURRENT_BRANCH_CLEAN}$(date +"%d%m%y%H%M")-$LAST_COMMIT
+
+TOOLCHAIN_DIR=${HOME}
+ANYKERNEL_DIR="AnyKernel3"
+
+# Path to executables in Eva-GCC toolchain
+gcc64_bin="${TOOLCHAIN_DIR}/gcc-arm64/bin"
+gcc32_bin="${TOOLCHAIN_DIR}/gcc-arm/bin"
+
+# 64-bit GCC toolchain prefix
+gcc_prefix64="aarch64-elf-"
+
+# 32-bit GCC toolchain prefix
+gcc_prefix32="arm-eabi-"
+
+export PATH="${gcc64_bin}:${gcc32_bin}:${PATH}"
+ARCH=arm64
+KERNEL_OUTPUT=./out
+DEFCONFIG=${DEFCONFIG:-nb1_defconfig}
+
+KERNEL_OUTPUT=$(readlink -f ${KERNEL_OUTPUT})
 
 function clean_output {
 	echo "Cleaning output dir"
-	make ARCH=arm64 O=out clean && make ARCH=arm64 O=out mrproper
-	rm -rf out
-	mkdir -p out
+	rm -rf ${KERNEL_OUTPUT}
+	make clean && make mrproper
+	mkdir -p ${KERNEL_OUTPUT}
 }
 
 function make_config {
 	echo "Making config"
-	make O=out ARCH=arm64 nb1_defconfig
+	make O=${KERNEL_OUTPUT} ARCH=${ARCH} ${DEFCONFIG}
 }
 
 function make_kernel {
 	echo "Build kernel"
 
-	if [ -z $NOBRANCHINTITLE ]; then
-	    CURRENT_BRANCH=$(git branch --show-current)
-	    CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH//_/}
-	    CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN// /_}
-	    CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN////_}
-	    CURRENT_BRANCH_CLEAN=${CURRENT_BRANCH_CLEAN//[^a-zA-Z0-9_]/}-
-	else
-		if [ -f release ]; then
-			CURRENT_BRANCH_CLEAN=$(cat release)-
-		else
-			CURRENT_BRANCH_CLEAN=
-		fi
-	fi
+	THREADS=$(nproc --all)
 
-	LAST_COMMIT=$(git rev-parse --verify --short=8 HEAD)
+	kmake_flags=(
+		-j"${THREADS}"
+		ARCH="${ARCH}"
+		O="${KERNEL_OUTPUT}"
+		AS="${gcc_prefix64}as"
+		AR="${gcc_prefix64}ar"
+		NM="llvm-nm"
+		LD="${gcc_prefix64}ld.lld"
+		OBJCOPY="llvm-objcopy"
+		OBJDUMP="llvm-objdump"
+		STRIP="llvm-strip"
+		CROSS_COMPILE="${gcc_prefix64}"
+		CROSS_COMPILE_ARM32="${gcc_prefix32}"
+		LOCALVERSION="${LOCALVERSION}"
+	)
 
-	#Build kernel
-	unbuffer \
-	make -j$(nproc --all) O=out \
-		ARCH=arm64 \
-		AR=aarch64-elf-ar \
-		NM=llvm-nm \
-		LD=aarch64-elf-ld.gold \
-		OBJDUMP=aarch64-elf-objdump \
-		STRIP=aarch64-elf-strip \
-		OBJCOPY=llvm-objcopy \
-		CROSS_COMPILE=aarch64-elf- \
-		CROSS_COMPILE_ARM32=arm-eabi- \
-		LOCALVERSION=-${CURRENT_BRANCH_CLEAN}$(date +"%d%m%y%H%M")-$LAST_COMMIT $*  2>&1 | tee error.log
+	make "${kmake_flags[@]}" $*
 }
 
 function pack_kernel {
-	echo "Packaging kernel"
-	umod/package.sh
+	if [ -e ${KERNEL_OUTPUT}/arch/${ARCH}/boot/Image.gz-dtb ]; then
+		echo "Packaging kernel"
+
+		KERNEL_NAME="$(cat out/include/config/kernel.release)"
+
+		ZIP_NAME=${KERNEL_OUTPUT}/${KERNEL_NAME}.zip
+
+		rm ${ZIP_NAME} 2>/dev/null
+
+		cd ${ANYKERNEL_DIR} && zip -r ${ZIP_NAME} * && cd -
+		zip -j -u ${ZIP_NAME} ${KERNEL_OUTPUT}/arch/${ARCH}/boot/Image.gz-dtb
+		echo "AnyKernel3 packaged to ${ZIP_NAME}"
+	fi
 }
 
 if [ -z $SKIPCLEAN ]; then

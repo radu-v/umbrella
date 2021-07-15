@@ -3,7 +3,6 @@
 # this uses the mcd-clang toolchain
 # https://github.com/mcdachpappe/mcd-clang
 # when building under WSL make sure the distro uses WSL 2
-# unbuffer is part of the expect package
 
 POSITIONAL=()
 while [[ $# -gt 0 ]]
@@ -109,8 +108,7 @@ function make_kernel {
 		LOCALVERSION="${LOCALVERSION}"
 	)
 
-	unbuffer \
-	make "${kmake_flags[@]}" $* 2>&1 | tee error.log
+	make "${kmake_flags[@]}" $*
 }
 
 function pack_kernel {
