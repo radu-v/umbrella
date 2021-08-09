@@ -97,6 +97,7 @@ function make_kernel {
 	kmake_flags=(
 		-j"${THREADS}"
 		ARCH="${ARCH}"
+		CC="ccache ${gcc_prefix64}gcc"
 		O="${KERNEL_OUTPUT}"
 		AS="${gcc_prefix64}as"
 		AR="${gcc_prefix64}ar"
