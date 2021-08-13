@@ -1173,12 +1173,13 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 	if ((touch_cb.touch_vendor_id_read != NULL) &&(touch_cb.touch_vendor_id_read() == LGD)){
 		//SW8-DH-Double_Tap_workaround+[
 		if(ctrl->ndx == DSI_CTRL_0){
-		pr_debug("%s, U3 -> %s , Step 1 : LPWG setup\n", __func__, fih_get_aod()? "U2":"U0");
-		siw_hal_lpwg_FIH(9, 1, 0, 1, 0);
-		//SW8-DH-Double_Tap_workaround+]
-		pr_debug("%s, U3 -> %s, Step 2 : Set diplay mode to U0\n", __func__, fih_get_aod()? "U2":"U0");
+			pr_debug("%s, U3 -> %s , Step 1 : LPWG setup\n", __func__, fih_get_aod()? "U2":"U0");
+			siw_hal_lpwg_FIH(9, 1, 0, 1, 0);
+			//SW8-DH-Double_Tap_workaround+]
+			pr_debug("%s, U3 -> %s, Step 2 : Set diplay mode to U0\n", __func__, fih_get_aod()? "U2":"U0");
 		}
 	}
+	#elif CONFIG_TOUCHSCREEN_SYNAPTICS_DSX
 	//SW5-DH-Disable_touch_irq_before_Display_off+[
 	if ((touch_cb.touch_vendor_id_read != NULL) &&(touch_cb.touch_vendor_id_read() == JDI)){
 		if(ctrl->ndx == DSI_CTRL_0){

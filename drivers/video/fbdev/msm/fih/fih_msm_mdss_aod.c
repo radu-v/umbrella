@@ -29,8 +29,14 @@
 
 #ifdef CONFIG_TOUCHSCREEN_SIW
 #include "../../../../include/linux/input/siw_touch_notify.h"
+#endif
+
+#if defined(CONFIG_TOUCHSCREEN_SIW) || defined(CONFIG_TOUCHSCREEN_SYNAPTICS_DSX)
 #include "../../../../fih/fih_touch.h"
 extern struct fih_touch_cb touch_cb;
+#endif
+
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX
 extern int fih_JDI_notifier(int aod_enable); //SW8-DH-JDI-double_tap-00+
 #endif
 
@@ -94,7 +100,7 @@ int fih_set_aod(int enable)
 	return 0;
 }
 
-unsigned int fih_get_panel_id(void)
+inline unsigned int fih_get_panel_id(void)
 {
 	struct mdss_panel_info *pinfo;
 	pinfo = &gpdata->panel_data.panel_info;
@@ -122,7 +128,7 @@ int fih_set_glance(int enable)
 	}
 	return 0;
 }
-int fih_get_glance(void)
+inline int fih_get_glance(void)
 {
 	return glance_option;
 }
@@ -518,7 +524,7 @@ static int mdss_dsi_panel_LPM053A348A_low_power_config(struct mdss_panel_data *p
 		}
 		kfree(rx_buf);
 		pinfo->aod_ready_on = 1;
-		#ifdef CONFIG_TOUCHSCREEN_SIW
+		#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX
 		if ((touch_cb.touch_vendor_id_read != NULL) &&(touch_cb.touch_vendor_id_read() == JDI))
 			fih_JDI_notifier(pinfo->aod_ready_on);//SW8-DH-JDI-double_tap-00+
 		#endif
@@ -546,8 +552,8 @@ static int mdss_dsi_panel_LPM053A348A_low_power_config(struct mdss_panel_data *p
 			msleep(50);
 		}
 		pinfo->aod_ready_on = 0;
-		#ifdef CONFIG_TOUCHSCREEN_SIW
-                if ((touch_cb.touch_vendor_id_read != NULL) &&(touch_cb.touch_vendor_id_read() == JDI))
+		#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX
+		if ((touch_cb.touch_vendor_id_read != NULL) &&(touch_cb.touch_vendor_id_read() == JDI))
 			fih_JDI_notifier(pinfo->aod_ready_on);//SW8-DH-JDI-double_tap-00+
 		#endif
 
@@ -657,8 +663,8 @@ void mdss_aod_resume_config(struct mdss_panel_data *pdata)
 			pinfo->aod_ready_on=0;
 			if (ctrl->aod_8color_exit_cmds.cmd_cnt)
 				mdss_dsi_panel_cmds_send(ctrl, &ctrl->aod_8color_exit_cmds, CMD_REQ_COMMIT);
-			#ifdef CONFIG_TOUCHSCREEN_SIW
-	                if ((touch_cb.touch_vendor_id_read != NULL) &&(touch_cb.touch_vendor_id_read() == JDI))
+			#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX
+			if ((touch_cb.touch_vendor_id_read != NULL) &&(touch_cb.touch_vendor_id_read() == JDI))
 				fih_JDI_notifier(pinfo->aod_ready_on);//SW8-DH-JDI-double_tap-00+
 			#endif
 
