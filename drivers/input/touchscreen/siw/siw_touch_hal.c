@@ -7039,8 +7039,13 @@ unsigned int touch_double_tap_read(void)
 int touch_double_tap_write(unsigned int enable)
 {
 	struct device *dev =  g_dev;
-	t_dev_dbg(DBG_BASE, dev, "%s, current double_tap = %d, set double_tap = %d", __func__, double_tap_enable, enable);
+	struct siw_touch_chip *chip = to_touch_chip(dev);
+	struct siw_ts *ts = chip->ts;
+	struct lpwg_info *lpwg = &ts->lpwg;
+
 	double_tap_enable = enable;
+	t_dev_dbg(DBG_BASE, dev, "%s, current double_tap = %d, set double_tap = %d", __func__, double_tap_enable, enable);
+	siw_hal_lpwg_FIH(LPWG_UPDATE_ALL, double_tap_enable, lpwg->screen, lpwg->sensor, lpwg->qcover);
 	return 0;
 }
 unsigned int touch_prox_status_read(void)
