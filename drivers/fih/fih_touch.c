@@ -652,34 +652,34 @@ static struct file_operations touch_alt_st_enable_file_ops = {
 //SW8-JH-ALT test+]
 static int __init fih_touch_init(void)
 {
-        int retry_count = 50;
-        while(!tp_probe_success && retry_count-- > 0)
-        {
-             if((retry_count % 10) == 9)
-                 pr_err("waitng for touch panel probe ready %d\n",retry_count%10);
-             msleep(100);
-        };
+	int retry_count = 50;
+	while(!tp_probe_success && retry_count-- > 0)
+	{
+		if((retry_count % 10) == 9)
+			pr_err("waitng for touch panel probe ready %d\n",retry_count%10);
+		msleep(100);
+	};
 	if(tp_probe_success)	//SW4-HL-TouchPanel-AccordingToTPDriverProbeResultToDecideWhetherToCreateVirtualFileOrNot-00+_20151130
 	{
 		pr_err("panel probe success, create proc file\n");
 		//F@Touch Self Test
 		if (proc_create(FIH_PROC_TP_SELF_TEST, 0, NULL, &touch_self_test_proc_file_ops) == NULL)
-        {
-            proc_mkdir(FIH_PROC_DIR, NULL);
-            if (proc_create(FIH_PROC_TP_SELF_TEST, 0, NULL, &touch_self_test_proc_file_ops) == NULL)
-            {
-			pr_err("fail to create proc/%s\n", FIH_PROC_TP_SELF_TEST);
-			return (1);
-            }
-        }
+		{
+			proc_mkdir(FIH_PROC_DIR, NULL);
+			if (proc_create(FIH_PROC_TP_SELF_TEST, 0, NULL, &touch_self_test_proc_file_ops) == NULL)
+			{
+				pr_err("fail to create proc/%s\n", FIH_PROC_TP_SELF_TEST);
+				return (1);
+			}
+		}
 		if (proc_create(FIH_PROC_TP_SELF_TEST_U0, 0, NULL, &touch_self_test_U0_proc_file_ops) == NULL)
-        		{
-		            proc_mkdir(FIH_PROC_DIR, NULL);
-		            if (proc_create(FIH_PROC_TP_SELF_TEST_U0, 0, NULL, &touch_self_test_U0_proc_file_ops) == NULL)
-		            {
-			pr_err("fail to create proc/%s\n", FIH_PROC_TP_SELF_TEST_U0);
-			return (1);
-		            }
+		{
+			proc_mkdir(FIH_PROC_DIR, NULL);
+			if (proc_create(FIH_PROC_TP_SELF_TEST_U0, 0, NULL, &touch_self_test_U0_proc_file_ops) == NULL)
+			{
+				pr_err("fail to create proc/%s\n", FIH_PROC_TP_SELF_TEST_U0);
+				return (1);
+			}
 		}
 
 		//F@Touch Read IC's firmware version
@@ -719,6 +719,17 @@ static int __init fih_touch_init(void)
 			pr_err("fail to create proc/%s\n", FIH_PROC_TP_DOUBLE_TAP);
 			return (1);
 		}
+
+		if (proc_mkdir("touchpanel", NULL) == NULL) {
+			pr_err("%s: Couldn't create proc/touchpanel\n", __func__);
+			return (1);
+		}
+
+		if (proc_create("touchpanel/double_tap_enable", 0, NULL, &touch_double_tap_proc_file_ops) == NULL) {
+			pr_err("%s: Couldn't create proc/touchpanel/double_tap_enable\n", __func__);
+			return (1);
+		}
+
 		if (proc_create(FIH_PROC_TP_PROX_STATUS, 0, NULL, &touch_prox_status_proc_file_ops) == NULL)
 		{
 			pr_err("fail to create proc/%s\n", FIH_PROC_TP_PROX_STATUS);
