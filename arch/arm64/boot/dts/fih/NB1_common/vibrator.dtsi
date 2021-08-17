@@ -6,9 +6,8 @@
 	qcom,wave-shape = "sine";
 	qcom,wave-play-rate-us = <4878>;
 	qcom,en-brake;
-	qcom,brake-pattern = <03 02 01 00>;
+	qcom,brake-pattern = [03 02 10 00];
 	qcom,lra-auto-res-mode = "none";
-	qcom,wave-samples = [28 28 28 28 28 28 28 28];
 	/delete-property/ qcom,lra-high-z;
 	/delete-property/ qcom,lra-res-cal-period;
 };

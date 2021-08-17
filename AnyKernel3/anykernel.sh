@@ -11,7 +11,7 @@ do.systemless=0
 do.cleanup=1
 do.cleanuponabort=0
 device.name1=NB1
-supported.versions=11
+supported.versions=9
 supported.patchlevels=
 '; } # end properties
 

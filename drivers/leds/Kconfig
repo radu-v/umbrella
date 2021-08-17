@@ -657,6 +657,7 @@ config CHECK_FTM
 config LEDS_QPNP_HAPTICS
 	tristate "Haptics support for QPNP PMIC"
 	depends on LEDS_CLASS && MFD_SPMI_PMIC
+	depends on !QPNP_HAPTIC
 	help
 	  This option enables device driver support for the haptics peripheral
 	  found on Qualcomm Technologies, Inc. QPNP PMICs.  The haptic

@@ -2752,17 +2752,13 @@ static int qpnp_hap_parse_dt(struct qpnp_hap *hap)
 	}
 
 	hap->act_type = QPNP_HAP_LRA;
-	rc = of_property_read_string(pdev->dev.of_node,
-			"qcom,actuator-type", &temp_str);
+	rc = of_property_read_u32(pdev->dev.of_node, "qcom,actuator-type", &temp);
 	if (!rc) {
-		if (strcmp(temp_str, "erm") == 0)
-			hap->act_type = QPNP_HAP_ERM;
-		else if (strcmp(temp_str, "lra") == 0)
-			hap->act_type = QPNP_HAP_LRA;
-		else {
-			pr_err("Invalid actuator type\n");
+		if (temp != QPNP_HAP_LRA && temp != QPNP_HAP_ERM) {
+			pr_err("Incorrect actuator type\n");
 			return -EINVAL;
 		}
+		hap->act_type = temp;
 	} else if (rc != -EINVAL) {
 		pr_err("Unable to read actuator type\n");
 		return rc;
@@ -3012,11 +3008,11 @@ static int qpnp_hap_parse_dt(struct qpnp_hap *hap)
 		}
 	}
 
-	hap->play_irq = platform_get_irq_byname(hap->pdev, "play-irq");
+	hap->play_irq = platform_get_irq_byname(hap->pdev, "hap-play-irq");
 	if (hap->play_irq < 0)
 		pr_warn("Unable to get play irq\n");
 
-	hap->sc_irq = platform_get_irq_byname(hap->pdev, "sc-irq");
+	hap->sc_irq = platform_get_irq_byname(hap->pdev, "hap-sc-irq");
 	if (hap->sc_irq < 0) {
 		pr_err("Unable to get sc irq\n");
 		return hap->sc_irq;
@@ -3194,13 +3190,13 @@ static int qpnp_haptic_remove(struct platform_device *pdev)
 }
 
 static const struct of_device_id spmi_match_table[] = {
-	{ .compatible = "qcom,qpnp-haptic", },
+	{ .compatible = "qcom,qpnp-haptics", },
 	{ },
 };
 
 static struct platform_driver qpnp_haptic_driver = {
 	.driver		= {
-		.name		= "qcom,qpnp-haptic",
+		.name		= "qcom,qpnp-haptics",
 		.of_match_table	= spmi_match_table,
 		.pm		= &qpnp_haptic_pm_ops,
 	},
