@@ -56,10 +56,11 @@ LAST_COMMIT=$(git rev-parse --verify --short=8 HEAD)
 LOCALVERSION=-${CURRENT_BRANCH_CLEAN}$(date +"%d%m%y%H%M")-$LAST_COMMIT
 
 TOOLCHAIN_DIR=${HOME}
-ANYKERNEL_DIR="AnyKernel3"
+ANYKERNEL_DIR=${ANYKERNEL_DIR:-AnyKernel3}
+CLANG_VARIANT=${CLANG_VARIANT:-mcd-clang}
 
 # Path to executables in Clang toolchain
-clang_path="${TOOLCHAIN_DIR}/mcd-clang"
+clang_path="${TOOLCHAIN_DIR}/${CLANG_VARIANT}"
 clang_bin="${clang_path}/bin"
 
 # 64-bit GCC toolchain prefix
