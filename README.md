@@ -1,5 +1,3 @@
-[![radu-v](https://circleci.com/gh/radu-v/umbrella-mod.svg?style=svg)](https://circleci.com/gh/radu-v/umbrella-mod)
-
 # Custom kernel for Nokia 8 (NB1)
 
 [Umbrella kernel](https://github.com/resident-nokia/umbrella) with some patches and additions.
